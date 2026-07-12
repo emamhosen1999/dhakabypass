@@ -1,0 +1,324 @@
+[
+  {
+    "key": "t1",
+    "type": "text",
+    "section": "Project Overview",
+    "multiline": false,
+    "label": "Heading (h1)"
+  },
+  {
+    "key": "t2",
+    "type": "text",
+    "section": "Project Overview",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t3",
+    "type": "text",
+    "section": "Project Description",
+    "multiline": false,
+    "label": "Heading (h2)"
+  },
+  {
+    "key": "t4",
+    "type": "text",
+    "section": "Project Description",
+    "multiline": true,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t5",
+    "type": "text",
+    "section": "Project Description",
+    "multiline": true,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t6",
+    "type": "text",
+    "section": "Project Description",
+    "multiline": true,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t7",
+    "type": "text",
+    "section": "Project Objectives",
+    "multiline": false,
+    "label": "Heading (h2)"
+  },
+  {
+    "key": "t8",
+    "type": "text",
+    "section": "Project Objectives",
+    "multiline": false,
+    "label": "List item"
+  },
+  {
+    "key": "t9",
+    "type": "text",
+    "section": "Project Objectives",
+    "multiline": false,
+    "label": "List item"
+  },
+  {
+    "key": "t10",
+    "type": "text",
+    "section": "Project Objectives",
+    "multiline": false,
+    "label": "List item"
+  },
+  {
+    "key": "t11",
+    "type": "text",
+    "section": "Project Objectives",
+    "multiline": false,
+    "label": "List item"
+  },
+  {
+    "key": "t12",
+    "type": "text",
+    "section": "Project Objectives",
+    "multiline": false,
+    "label": "List item"
+  },
+  {
+    "key": "t13",
+    "type": "text",
+    "section": "Project Objectives",
+    "multiline": false,
+    "label": "List item"
+  },
+  {
+    "key": "t14",
+    "type": "text",
+    "section": "Project Objectives",
+    "multiline": false,
+    "label": "List item"
+  },
+  {
+    "key": "t15",
+    "type": "text",
+    "section": "Project Objectives",
+    "multiline": false,
+    "label": "List item"
+  },
+  {
+    "key": "t16",
+    "type": "text",
+    "section": "Technical Specifications",
+    "multiline": false,
+    "label": "Heading (h2)"
+  },
+  {
+    "key": "t17",
+    "type": "text",
+    "section": "Length",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t18",
+    "type": "text",
+    "section": "Length",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t19",
+    "type": "text",
+    "section": "Lanes",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t20",
+    "type": "text",
+    "section": "Lanes",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t21",
+    "type": "text",
+    "section": "Bridges",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t22",
+    "type": "text",
+    "section": "Bridges",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t23",
+    "type": "text",
+    "section": "Flyovers",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t24",
+    "type": "text",
+    "section": "Flyovers",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t25",
+    "type": "text",
+    "section": "Underpasses",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t26",
+    "type": "text",
+    "section": "Underpasses",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t27",
+    "type": "text",
+    "section": "Service Roads",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t28",
+    "type": "text",
+    "section": "Service Roads",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t29",
+    "type": "text",
+    "section": "Interchanges",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t30",
+    "type": "text",
+    "section": "Interchanges",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t31",
+    "type": "text",
+    "section": "Design Speed",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t32",
+    "type": "text",
+    "section": "Design Speed",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t33",
+    "type": "text",
+    "section": "Project Sections",
+    "multiline": false,
+    "label": "Heading (h2)"
+  },
+  {
+    "key": "t34",
+    "type": "text",
+    "section": "Project Sections",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t35",
+    "type": "text",
+    "section": "Project Sections",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t36",
+    "type": "text",
+    "section": "Project Sections",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t37",
+    "type": "text",
+    "section": "Project Sections",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t38",
+    "type": "text",
+    "section": "Project Sections",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t39",
+    "type": "text",
+    "section": "Project Documents",
+    "multiline": false,
+    "label": "Heading (h2)"
+  },
+  {
+    "key": "t40",
+    "type": "text",
+    "section": "Project Documents",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t41",
+    "type": "text",
+    "section": "Project Documents",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t42",
+    "type": "text",
+    "section": "Project Documents",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t43",
+    "type": "text",
+    "section": "Project Documents",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t44",
+    "type": "text",
+    "section": "Need More Information?",
+    "multiline": false,
+    "label": "Heading (h2)"
+  },
+  {
+    "key": "t45",
+    "type": "text",
+    "section": "Need More Information?",
+    "multiline": true,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t46",
+    "type": "text",
+    "section": "Need More Information?",
+    "multiline": false,
+    "label": "Text"
+  }
+]
