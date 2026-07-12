@@ -1,0 +1,19 @@
+node_modules/
+.next/
+out/
+build/
+
+# env / secrets
+.env
+.env*.local
+
+# uploads written by the admin panel at runtime
+public/uploads/
+
+# local scratch / screenshots
+.playwright-mcp/
+*.log
+local-*.png
+live-*.png
+nav-fixed.png
+hero-restored.png

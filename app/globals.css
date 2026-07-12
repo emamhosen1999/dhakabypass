@@ -1,0 +1,19 @@
+@import 'tailwindcss';
+
+/* Be explicit about where classes live so utilities are never missed. */
+@source "../app";
+@source "../components";
+
+/*
+ * The original site was Tailwind v4 with the default theme, so re-generating
+ * from source reproduces the same utilities/values (oklch palette, default
+ * sans stack). The only non-default utilities the original shipped were these
+ * two text-shadow helpers, ported verbatim from its compiled stylesheet.
+ */
+@utility text-shadow {
+  text-shadow: 0 2px 4px #00000080;
+}
+
+@utility text-shadow-lg {
+  text-shadow: 0 4px 8px #00000080;
+}
