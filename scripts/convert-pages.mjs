@@ -48,9 +48,40 @@ const ATTR_MAP = {
   viewbox: 'viewBox',
   xmlns: 'xmlns',
   'xlink:href': 'xlinkHref',
+  // SVG camelCase attributes (no hyphen, so camel() can't infer them)
+  stddeviation: 'stdDeviation',
+  preserveaspectratio: 'preserveAspectRatio',
+  gradientunits: 'gradientUnits',
+  gradienttransform: 'gradientTransform',
+  patternunits: 'patternUnits',
+  patterntransform: 'patternTransform',
+  clippath: 'clipPath',
+  clippathunits: 'clipPathUnits',
+  markerwidth: 'markerWidth',
+  markerheight: 'markerHeight',
+  markerunits: 'markerUnits',
+  refx: 'refX',
+  refy: 'refY',
+  spreadmethod: 'spreadMethod',
+  basefrequency: 'baseFrequency',
+  numoctaves: 'numOctaves',
+  stopcolor: 'stopColor',
+  stopopacity: 'stopOpacity',
+  floodcolor: 'floodColor',
+  floodopacity: 'floodOpacity',
+  textanchor: 'textAnchor',
+  filterunits: 'filterUnits',
+  primitiveunits: 'primitiveUnits',
+  maskunits: 'maskUnits',
+  maskcontentunits: 'maskContentUnits',
 };
 
 const camel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+
+// SVG element names are case-sensitive in JSX; the parser lowercases them.
+const SVG_TAGS = Object.fromEntries(
+  ['linearGradient','radialGradient','clipPath','textPath','foreignObject','feGaussianBlur','feComposite','feDropShadow','feBlend','feColorMatrix','feOffset','feMerge','feMergeNode','feFlood','feTurbulence','animateTransform','animateMotion'].map((t) => [t.toLowerCase(), t])
+);
 
 function decodeEntities(s) {
   return s
@@ -136,7 +167,8 @@ export function convert(html, slug, opts = {}) {
     }
     if (node.nodeType !== 1) return '';
 
-    const tag = node.rawTagName?.toLowerCase();
+    const lower = node.rawTagName?.toLowerCase();
+    const tag = SVG_TAGS[lower] || lower;
     if (!tag || tag === 'script' || tag === 'style' || tag === 'next-route-announcer') return '';
 
     // track section for admin grouping

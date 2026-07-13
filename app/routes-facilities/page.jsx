@@ -1,4 +1,5 @@
 import { getContent } from '../../lib/content';
+import SectionTabs from '../../components/SectionTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,20 +24,15 @@ export default async function RoutesFacilitiesPage() {
       </div>
       <div className="bg-white shadow-md sticky top-16 z-10">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
-          <div className="flex justify-center overflow-x-auto">
-            <button className="py-4 px-6 font-medium text-sm whitespace-nowrap transition duration-200 border-b-2 border-blue-900 text-blue-900">
-              {c.t3}
-            </button>
-            <button className="py-4 px-6 font-medium text-sm whitespace-nowrap transition duration-200 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
-              {c.t4}
-            </button>
-            <button className="py-4 px-6 font-medium text-sm whitespace-nowrap transition duration-200 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
-              {c.t5}
-            </button>
-            <button className="py-4 px-6 font-medium text-sm whitespace-nowrap transition duration-200 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
-              {c.t6}
-            </button>
-          </div>
+          <SectionTabs
+            variant="underline"
+            tabs={[
+              { label: c.t3, targetId: 'route' },
+              { label: c.t4, targetId: 'locations' },
+              { label: c.t5, targetId: 'toll' },
+              { label: c.t6, targetId: 'facilities' },
+            ]}
+          />
         </div>
       </div>
       <div className="py-8 md:py-12 bg-white">
@@ -47,22 +43,22 @@ export default async function RoutesFacilitiesPage() {
             </h2>
             <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-10">
               <div className="h-96 bg-blue-50 relative">
-                <svg className="w-full h-full" viewBox="0 0 1000 400" preserveaspectratio="xMidYMid meet">
+                <svg className="w-full h-full" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
                   <defs>
-                    <lineargradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#f0f9ff" />
                       <stop offset="100%" stopColor="#e6f0f9" />
-                    </lineargradient>
-                    <lineargradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    </linearGradient>
+                    <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#004b8d" />
                       <stop offset="100%" stopColor="#0063b1" />
-                    </lineargradient>
+                    </linearGradient>
                     <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                      <fegaussianblur stddeviation="4" result="blur" />
-                      <fecomposite in="SourceGraphic" in2="blur" operator="over" />
+                      <feGaussianBlur stdDeviation="4" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
                     </filter>
                     <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-                      <fedropshadow dx="0" dy="1" stddeviation="2" floodColor="#00000022" />
+                      <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#00000022" />
                     </filter>
                   </defs>
                   <rect x="0" y="0" width="1000" height="400" fill="url(#bgGradient)" />

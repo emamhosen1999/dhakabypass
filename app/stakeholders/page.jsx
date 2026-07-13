@@ -1,4 +1,5 @@
 import { getContent } from '../../lib/content';
+import SectionTabs from '../../components/SectionTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,19 +22,16 @@ export default async function StakeholdersPage() {
             <p className="text-xl opacity-90 mb-8">
               {c.t2}
             </p>
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <button className="px-6 py-3 rounded-md transition-all bg-orange-500 text-white">
-                {c.t3}
-              </button>
-              <button className="px-6 py-3 rounded-md transition-all bg-white/10 text-white hover:bg-white/20">
-                {c.t4}
-              </button>
-              <button className="px-6 py-3 rounded-md transition-all bg-white/10 text-white hover:bg-white/20">
-                {c.t5}
-              </button>
-              <button className="px-6 py-3 rounded-md transition-all bg-white/10 text-white hover:bg-white/20">
-                {c.t6}
-              </button>
+            <div className="mt-8">
+              <SectionTabs
+                variant="hero"
+                tabs={[
+                  { label: c.t3, targetId: 'bangladeshi' },
+                  { label: c.t4, targetId: 'international' },
+                  { label: c.t5, targetId: 'chinese' },
+                  { label: c.t6, targetId: 'team' },
+                ]}
+              />
             </div>
           </div>
         </div>

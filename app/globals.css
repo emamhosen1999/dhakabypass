@@ -17,3 +17,35 @@
 @utility text-shadow-lg {
   text-shadow: 0 4px 8px #00000080;
 }
+
+/*
+ * Custom animations the original defined by hand (Tailwind does not generate
+ * these). `animate-dash` drives the moving dashed line on the route-map SVG;
+ * without it that SVG renders static. `animate-on-scroll` was used as a
+ * fade-in-up marker.
+ */
+@keyframes dash {
+  to {
+    stroke-dashoffset: 100px;
+  }
+}
+
+@utility animate-dash {
+  stroke-dasharray: 10 10;
+  animation: dash 20s linear infinite;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-on-scroll {
+  animation: fadeIn 0.6s ease-out both;
+}
