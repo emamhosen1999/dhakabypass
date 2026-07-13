@@ -119,6 +119,19 @@
     "secondaryCta": { "label": "Contact Us", "href": "/contact" }
   },
 
+  "page.gallery": {
+    "heading": "Project Gallery",
+    "intro": "Visual documentation of the Dhaka Bypass Expressway construction progress and milestones."
+  },
+
+  "page.notFound": {
+    "code": "404",
+    "heading": "Page Not Found",
+    "text": "The page you're looking for doesn't exist or has been moved.",
+    "ctaLabel": "Back to Home",
+    "ctaHref": "/"
+  },
+
   "home.meta": {
     "title": "Dhaka Bypass Expressway - Bangladesh's First Fully Access-Controlled Highway",
     "description": "Official website of the Dhaka Bypass Expressway project, spanning 48km and connecting major national highways around Dhaka."
