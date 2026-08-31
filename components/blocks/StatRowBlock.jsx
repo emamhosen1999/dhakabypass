@@ -5,11 +5,12 @@ export default function StatRowBlock({ data }) {
       <dl className="db-statrow-grid">
         {stats.map((s, i) => (
           <div key={i} className="db-stat">
+            {/* dt must precede dd for valid HTML and screen-reader order. Visual order is handled by CSS. */}
+            <dt className="db-stat-label">{s.label}</dt>
             <dd className="db-stat-value">
               {s.value}
               {s.unit ? <span className="db-stat-unit">{s.unit}</span> : null}
             </dd>
-            <dt className="db-stat-label">{s.label}</dt>
           </div>
         ))}
       </dl>
