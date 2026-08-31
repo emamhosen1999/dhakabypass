@@ -5,14 +5,14 @@ vi.mock('../../auth.js', () => ({ auth: vi.fn() }));
 vi.mock('../../lib/content/pages.js', () => ({
   listPages: vi.fn(),
   createPage: vi.fn(),
-  deletePage: vi.fn(),
+  deletePageIfChildless: vi.fn(),
   getPageBySlug: vi.fn(),
 }));
 vi.mock('../../lib/revalidate.js', () => ({ revalidatePage: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
 import { auth } from '../../auth.js';
-import { listPages, createPage, deletePage, getPageBySlug } from '../../lib/content/pages.js';
+import { listPages, createPage, deletePageIfChildless, getPageBySlug } from '../../lib/content/pages.js';
 import { revalidatePage } from '../../lib/revalidate.js';
 import { revalidatePath } from 'next/cache';
 import {
@@ -26,6 +26,13 @@ function formData(entries) {
   const fd = new FormData();
   for (const [k, v] of Object.entries(entries)) fd.set(k, v);
   return fd;
+}
+
+function hasChildrenError(count) {
+  const err = new Error(`Page has ${count} child page(s)`);
+  err.code = 'HAS_CHILDREN';
+  err.childCount = count;
+  return err;
 }
 
 describe('assertCan — the authorization chokepoint', () => {
@@ -89,10 +96,40 @@ describe('createPageAction', () => {
     await expect(createPageAction(formData({ title: '' }))).rejects.toThrow('Give the page a title');
   });
 
+  it('gives usable guidance when the title normalises to an empty slug (non-Latin script)', async () => {
+    await expect(createPageAction(formData({ title: 'ভ্রমণ তথ্য' }))).rejects.toThrow(
+      'Could not build a web address from that title. Please type one in the Address field using English letters, numbers and hyphens.'
+    );
+    expect(createPage).not.toHaveBeenCalled();
+  });
+
   it('rejects a duplicate slug with a clear message, not a database error', async () => {
     getPageBySlug.mockResolvedValue({ id: 5, slug: 'travel' });
     await expect(createPageAction(formData({ title: 'Travel' }))).rejects.toThrow('A page already lives at "travel"');
     expect(createPage).not.toHaveBeenCalled();
+  });
+
+  it('translates a duplicate-slug race (ER_DUP_ENTRY from the INSERT) into the same friendly message', async () => {
+    getPageBySlug.mockResolvedValue(null); // pre-check passes...
+    const dupErr = new Error("Duplicate entry 'travel' for key 'pages.slug'");
+    dupErr.code = 'ER_DUP_ENTRY';
+    dupErr.sqlMessage = "Duplicate entry 'travel' for key 'pages.slug'";
+    createPage.mockRejectedValue(dupErr); // ...but another request won the INSERT race
+    await expect(createPageAction(formData({ title: 'Travel' }))).rejects.toThrow('A page already lives at "travel"');
+  });
+
+  it('turns any other database error into a generic message, never the driver text', async () => {
+    getPageBySlug.mockResolvedValue(null);
+    const dbErr = new Error('Data too long for column \'slug\' at row 1');
+    dbErr.code = 'ER_DATA_TOO_LONG';
+    dbErr.sqlMessage = 'Data too long for column \'slug\' at row 1';
+    dbErr.sql = "INSERT INTO pages (slug, parent_id, status) VALUES ('...', NULL, 'published')";
+    createPage.mockRejectedValue(dbErr);
+    await expect(createPageAction(formData({ title: 'Travel' }))).rejects.toThrow(
+      'Could not create the page. Please try again.'
+    );
+    // and definitely not the raw driver message
+    await expect(createPageAction(formData({ title: 'Travel' }))).rejects.not.toThrow(/Data too long|sqlMessage/);
   });
 
   it('creates the page, then revalidates the page and the admin list', async () => {
@@ -114,44 +151,43 @@ describe('deletePageAction', () => {
   it('is blocked by assertCan before touching data', async () => {
     auth.mockResolvedValue({ user: { isAdmin: false, role: 'admin' } });
     await expect(deletePageAction(formData({ id: '1', slug: 'travel' }))).rejects.toThrow('Sign in to continue');
-    expect(listPages).not.toHaveBeenCalled();
-    expect(deletePage).not.toHaveBeenCalled();
+    expect(deletePageIfChildless).not.toHaveBeenCalled();
   });
 
   it('requires a page id', async () => {
     await expect(deletePageAction(formData({ id: '', slug: '' }))).rejects.toThrow('No page selected');
   });
 
-  it('refuses to delete a page with children, naming the count, and does not touch the row', async () => {
+  it('refuses to delete a page with children, naming the count, translating the HAS_CHILDREN error', async () => {
     // pages.parent_id has no FK constraint — the DB will not cascade or null
     // it, so deleting a parent here would orphan its children.
-    listPages.mockResolvedValue([
-      { id: 1, slug: 'travel', parent_id: null },
-      { id: 2, slug: 'travel/toll', parent_id: 1 },
-      { id: 3, slug: 'travel/routes', parent_id: 1 },
-    ]);
+    // deletePageIfChildless does the check-and-delete atomically; the action
+    // just has to translate its error into the user-facing message.
+    deletePageIfChildless.mockRejectedValue(hasChildrenError(2));
     await expect(deletePageAction(formData({ id: '1', slug: 'travel' }))).rejects.toThrow(
       'This page has 2 sub-pages. Delete or move them first.'
     );
-    expect(deletePage).not.toHaveBeenCalled();
+    expect(deletePageIfChildless).toHaveBeenCalledWith(1);
     expect(revalidatePage).not.toHaveBeenCalled();
   });
 
   it('uses singular phrasing for exactly one child', async () => {
-    listPages.mockResolvedValue([
-      { id: 1, slug: 'travel', parent_id: null },
-      { id: 2, slug: 'travel/toll', parent_id: 1 },
-    ]);
+    deletePageIfChildless.mockRejectedValue(hasChildrenError(1));
     await expect(deletePageAction(formData({ id: '1', slug: 'travel' }))).rejects.toThrow(
       'This page has 1 sub-page. Delete or move them first.'
     );
-    expect(deletePage).not.toHaveBeenCalled();
+  });
+
+  it('lets a non-HAS_CHILDREN error from deletePageIfChildless propagate', async () => {
+    const otherErr = new Error('connection lost');
+    deletePageIfChildless.mockRejectedValue(otherErr);
+    await expect(deletePageAction(formData({ id: '1', slug: 'travel' }))).rejects.toThrow('connection lost');
   });
 
   it('deletes a childless page and revalidates', async () => {
-    listPages.mockResolvedValue([{ id: 1, slug: 'travel', parent_id: null }]);
+    deletePageIfChildless.mockResolvedValue(undefined);
     await deletePageAction(formData({ id: '1', slug: 'travel' }));
-    expect(deletePage).toHaveBeenCalledWith(1);
+    expect(deletePageIfChildless).toHaveBeenCalledWith(1);
     expect(revalidatePage).toHaveBeenCalledWith('travel');
     expect(revalidatePath).toHaveBeenCalledWith('/admin/pages-v2');
   });

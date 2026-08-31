@@ -20,4 +20,13 @@ describe('normalizeSlug', () => {
     expect(isValidSlug('../etc')).toBe(false);
     expect(isValidSlug('travel/toll')).toBe(true);
   });
+
+  it('caps a very long title to a slug that still passes isValidSlug', () => {
+    // pages.slug is VARCHAR(191); 150 is the cap normalizeSlug enforces.
+    const longTitle = Array.from({ length: 30 }, (_, i) => `Section Word ${i}`).join(' ');
+    expect(longTitle.length).toBeGreaterThan(300);
+    const slug = normalizeSlug(longTitle);
+    expect(slug.length).toBeLessThanOrEqual(150);
+    expect(isValidSlug(slug)).toBe(true);
+  });
 });

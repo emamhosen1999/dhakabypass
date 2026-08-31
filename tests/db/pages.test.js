@@ -76,6 +76,24 @@ describe('pages', () => {
     expect(await P.getPageBlocks(pageId)).toEqual([]);
   });
 
+  it('deletePageIfChildless refuses to delete a page with children, and the page still exists afterwards', async () => {
+    const parentId = await P.createPage({ slug: 'travel', title: 'Travel' });
+    await P.createPage({ slug: 'travel/toll', title: 'Toll', parentId });
+
+    await expect(P.deletePageIfChildless(parentId)).rejects.toMatchObject({
+      code: 'HAS_CHILDREN',
+      childCount: 1,
+    });
+
+    expect(await P.getPageBySlug('travel')).not.toBe(null);
+  });
+
+  it('deletePageIfChildless deletes a page that has no children', async () => {
+    const pageId = await P.createPage({ slug: 'lonely', title: 'Lonely' });
+    await P.deletePageIfChildless(pageId);
+    expect(await P.getPageBySlug('lonely')).toBe(null);
+  });
+
   it('reorderBlocks throws when given a partial list, and the stored order is unchanged afterwards', async () => {
     const pageId = await P.createPage({ slug: 'p', title: 'P' });
     const a = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>a</p>' } });
