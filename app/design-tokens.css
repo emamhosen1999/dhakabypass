@@ -150,3 +150,10 @@
     animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;
   }
 }
+
+.db-theme-toggle{display:inline-flex;border:1px solid var(--db-rule);border-radius:3px;overflow:hidden;}
+.db-theme-btn{font-family:var(--db-font-display);font-size:.74rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:6px 10px;background:transparent;color:var(--db-ink-3);
+  border:0;border-right:1px solid var(--db-rule);cursor:pointer;}
+.db-theme-btn:last-child{border-right:0;}
+.db-theme-btn[aria-pressed="true"]{background:var(--db-accent-bright);color:#0B1620;}
