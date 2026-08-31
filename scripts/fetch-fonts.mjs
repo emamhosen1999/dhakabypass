@@ -32,13 +32,21 @@ while ((m = wanted.exec(css))) {
   const family = /font-family: '([^']+)'/.exec(block)[1].replace(/\s+/g, '');
   const weight = /font-weight: ([\d ]+)/.exec(block)[1].trim().replace(/\s+/g, '-');
   const url = /url\((https[^)]+)\)/.exec(block)[1];
+  // Each subset (latin, bengali, ...) covers a distinct codepoint range. Without
+  // this descriptor every @font-face defaults to covering the whole codepoint
+  // space, and the cascade picks whichever rule was declared last — silently
+  // dropping every other subset at that weight, no matter which family it is.
+  const unicodeRangeMatch = /unicode-range: ([^;]+);/.exec(block);
+  const unicodeRange = unicodeRangeMatch ? unicodeRangeMatch[1].trim() : null;
   const file = path.join(OUT, `${family}-${m[1]}-${weight}.woff2`);
   const buf = Buffer.from(await (await fetch(url, { headers: { 'User-Agent': UA } })).arrayBuffer());
   fs.writeFileSync(file, buf);
   console.log(`${path.basename(file)}  ${(buf.length / 1024).toFixed(1)} KB`);
   faces.push(
     `@font-face{font-family:'${family}';font-style:normal;font-weight:${/font-weight: ([\d ]+)/.exec(block)[1].trim()};` +
-    `font-display:swap;src:url('/fonts/${path.basename(file)}') format('woff2');}`
+    `font-display:swap;src:url('/fonts/${path.basename(file)}') format('woff2');` +
+    (unicodeRange ? `unicode-range:${unicodeRange};` : '') +
+    `}`
   );
   n += 1;
 }
