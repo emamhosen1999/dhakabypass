@@ -32,6 +32,14 @@
   unsupported value is dropped silently and the declaration simply vanishes.
   `text-wrap: balance` and `scroll-behavior` are acceptable because they degrade
   to no-ops.
+- **Authorization is two gates, always both.** `ADMIN_EMAILS` decides *whether* an
+  identity gets in (re-derived from the environment on every request, so removing an
+  email revokes access immediately). `can(role, action)` decides *what* they may do
+  (resolved from the database at sign-in and carried on the JWT, so a role change
+  takes effect at next sign-in). **Every admin entry point must check
+  `session.user.isAdmin` AND `can(session.user.role, action)`** — never `can()` alone,
+  or a revoked user keeps their stale role until the token expires. Binds Tasks 12,
+  14, 15 and 16.
 - Do not modify `app/(site)/`, `content/`, or `lib/content.js` — those serve the live site until cutover.
 - Every task ends with a commit. Never use `--no-verify`.
 
@@ -561,15 +569,23 @@ git commit -m "feat(db): add structural schema for pages, blocks and translation
 ## Task 4: Roles and the users table
 
 **Files:**
-- Create: `lib/auth/roles.js`, `scripts/migrate-users.mjs`, `tests/unit/roles.test.js`
-- Modify: `auth.js`
+- Create: `lib/auth/roles.js`, `lib/auth/resolve-role.js`, `scripts/migrate-users.mjs`, `tests/unit/roles.test.js`, `tests/unit/auth-role.test.js`
+- Modify: `auth.js`, `package.json`
 
 **Interfaces:**
 - Consumes: `lib/db.js` → `query`, `dbEnabled`; `lib/auth/roles.js`.
 - Produces:
   - `ROLES = { ADMIN:'admin', EDITOR:'editor', TRANSLATOR:'translator' }`
   - `PERMISSIONS` and `can(role, action): boolean` where action ∈ `'manage_users' | 'manage_pages' | 'edit_blocks' | 'translate' | 'publish' | 'manage_media'`
-  - `auth.js` session gains `session.user.role`.
+  - `lib/auth/resolve-role.js` → `resolveUserRole(email): Promise<string|null>`
+  - `auth.js` session gains `session.user.role` (may be `undefined` — that is correct and denies).
+
+**Security design — read before implementing.** An earlier draft of this task
+inferred the role from `isAdmin`, which meant every Google sign-in resolved to
+`admin` regardless of the user's stored role, because `signIn` has already rejected
+everyone not on the allowlist. That is a privilege escalation. The role must be read
+**from the database, for every provider**, and must **fail closed** when no row
+exists — never fall back to a default role.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -598,10 +614,28 @@ describe('roles', () => {
     expect(can(ROLES.TRANSLATOR, 'publish')).toBe(false);
   });
 
+  it('grants an editor everything except user management', () => {
+    expect(can(ROLES.EDITOR, 'translate')).toBe(true);
+    expect(can(ROLES.EDITOR, 'manage_media')).toBe(true);
+  });
+
+  it('denies a translator media and user management', () => {
+    expect(can(ROLES.TRANSLATOR, 'manage_media')).toBe(false);
+    expect(can(ROLES.TRANSLATOR, 'manage_users')).toBe(false);
+  });
+
   it('fails closed on unknown roles and actions', () => {
     expect(can('superuser', 'publish')).toBe(false);
     expect(can(ROLES.ADMIN, 'launch_missiles')).toBe(false);
     expect(can(undefined, 'translate')).toBe(false);
+    expect(can(null, 'translate')).toBe(false);
+    expect(can(ROLES.ADMIN, undefined)).toBe(false);
+  });
+
+  it('denies prototype keys instead of throwing', () => {
+    expect(can('constructor', 'publish')).toBe(false);
+    expect(can('toString', 'publish')).toBe(false);
+    expect(can('__proto__', 'publish')).toBe(false);
   });
 });
 ```
@@ -625,16 +659,17 @@ export const PERMISSIONS = {
 };
 
 export function can(role, action) {
-  const granted = PERMISSIONS[role];
-  if (!granted) return false;
-  return granted.includes(action);
+  // Object.hasOwn, not a plain lookup: `can('constructor', …)` would otherwise
+  // resolve up the prototype chain and throw instead of denying.
+  if (!Object.hasOwn(PERMISSIONS, role)) return false;
+  return PERMISSIONS[role].includes(action);
 }
 ```
 
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/unit/roles.test.js`
-Expected: PASS, 4 tests.
+Expected: PASS, 7 tests.
 
 - [ ] **Step 5: Write the user migration script**
 
@@ -642,7 +677,11 @@ Expected: PASS, 4 tests.
 // scripts/migrate-users.mjs
 /**
  * Copies admin_users into users, giving every existing account the admin role.
- * Idempotent — re-running updates nothing that already exists.
+ *
+ * Re-running INSERTS NOTHING AND UPDATES NOTHING for accounts that already exist.
+ * This matters: admin_users is a frozen legacy table, so once a password is changed
+ * through the new system the two diverge — an upsert that copied password_hash back
+ * would silently revert that credential.
  *   node scripts/migrate-users.mjs [--database=name]
  */
 import mysql from 'mysql2/promise';
@@ -665,20 +704,55 @@ const [legacy] = await db.query(
   [DB_NAME]
 );
 
-if (legacy.length === 0) {
-  console.log('No admin_users table — nothing to migrate.');
-} else {
-  const [res] = await db.query(`
-    INSERT INTO users (email, name, password_hash, role)
-    SELECT email, name, password_hash, 'admin' FROM admin_users
-    ON DUPLICATE KEY UPDATE name = VALUES(name), password_hash = VALUES(password_hash)
-  `);
-  console.log(`Migrated ${res.affectedRows} admin_users row(s) into users.`);
+try {
+  if (legacy.length === 0) {
+    console.log('No admin_users table — nothing to migrate.');
+  } else {
+    const [before] = await db.query('SELECT COUNT(*) AS n FROM users');
+    await db.query(`
+      INSERT INTO users (email, name, password_hash, role)
+      SELECT email, name, password_hash, 'admin' FROM admin_users
+      ON DUPLICATE KEY UPDATE email = email
+    `);
+    const [after] = await db.query('SELECT COUNT(*) AS n FROM users');
+    const added = after[0].n - before[0].n;
+    // affectedRows counts MATCHED rows under mysql2's default FOUND_ROWS flag,
+    // so it would claim work on a run that inserted nothing. Count rows instead.
+    console.log(`Inserted ${added} new user(s); ${after[0].n} total. Existing rows untouched.`);
+  }
+} catch (err) {
+  console.error('Migration failed:', err.message);
+  process.exitCode = 1;
+} finally {
+  await db.end();
 }
-await db.end();
 ```
 
-- [ ] **Step 6: Point `auth.js` at `users` and expose the role**
+- [ ] **Step 6: Write the role resolver**
+
+This lives in its own module for two reasons: `auth.js` cannot be imported cleanly
+under Vitest, and the role lookup is the piece that most needs a test.
+
+```js
+// lib/auth/resolve-role.js
+import { query, dbEnabled } from '../db';
+
+/**
+ * The role for a signed-in email, or null when there is no row.
+ * Null is the correct answer for an unknown user — `can(null, …)` denies.
+ * Never invent a default role here: doing so is how an OAuth sign-in silently
+ * became an admin in an earlier draft.
+ */
+export async function resolveUserRole(email) {
+  if (!email || !dbEnabled()) return null;
+  const rows = await query('SELECT role FROM users WHERE email = ? LIMIT 1', [
+    String(email).toLowerCase(),
+  ]);
+  return rows?.[0]?.role ?? null;
+}
+```
+
+- [ ] **Step 7: Point `auth.js` at `users` and expose the role**
 
 In `auth.js`, replace the `authorize` query and add role handling.
 
@@ -721,11 +795,20 @@ Replace the `jwt` and `session` callbacks with:
 
 ```js
     async jwt({ token, user }) {
+      // Re-derived every request, so removing an email from ADMIN_EMAILS revokes
+      // access immediately. This is the fast revocation path.
       token.isAdmin = isAllowedAdmin(token.email);
-      // The role rides on the JWT after sign-in; allowlisted Google users who
-      // have no users row are treated as admins, matching the old behaviour.
-      if (user?.role) token.role = user.role;
-      if (!token.role) token.role = token.isAdmin ? ROLES.ADMIN : ROLES.EDITOR;
+
+      // `user` is present only at sign-in. Resolve the role from the database for
+      // EVERY provider — Google's user object carries no role, and inferring one
+      // from isAdmin would hand admin to anyone who can sign in at all.
+      if (user) {
+        token.role = user.role ?? (await resolveUserRole(user.email)) ?? undefined;
+      }
+      // No fallback role. An identity with no users row gets no role, and
+      // can(undefined, …) denies. The role is not re-queried per request (that
+      // would be a DB hit on every page view); a role change takes effect at the
+      // user's next sign-in, while isAdmin above handles immediate revocation.
       return token;
     },
     async session({ session, token }) {
@@ -741,22 +824,80 @@ Add to the imports at the top of `auth.js`:
 
 ```js
 import { ROLES } from './lib/auth/roles';
+import { resolveUserRole } from './lib/auth/resolve-role';
 ```
 
-- [ ] **Step 7: Run the migration and the full suite**
+- [ ] **Step 8: Add the migration npm script**
+
+In `package.json`, beside the existing `db:setup:v2`, add:
+
+```json
+"db:migrate:users": "node scripts/migrate-users.mjs"
+```
+
+**Deploy ordering (carry this into P10):** the credentials provider now reads
+`users`. Both `npm run db:setup:v2` and `npm run db:migrate:users` must run against
+the production database **before** this code is served, or password login fails
+closed and the admin is locked out.
+
+- [ ] **Step 9: Test the role resolver**
+
+```js
+// tests/unit/auth-role.test.js
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('../../lib/db', () => ({
+  dbEnabled: () => true,
+  query: vi.fn(),
+}));
+
+const { query } = await import('../../lib/db');
+const { resolveUserRole } = await import('../../lib/auth/resolve-role.js');
+
+beforeEach(() => query.mockReset());
+
+describe('resolveUserRole', () => {
+  it('returns the stored role', async () => {
+    query.mockResolvedValue([{ role: 'translator' }]);
+    expect(await resolveUserRole('t@example.com')).toBe('translator');
+  });
+
+  it('returns null when the user has no row — it must not invent a role', async () => {
+    query.mockResolvedValue([]);
+    expect(await resolveUserRole('ghost@example.com')).toBe(null);
+  });
+
+  it('returns null for a missing email without querying', async () => {
+    expect(await resolveUserRole('')).toBe(null);
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('looks the email up case-insensitively', async () => {
+    query.mockResolvedValue([{ role: 'admin' }]);
+    await resolveUserRole('Mixed@Example.COM');
+    expect(query.mock.calls[0][1]).toEqual(['mixed@example.com']);
+  });
+});
+```
+
+- [ ] **Step 10: Run the migration twice and the full suite**
 
 Run:
 ```bash
-node scripts/db-setup-v2.mjs
-node scripts/migrate-users.mjs
+npm run db:setup:v2
+npm run db:migrate:users
+npm run db:migrate:users
 npm test
+npm run build
 ```
-Expected: migration reports a row count; all tests PASS.
+Expected: the first migration reports the inserted count; **the second reports
+`Inserted 0 new user(s)`** and leaves every existing row byte-identical. All tests
+PASS. The build must succeed — that is what proves `auth.js` still resolves.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 11: Commit**
 
 ```bash
-git add lib/auth/roles.js scripts/migrate-users.mjs tests/unit/roles.test.js auth.js
+git add lib/auth scripts/migrate-users.mjs package.json tests/unit/roles.test.js tests/unit/auth-role.test.js auth.js
 git commit -m "feat(auth): add roles and migrate admin_users into users"
 ```
 
@@ -3634,6 +3775,8 @@ git commit -m "test(e2e): add locale, theme, responsive and legacy-site suites"
 | Structural schema (pages, blocks, translations, media, menus, revisions, audit, redirects) | 3 |
 | Admin shell | 14, 15, 16 |
 | Auth with roles (admin/editor/translator) | 4 |
+| Role resolved from the DB for every provider, failing closed | 4 (`resolveUserRole`, no fallback role) |
+| Two-gate authorization (`isAdmin` AND `can()`) at every admin entry point | Global Constraints; enforced in 12, 14, 15, 16 |
 | Media pipeline, uploads outside the repo | 12 |
 | Design tokens, functional status colour | 9 |
 | Type scale, self-hosted fonts, tabular numerals | 9 |
