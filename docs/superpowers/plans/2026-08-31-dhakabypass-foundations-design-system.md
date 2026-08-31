@@ -2766,6 +2766,39 @@ git commit -m "feat(media): add upload handling and media library"
 
 ---
 
+### Task 12 — as built (amended after security review)
+
+The brief's code shipped two Critical defects. The as-built differs substantially:
+
+- **The stored extension comes from the validated MIME, never the filename.**
+  `file.type` on a multipart part is attacker-controlled, and the brief validated only
+  that while taking the extension from `file.name`. A request with
+  `filename="x.html"` and `Content-Type: image/png` stored an HTML document served as
+  `text/html` from the admin origin — an `editor` (who holds `manage_media`) could
+  escalate against an `admin`. `lib/media.js` now exports `extensionForMime(mime)`
+  backed by an own-property-only lookup (`Object.hasOwn`), and `saveUpload` uses the
+  sanitised filename for the STEM only.
+- **`MEDIA_ROOT` uploads are now actually served.** The brief specified `uploadRoot()`
+  but no route to serve it, so with `MEDIA_ROOT` set every upload 404'd forever.
+  `uploadRoot()` now defaults to `var/uploads` (outside `public/`, gitignored) so both
+  environments behave alike, and `app/uploads/[...path]/route.js` serves them with a
+  resolve-and-`startsWith` traversal guard, a Content-Type allowlist local to the route,
+  `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox`,
+  and `Content-Disposition: attachment` for `.svg` — which is what makes keeping SVG in
+  the allowlist defensible. Next serves `public/` before routes, so the legacy site's
+  existing `public/uploads/*` files are unaffected.
+- `safeFilename` caps the stem at 60 characters; `file.size` is checked before
+  `arrayBuffer()` so a large body is not fully buffered before rejection; the DB insert
+  is wrapped in try/catch and unlinks the written file on failure; writes use
+  `{ flag: 'wx' }` with a capped retry, making check-and-write atomic.
+- Both authorization gates (`isAdmin` AND `can(role, 'manage_media')`) are enforced on
+  **both** GET and POST.
+
+Still open as a documented follow-up: SVG content is not sanitised. The serving headers
+mitigate execution; full sanitisation needs a dependency and belongs to a later phase.
+
+---
+
 ## Task 13: Revalidation on save
 
 **Files:**
