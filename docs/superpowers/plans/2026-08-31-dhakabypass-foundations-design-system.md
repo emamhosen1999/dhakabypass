@@ -41,7 +41,11 @@ The spec lists **Noto Sans SC self-hosted**. A full Simplified Chinese face is 1
 | `lib/i18n/locales.js` | Locale constants and path helpers (pure) |
 | `lib/i18n/ui.js` | Chrome strings not held in the CMS |
 | `lib/content/resolve.js` | Block/page translation fallback (pure) |
-| `lib/content/pages.js` | Page + block queries and mutations (DB) |
+| `lib/content/pages.js` | Page + block queries and mutations (DB, no next/cache) |
+| `lib/content/cache.js` | Tag-cached wrappers around the page queries |
+| `lib/content/slug.js` | Slug normalisation and validation (pure) |
+| `lib/blocks/form.js` | Block form parsing (pure) |
+| `scripts/seed-home.mjs` | Seeds a minimal home page (raw SQL, like the other scripts) |
 | `lib/blocks/registry.js` | Block type registry + field validator |
 | `lib/blocks/types/rich-text.js` | RichText block definition |
 | `lib/blocks/types/stat-row.js` | StatRow block definition |
@@ -1545,6 +1549,7 @@ const css = await (await fetch(
 
 // Keep only the latin and bengali subsets; the rest are dead weight here.
 const wanted = /\/\*\s*(latin|bengali)\s*\*\/\s*@font-face\s*\{(.*?)\}/gs;
+const faces = [];
 let m, n = 0;
 while ((m = wanted.exec(css))) {
   const block = m[2];
@@ -1555,9 +1560,19 @@ while ((m = wanted.exec(css))) {
   const buf = Buffer.from(await (await fetch(url, { headers: { 'User-Agent': UA } })).arrayBuffer());
   fs.writeFileSync(file, buf);
   console.log(`${path.basename(file)}  ${(buf.length / 1024).toFixed(1)} KB`);
+  faces.push(
+    `@font-face{font-family:'${family}';font-style:normal;font-weight:${/font-weight: ([\d ]+)/.exec(block)[1].trim()};` +
+    `font-display:swap;src:url('/fonts/${path.basename(file)}') format('woff2');}`
+  );
   n += 1;
 }
-console.log(`${n} font files written to public/fonts`);
+console.log(`
+${n} font files written to public/fonts`);
+console.log('
+--- paste these @font-face blocks into app/design-tokens.css verbatim ---
+');
+console.log(faces.join('
+'));
 ```
 
 - [ ] **Step 2: Run it and confirm the files exist**
@@ -1567,7 +1582,11 @@ Run:
 node scripts/fetch-fonts.mjs
 ls -la public/fonts
 ```
-Expected: several `.woff2` files, each well under 100 KB.
+Expected: several `.woff2` files, each well under 100 KB. **Copy the `@font-face`
+blocks the script prints** — use them verbatim in the next step. Do not hand-write
+the filenames: the weight segment comes from the CSS (a variable face prints as
+`400 700`, giving `Archivo-latin-400-700.woff2`), and a mismatched `src` fails
+silently into a system font with no error anywhere.
 
 - [ ] **Step 3: Write `app/design-tokens.css`**
 
@@ -1582,8 +1601,10 @@ stamps win in both directions.
   src:url('/fonts/BarlowSemiCondensed-latin-600.woff2') format('woff2');}
 @font-face{font-family:'BarlowSemiCondensed';font-style:normal;font-weight:700;font-display:swap;
   src:url('/fonts/BarlowSemiCondensed-latin-700.woff2') format('woff2');}
+/* Replace this whole @font-face group with the blocks printed by
+   scripts/fetch-fonts.mjs — the filenames must match what it wrote. */
 @font-face{font-family:'Archivo';font-style:normal;font-weight:400 700;font-display:swap;
-  src:url('/fonts/Archivo-latin-400..700.woff2') format('woff2');}
+  src:url('/fonts/Archivo-latin-400-700.woff2') format('woff2');}
 @font-face{font-family:'NotoSansBengali';font-style:normal;font-weight:400;font-display:swap;
   src:url('/fonts/NotoSansBengali-bengali-400.woff2') format('woff2');}
 @font-face{font-family:'NotoSansBengali';font-style:normal;font-weight:700;font-display:swap;
@@ -1691,12 +1712,24 @@ Add as the **second** line of `app/globals.css`, immediately after `@import 'tai
 @import './design-tokens.css';
 ```
 
-- [ ] **Step 5: Verify the build still succeeds**
+- [ ] **Step 5: Verify every font src resolves to a real file**
+
+Run:
+```bash
+grep -o "/fonts/[^']*\.woff2" app/design-tokens.css | sed 's|/fonts/||' | sort -u > /tmp/db-css-fonts.txt
+ls public/fonts | sort -u > /tmp/db-disk-fonts.txt
+comm -23 /tmp/db-css-fonts.txt /tmp/db-disk-fonts.txt
+```
+Expected: **no output.** Any filename printed is referenced by the CSS but absent
+from disk, which means that face silently falls back to a system font. Fix the CSS
+to match disk before continuing.
+
+- [ ] **Step 6: Verify the build still succeeds**
 
 Run: `npm run build`
 Expected: build completes with no CSS errors, and the existing site pages still compile.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add app/design-tokens.css app/globals.css public/fonts scripts/fetch-fonts.mjs
@@ -1866,7 +1899,7 @@ git commit -m "feat(design): add three-state theme switcher with no-flash script
 ## Task 11: Locale routing and site chrome
 
 **Files:**
-- Create: `lib/i18n/ui.js`, `components/chrome/LocaleSwitch.jsx`, `components/chrome/SiteHeaderV2.jsx`, `components/chrome/SiteFooterV2.jsx`, `app/[locale]/layout.jsx`, `app/[locale]/page.jsx`, `app/[locale]/[...slug]/page.jsx`, `tests/unit/ui-strings.test.js`
+- Create: `lib/i18n/ui.js`, `components/chrome/LocaleSwitch.jsx`, `components/chrome/SiteHeaderV2.jsx`, `components/chrome/SiteFooterV2.jsx`, `app/[locale]/layout.jsx`, `app/[locale]/page.jsx`, `app/[locale]/[...slug]/page.jsx`, `scripts/seed-home.mjs`, `tests/unit/ui-strings.test.js`
 
 **Interfaces:**
 - Consumes: `LOCALES`, `DEFAULT_LOCALE`, `LOCALE_LABELS`, `LOCALE_HTML_LANG`, `isLocale`, `withLocale`; `getPageBySlug`, `getPageBlocks`; `BlockRenderer`; `ThemeScript`, `ThemeToggle`.
@@ -2164,20 +2197,95 @@ Append:
 .db-empty{max-width:1180px;margin:0 auto;padding:60px 20px;color:var(--db-ink-3);}
 ```
 
-- [ ] **Step 9: Seed a home page and check it renders**
+- [ ] **Step 9: Write the home-page seed script**
+
+`package.json` has no `"type": "module"`, so bare Node treats every `.js` file
+as CommonJS and cannot import `lib/db.js`. Seed scripts therefore talk to MySQL
+directly — the same pattern `scripts/db-seed.mjs` and `scripts/db-setup-v2.mjs`
+already follow.
+
+```js
+// scripts/seed-home.mjs
+/**
+ * Seeds a minimal home page so the new locale routes have something to render.
+ * Re-runnable: drops and recreates the `home` page (blocks cascade).
+ *   node scripts/seed-home.mjs [--database=name]
+ */
+import mysql from 'mysql2/promise';
+import { loadEnv } from './load-env.mjs';
+
+loadEnv();
+const arg = process.argv.find((a) => a.startsWith('--database='));
+const DB_NAME = arg ? arg.split('=')[1] : process.env.DB_NAME || 'dhakabypass';
+
+const db = await mysql.createConnection({
+  host: process.env.DB_HOST || '127.0.0.1',
+  port: Number(process.env.DB_PORT || 3306),
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: DB_NAME,
+});
+
+await db.execute('DELETE FROM pages WHERE slug = ?', ['home']);
+
+const [page] = await db.execute(
+  "INSERT INTO pages (slug, status) VALUES ('home', 'published')"
+);
+await db.execute(
+  "INSERT INTO page_translations (page_id, locale, title, status) VALUES (?, 'en', 'Home', 'published')",
+  [page.insertId]
+);
+
+const BLOCKS = [
+  {
+    type: 'stat-row',
+    data: {
+      stats: [
+        { value: '48', unit: 'KM', label: 'Corridor' },
+        { value: '18', unit: 'KM', label: 'Open to traffic' },
+        { value: '73.5', unit: '%', label: 'Works complete' },
+        { value: '4', unit: '', label: 'National highways' },
+      ],
+    },
+  },
+  {
+    type: 'rich-text',
+    data: {
+      heading: 'Bangladesh\u2019s first access-controlled expressway',
+      body: '<p>Forty-eight kilometres linking four national highways east of the capital.</p>',
+    },
+  },
+];
+
+for (let i = 0; i < BLOCKS.length; i += 1) {
+  const [block] = await db.execute(
+    'INSERT INTO blocks (page_id, type, sort_order) VALUES (?, ?, ?)',
+    [page.insertId, BLOCKS[i].type, i]
+  );
+  await db.execute(
+    "INSERT INTO block_translations (block_id, locale, data, status) VALUES (?, 'en', ?, 'published')",
+    [block.insertId, JSON.stringify(BLOCKS[i].data)]
+  );
+}
+
+console.log(`Seeded home page #${page.insertId} with ${BLOCKS.length} blocks on ${DB_NAME}`);
+await db.end();
+```
+
+- [ ] **Step 10: Seed and check it renders**
 
 Run:
 ```bash
-node -e "import('./lib/content/pages.js').then(async (P)=>{const id=await P.createPage({slug:'home',title:'Home'});await P.addBlock({pageId:id,type:'stat-row',data:{stats:[{value:'48',unit:'KM',label:'Corridor'},{value:'18',unit:'KM',label:'Open to traffic'},{value:'73.5',unit:'%',label:'Works complete'},{value:'4',unit:'',label:'National highways'}]}});await P.addBlock({pageId:id,type:'rich-text',data:{heading:'Bangladesh\\'s first access-controlled expressway',body:'<p>Forty-eight kilometres linking four national highways east of the capital.</p>'}});process.exit(0);})"
+node scripts/seed-home.mjs
 npm run dev
 ```
 Then open `http://localhost:3000/en`, `/bn`, `/zh`.
 Expected: all three render the stat row and the rich text (Bangla and Chinese fall back to English), the header nav shows translated labels, the theme toggle switches and survives a reload, and `/` still serves the old live site unchanged.
 
-- [ ] **Step 10: Commit**
+- [ ] **Step 11: Commit**
 
 ```bash
-git add lib/i18n/ui.js components/chrome app/[locale] app/design-tokens.css tests/unit/ui-strings.test.js
+git add lib/i18n/ui.js components/chrome app/[locale] app/design-tokens.css scripts/seed-home.mjs tests/unit/ui-strings.test.js
 git commit -m "feat(site): add locale routing, chrome and CMS page rendering"
 ```
 
@@ -2225,8 +2333,14 @@ describe('safeFilename', () => {
     expect(safeFilename('noext')).toBe('noext');
   });
 
+  it('treats a leading-dot name as the stem, not an extension', () => {
+    // path.extname('.png') is '' — dotfiles have no extension, so ".png"
+    // is the stem. The result is still safe, which is what matters here.
+    expect(safeFilename('///.png')).toBe('png');
+  });
+
   it('never returns an empty name', () => {
-    expect(safeFilename('///.png')).toBe('file.png');
+    expect(safeFilename('///')).toBe('file');
   });
 });
 ```
@@ -2362,7 +2476,7 @@ MEDIA_ROOT=
 - [ ] **Step 6: Run the test to verify it passes**
 
 Run: `npx vitest run tests/unit/media.test.js`
-Expected: PASS, 5 tests.
+Expected: PASS, 6 tests.
 
 - [ ] **Step 7: Commit**
 
@@ -2376,8 +2490,8 @@ git commit -m "feat(media): add upload handling and media library"
 ## Task 13: Revalidation on save
 
 **Files:**
-- Create: `lib/revalidate.js`, `tests/unit/revalidate.test.js`
-- Modify: `lib/content/pages.js`, `app/[locale]/page.jsx`, `app/[locale]/[...slug]/page.jsx`
+- Create: `lib/revalidate.js`, `lib/content/cache.js`, `tests/unit/revalidate.test.js`
+- Modify: `app/[locale]/page.jsx`, `app/[locale]/[...slug]/page.jsx`
 
 **Interfaces:**
 - Consumes: `next/cache` → `unstable_cache`, `revalidateTag`.
@@ -2385,7 +2499,11 @@ git commit -m "feat(media): add upload handling and media library"
   - `pageTag(slug): string` → `page:<slug>`
   - `LIST_TAG = 'pages:list'`
   - `revalidatePage(slug): void`
-  - `getPageBySlugCached(slug)` and `getPageBlocksCached(pageId, slug)` in `lib/content/pages.js`
+  - `getPageBySlugCached(slug)` and `getPageBlocksCached(pageId, slug)` in `lib/content/cache.js`
+
+**Why a separate module:** `lib/content/pages.js` must stay free of `next/cache`
+so the seed and migration scripts — and the Vitest DB tests — can keep using it
+outside a Next runtime. The cached wrappers live alongside it instead.
 
 This is the fix for defect 9: pages stop being `force-dynamic` and stop reading the whole table per request.
 
@@ -2437,12 +2555,12 @@ export function revalidatePage(slug) {
 }
 ```
 
-- [ ] **Step 4: Add cached readers to `lib/content/pages.js`**
-
-Append to `lib/content/pages.js`:
+- [ ] **Step 4: Write `lib/content/cache.js`**
 
 ```js
+// lib/content/cache.js
 import { unstable_cache } from 'next/cache';
+import { getPageBySlug, getPageBlocks } from './pages.js';
 import { pageTag, LIST_TAG } from '../revalidate.js';
 
 /** Cached readers used by the public routes. The admin uses the uncached ones. */
@@ -2462,7 +2580,7 @@ export const getPageBlocksCached = (pageId, slug) =>
 In `app/[locale]/page.jsx`, change the import and the two calls:
 
 ```jsx
-import { getPageBySlugCached, getPageBlocksCached } from '../../lib/content/pages.js';
+import { getPageBySlugCached, getPageBlocksCached } from '../../lib/content/cache.js';
 ```
 
 ```jsx
@@ -2474,7 +2592,7 @@ import { getPageBySlugCached, getPageBlocksCached } from '../../lib/content/page
 In `app/[locale]/[...slug]/page.jsx`, change the import and the two calls:
 
 ```jsx
-import { getPageBySlugCached, getPageBlocksCached } from '../../../lib/content/pages.js';
+import { getPageBySlugCached, getPageBlocksCached } from '../../../lib/content/cache.js';
 ```
 
 In `load()`:
@@ -2501,7 +2619,7 @@ Expected: tests PASS (3); build succeeds; the `[locale]` routes are **not** list
 - [ ] **Step 7: Commit**
 
 ```bash
-git add lib/revalidate.js lib/content/pages.js app/[locale] tests/unit/revalidate.test.js
+git add lib/revalidate.js lib/content/cache.js app/[locale] tests/unit/revalidate.test.js
 git commit -m "perf(content): cache public pages by tag instead of forcing dynamic"
 ```
 
@@ -2510,7 +2628,7 @@ git commit -m "perf(content): cache public pages by tag instead of forcing dynam
 ## Task 14: Admin page tree
 
 **Files:**
-- Create: `app/admin/(dash)/pages-v2/page.jsx`, `app/admin/(dash)/pages-v2/actions.js`, `tests/db/page-actions.test.js`
+- Create: `lib/content/slug.js`, `app/admin/(dash)/pages-v2/page.jsx`, `app/admin/(dash)/pages-v2/actions.js`, `tests/unit/slug.test.js`
 
 **Interfaces:**
 - Consumes: `listPages`, `createPage`, `deletePage` from Task 8; `can`, `ROLES` from Task 4; `revalidatePage` from Task 13; `auth` from `auth.js`.
@@ -2518,14 +2636,19 @@ git commit -m "perf(content): cache public pages by tag instead of forcing dynam
   - `createPageAction(formData)` — requires `manage_pages`; slug must match `^[a-z0-9]+(?:[-/][a-z0-9]+)*$`
   - `deletePageAction(formData)` — requires `manage_pages`
   - `assertCan(action)` — shared guard, throws `Error('Your role cannot …')`
-  - `normalizeSlug(value): string` (exported for testing)
+  - `lib/content/slug.js` → `normalizeSlug(value): string`, `isValidSlug(value): boolean`
+
+**Why the helpers live in `lib/`:** Next 15 rejects any non-async export from a
+`'use server'` module — *"Only async functions are allowed to be exported in a
+'use server' file."* Pure helpers therefore cannot live in `actions.js`, and a
+Vitest run could not import them from there either.
 
 - [ ] **Step 1: Write the failing test**
 
 ```js
-// tests/db/page-actions.test.js
+// tests/unit/slug.test.js
 import { describe, it, expect } from 'vitest';
-import { normalizeSlug, isValidSlug } from '../../app/admin/(dash)/pages-v2/actions.js';
+import { normalizeSlug, isValidSlug } from '../../lib/content/slug.js';
 
 describe('normalizeSlug', () => {
   it('lowercases and hyphenates', () => {
@@ -2550,23 +2673,15 @@ describe('normalizeSlug', () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `npx vitest run tests/db/page-actions.test.js`
-Expected: FAIL — module does not exist.
+Run: `npx vitest run tests/unit/slug.test.js`
+Expected: FAIL — cannot resolve `lib/content/slug.js`.
 
-- [ ] **Step 3: Write the actions**
+- [ ] **Step 3: Write the slug helpers**
 
 ```js
-// app/admin/(dash)/pages-v2/actions.js
-'use server';
-
-import { revalidatePath } from 'next/cache';
-import { auth } from '../../../../auth';
-import { can } from '../../../../lib/auth/roles';
-import { listPages, createPage, deletePage, getPageBySlug } from '../../../../lib/content/pages';
-import { revalidatePage } from '../../../../lib/revalidate';
-
-const ADMIN_PATH = '/admin/pages-v2';
-
+// lib/content/slug.js
+/** Pure helpers, kept out of the 'use server' module: Next 15 allows only
+ *  async exports there, and tests need to import these directly. */
 export function normalizeSlug(value) {
   return String(value || '')
     .toLowerCase()
@@ -2579,6 +2694,22 @@ export function normalizeSlug(value) {
 export function isValidSlug(value) {
   return /^[a-z0-9]+(?:[-/][a-z0-9]+)*$/.test(String(value || ''));
 }
+```
+
+- [ ] **Step 4: Write the actions**
+
+```js
+// app/admin/(dash)/pages-v2/actions.js
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { auth } from '../../../../auth';
+import { can } from '../../../../lib/auth/roles';
+import { listPages, createPage, deletePage, getPageBySlug } from '../../../../lib/content/pages';
+import { normalizeSlug, isValidSlug } from '../../../../lib/content/slug';
+import { revalidatePage } from '../../../../lib/revalidate';
+
+const ADMIN_PATH = '/admin/pages-v2';
 
 export async function assertCan(action) {
   const session = await auth();
@@ -2619,7 +2750,7 @@ export async function deletePageAction(formData) {
 }
 ```
 
-- [ ] **Step 4: Write the page tree screen**
+- [ ] **Step 5: Write the page tree screen**
 
 ```jsx
 // app/admin/(dash)/pages-v2/page.jsx
@@ -2683,15 +2814,20 @@ export default async function PageTree() {
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [ ] **Step 6: Run the test and the build**
 
-Run: `npx vitest run tests/db/page-actions.test.js`
-Expected: PASS, 4 tests.
+Run:
+```bash
+npx vitest run tests/unit/slug.test.js
+npm run build
+```
+Expected: PASS, 4 tests. The build must succeed — it is what proves `actions.js`
+exports only async functions.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add "app/admin/(dash)/pages-v2" tests/db/page-actions.test.js
+git add lib/content/slug.js "app/admin/(dash)/pages-v2" tests/unit/slug.test.js
 git commit -m "feat(admin): add page tree with create and delete"
 ```
 
@@ -2700,20 +2836,23 @@ git commit -m "feat(admin): add page tree with create and delete"
 ## Task 15: Admin block editor
 
 **Files:**
-- Create: `app/admin/(dash)/pages-v2/[id]/page.jsx`, `app/admin/(dash)/pages-v2/[id]/block-actions.js`, `components/admin/BlockFields.jsx`, `tests/db/block-actions.test.js`
+- Create: `lib/blocks/form.js`, `app/admin/(dash)/pages-v2/[id]/page.jsx`, `app/admin/(dash)/pages-v2/[id]/block-actions.js`, `components/admin/BlockFields.jsx`, `tests/unit/block-form.test.js`
 
 **Interfaces:**
 - Consumes: `getPageBlocks`, `addBlock`, `deleteBlock`, `reorderBlocks`, `duplicateBlock`, `saveBlockTranslation` (Task 8); `allBlocks`, `getBlock`, `validateBlockData`, `defaultBlockData` (Tasks 6–7); `assertCan` (Task 14); `revalidatePage` (Task 13).
-- Produces server actions `addBlockAction`, `deleteBlockAction`, `moveBlockAction`, `duplicateBlockAction`, `saveTranslationAction`, plus `parseBlockForm(type, formData): object` (exported for testing).
+- Produces server actions `addBlockAction`, `deleteBlockAction`, `moveBlockAction`, `duplicateBlockAction`, `saveTranslationAction` in `block-actions.js`, plus `parseBlockForm(type, formData): object` in `lib/blocks/form.js`.
+
+**Same constraint as Task 14:** `parseBlockForm` is synchronous, so it cannot be
+exported from a `'use server'` module. It lives in `lib/blocks/form.js`.
 
 - [ ] **Step 1: Write the failing test**
 
 ```js
-// tests/db/block-actions.test.js
+// tests/unit/block-form.test.js
 import { describe, it, expect, beforeEach } from 'vitest';
 import { resetRegistry } from '../../lib/blocks/registry.js';
 import { registerAllBlocks } from '../../lib/blocks/index.js';
-import { parseBlockForm } from '../../app/admin/(dash)/pages-v2/[id]/block-actions.js';
+import { parseBlockForm } from '../../lib/blocks/form.js';
 
 beforeEach(() => { resetRegistry(); registerAllBlocks(); });
 
@@ -2747,27 +2886,20 @@ describe('parseBlockForm', () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `npx vitest run tests/db/block-actions.test.js`
-Expected: FAIL — module does not exist.
+Run: `npx vitest run tests/unit/block-form.test.js`
+Expected: FAIL — cannot resolve `lib/blocks/form.js`.
 
-- [ ] **Step 3: Write the block actions**
+- [ ] **Step 3: Write the form parser**
 
 ```js
-// app/admin/(dash)/pages-v2/[id]/block-actions.js
-'use server';
+// lib/blocks/form.js
+import { getBlock } from './registry.js';
 
-import { revalidatePath } from 'next/cache';
-import { assertCan } from '../actions';
-import { getBlock, validateBlockData, defaultBlockData } from '../../../../../lib/blocks/registry';
-import '../../../../../lib/blocks/index';
-import {
-  getPageBlocks, addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation,
-} from '../../../../../lib/content/pages';
-import { revalidatePage } from '../../../../../lib/revalidate';
-
-const adminPath = (pageId) => `/admin/pages-v2/${pageId}`;
-
-/** Reads only the fields the block type declares. Form keys are prefixed `f.`. */
+/**
+ * Reads only the fields the block type declares — anything else posted is
+ * ignored. Form keys are prefixed `f.`.
+ * Pure and synchronous, so it cannot live in the 'use server' module.
+ */
 export function parseBlockForm(type, formData) {
   const def = getBlock(type);
   if (!def) return {};
@@ -2789,6 +2921,25 @@ export function parseBlockForm(type, formData) {
   }
   return out;
 }
+```
+
+- [ ] **Step 4: Write the block actions**
+
+```js
+// app/admin/(dash)/pages-v2/[id]/block-actions.js
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { assertCan } from '../actions';
+import { getBlock, validateBlockData, defaultBlockData } from '../../../../../lib/blocks/registry';
+import { parseBlockForm } from '../../../../../lib/blocks/form';
+import '../../../../../lib/blocks/index';
+import {
+  getPageBlocks, addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation,
+} from '../../../../../lib/content/pages';
+import { revalidatePage } from '../../../../../lib/revalidate';
+
+const adminPath = (pageId) => `/admin/pages-v2/${pageId}`;
 
 export async function addBlockAction(formData) {
   await assertCan('edit_blocks');
@@ -2855,7 +3006,7 @@ export async function saveTranslationAction(formData) {
 }
 ```
 
-- [ ] **Step 4: Write the field renderer**
+- [ ] **Step 5: Write the field renderer**
 
 ```jsx
 // components/admin/BlockFields.jsx
@@ -2899,7 +3050,7 @@ export default function BlockFields({ fields, data }) {
 }
 ```
 
-- [ ] **Step 5: Write the editor screen**
+- [ ] **Step 6: Write the editor screen**
 
 ```jsx
 // app/admin/(dash)/pages-v2/[id]/page.jsx
@@ -3031,15 +3182,20 @@ export default async function BlockEditor({ params, searchParams }) {
 }
 ```
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [ ] **Step 7: Run the test and the build**
 
-Run: `npx vitest run tests/db/block-actions.test.js`
-Expected: PASS, 4 tests.
+Run:
+```bash
+npx vitest run tests/unit/block-form.test.js
+npm run build
+```
+Expected: PASS, 4 tests, and a successful build (proving `block-actions.js`
+exports only async functions).
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add "app/admin/(dash)/pages-v2/[id]" components/admin/BlockFields.jsx tests/db/block-actions.test.js
+git add lib/blocks/form.js "app/admin/(dash)/pages-v2/[id]" components/admin/BlockFields.jsx tests/unit/block-form.test.js
 git commit -m "feat(admin): add block editor with per-locale drafts and publishing"
 ```
 
@@ -3336,6 +3492,22 @@ git commit -m "test(e2e): add locale, theme and legacy-site smoke suites"
 **Deferred to Plan 2 (P2+P3), by design:** `segments`, `interchanges`, `toll_rates`, `advisories` and their editors; the corridor strip and interactive map; the five Travel Info pages; the remaining seventeen block types; `next/image` adoption; sitemap, robots, structured data, Umami; the redirect map and cutover.
 
 **Placeholder scan:** none. Every step carries the code it needs.
+
+**Pre-flight corrections applied before execution** (four defects found by running
+the code rather than reading it):
+
+1. `safeFilename('///.png')` returns `'png'`, not `'file.png'` — `path.extname('.png')`
+   is `''`, so a dotfile name becomes the stem. Assertion corrected and a genuine
+   empty-name case (`'///'` → `'file'`) added.
+2. Next 15 allows only async exports from a `'use server'` module. `normalizeSlug`,
+   `isValidSlug` and `parseBlockForm` moved to `lib/content/slug.js` and
+   `lib/blocks/form.js`; the action files import them.
+3. `package.json` has no `"type": "module"`, so bare Node cannot import `lib/*.js`.
+   The home seed became `scripts/seed-home.mjs` using raw SQL, and the cached readers
+   moved to `lib/content/cache.js` so `pages.js` never imports `next/cache`.
+4. The font filenames in `design-tokens.css` did not match what `fetch-fonts.mjs`
+   writes — a silent fallback with no error. The script now prints the exact
+   `@font-face` blocks, and Task 9 gained a step that diffs CSS srcs against disk.
 
 **Type consistency check performed:**
 - `resolveTranslation` returns `{ data, locale, fallback }` — consumed with those exact names in `BlockRenderer` (Task 7) and `generateMetadata` (Task 11).
