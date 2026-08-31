@@ -17,3 +17,6 @@ local-*.png
 live-*.png
 nav-fixed.png
 hero-restored.png
+
+# subagent-driven-development scratch (ledger, briefs, review packages)
+.superpowers/
