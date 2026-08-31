@@ -1668,6 +1668,28 @@ git commit -m "feat(content): add page and block query layer"
 
 ---
 
+### Task 8 — as built (amended after review)
+
+The code blocks above are the original brief. Two review rounds hardened them; the
+shipped implementation differs as follows, and later tasks should read the source,
+not the brief:
+
+- `lib/db.js` gained `withTransaction(fn)`, which hands `fn` a `q(sql, params)` bound
+  to one pooled connection, rolls back on throw, and always releases. It **throws**
+  when no pool is configured rather than returning `null`, so a missing database
+  fails loudly instead of yielding a silent `null` id.
+- `createPage`, `addBlock`, `duplicateBlock` and `reorderBlocks` each run inside
+  `withTransaction`, and every statement in those bodies uses the bound `q`. Mixing in
+  the module-level `query` would run that statement on a different connection, outside
+  the transaction, while reading as if it were atomic — do not do it.
+- The `MAX(sort_order) + 1` reads use `SELECT ... FOR UPDATE` to serialise concurrent
+  inserts on the same page.
+- `reorderBlocks` rejects any list that is not exactly the page's block ids — checking
+  array length, set size and membership. Length alone is not enough: `[A, A, B]` on a
+  two-block page has a matching set and would otherwise corrupt `sort_order`.
+
+---
+
 ## Task 9: Design tokens and self-hosted fonts
 
 **Files:**
