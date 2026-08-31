@@ -18,6 +18,20 @@
 - **No external font/script/style CDNs.** All fonts self-hosted from `/public/fonts`.
 - WCAG 2.2 AA: visible focus states, `prefers-reduced-motion` respected, status never communicated by colour alone, correct `lang` attributes per locale.
 - Digits that align in columns use `font-variant-numeric: tabular-nums`.
+- **Fully responsive, every device and viewport.** Layouts are fluid from **320px**
+  to **2560px** with no fixed pixel widths on containers. The page body must never
+  scroll horizontally at any width — wide content (tables, diagrams, code) scrolls
+  inside its own `overflow-x: auto` container. Interactive targets are at least
+  **44×44 CSS px**. Nothing is hidden purely because a viewport is "awkward".
+- **Browser support matrix.** Must work on the last two versions of Chrome, Edge,
+  Firefox and Safari, plus **iOS Safari 15.4+**, **Android Chrome**, and
+  **Samsung Internet 19+** (a large share of Bangladeshi mobile traffic). CSS
+  features newer than that baseline may be used only as **progressive enhancement**
+  — never for anything load-bearing. Specifically **do not use `color-mix()`,
+  `@container`, or `:has()` for layout or for colour that carries meaning**; an
+  unsupported value is dropped silently and the declaration simply vanishes.
+  `text-wrap: balance` and `scroll-behavior` are acceptable because they degrade
+  to no-ops.
 - Do not modify `app/(site)/`, `content/`, or `lib/content.js` — those serve the live site until cutover.
 - Every task ends with a commit. Never use `--no-verify`.
 
@@ -1631,6 +1645,22 @@ stamps win in both directions.
   --db-plate-fg:#EDF2F5;
   --db-plate-accent:#FFB000;
 
+  /* Status washes are explicit values, NOT color-mix(): color-mix is unsupported
+     before Chrome 111 / Safari 16.2, and an unsupported value drops the whole
+     declaration — status tags would lose their background entirely. */
+  --db-open-wash:#D3EBDF;
+  --db-build-wash:#F8DFCF;
+  --db-alert-wash:#F7DAD5;
+
+  /* Breakpoints, documented here so every component uses the same set. */
+  --db-bp-sm:480px;
+  --db-bp-md:768px;
+  --db-bp-lg:1024px;
+  --db-bp-xl:1280px;
+  --db-measure:68ch;
+  --db-shell:1180px;
+  --db-tap:44px;
+
   --db-font-display:'BarlowSemiCondensed','NotoSansBengali',system-ui,sans-serif;
   --db-font-body:'Archivo','NotoSansBengali',system-ui,sans-serif;
   --db-font-zh:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
@@ -1650,6 +1680,9 @@ stamps win in both directions.
     --db-open:#3ECC85;
     --db-build:#FF8A45;
     --db-alert:#FF6A55;
+    --db-open-wash:#0E2C20;
+    --db-build-wash:#331A0C;
+    --db-alert-wash:#331411;
     --db-plate-bg:#162835;
   }
 }
@@ -1667,6 +1700,9 @@ stamps win in both directions.
   --db-open:#3ECC85;
   --db-build:#FF8A45;
   --db-alert:#FF6A55;
+  --db-open-wash:#0E2C20;
+  --db-build-wash:#331A0C;
+  --db-alert-wash:#331411;
   --db-plate-bg:#162835;
 }
 
@@ -1676,6 +1712,20 @@ stamps win in both directions.
   color:var(--db-ink);
   font-family:var(--db-font-body);
   font-variant-numeric:tabular-nums;
+  /* The body must never scroll sideways at any viewport width. */
+  overflow-x:hidden;
+}
+/* Media and embeds never force the page wider than the viewport. */
+.db-root img,.db-root video,.db-root svg,.db-root iframe{max-width:100%;height:auto;}
+/* Wide content scrolls inside itself instead. */
+.db-scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
+/* Long unbroken strings (URLs, chainages) must not blow out narrow screens. */
+.db-root p,.db-root li,.db-root td,.db-root h1,.db-root h2,.db-root h3{overflow-wrap:break-word;}
+/* Every interactive target meets the 44px minimum on touch devices. */
+@media (pointer:coarse){
+  .db-root a,.db-root button,.db-root [role="button"],.db-root summary{
+    min-height:var(--db-tap);
+  }
 }
 .db-root:lang(zh){font-family:var(--db-font-zh);}
 .db-root h1,.db-root h2,.db-root h3,.db-root .db-display{
@@ -1686,15 +1736,17 @@ stamps win in both directions.
 .db-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--db-font-display);
   font-weight:700;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:2px;}
 /* Status carries a shape and a label as well as a colour — never colour alone. */
-.db-tag-open{background:color-mix(in srgb,var(--db-open) 14%,transparent);color:var(--db-open);}
-.db-tag-build{background:color-mix(in srgb,var(--db-build) 14%,transparent);color:var(--db-build);
-  background-image:repeating-linear-gradient(115deg,transparent 0 6px,color-mix(in srgb,var(--db-build) 10%,transparent) 6px 12px);}
-.db-tag-alert{background:color-mix(in srgb,var(--db-alert) 14%,transparent);color:var(--db-alert);}
+.db-tag-open{background:var(--db-open-wash);color:var(--db-open);}
+.db-tag-build{background:var(--db-build-wash);color:var(--db-build);
+  background-image:repeating-linear-gradient(115deg,transparent 0 6px,rgba(128,64,0,.14) 6px 12px);}
+.db-tag-alert{background:var(--db-alert-wash);color:var(--db-alert);}
 
 .db-stat-value{font-family:var(--db-font-display);font-weight:700;font-size:clamp(1.9rem,1.2rem + 2.2vw,2.9rem);line-height:1;}
 .db-stat-unit{font-size:.48em;color:var(--db-accent);margin-left:2px;}
 .db-stat-label{font-family:var(--db-font-display);font-size:.7rem;letter-spacing:.15em;
   text-transform:uppercase;color:var(--db-ink-3);margin-top:6px;}
+/* auto-fit + minmax reflows from 1 column at 320px to 4 across on a desktop
+   with no breakpoints of its own. */
 .db-statrow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:0;margin:0;}
 
 @media (prefers-reduced-motion:reduce){
@@ -1724,12 +1776,23 @@ Expected: **no output.** Any filename printed is referenced by the CSS but absen
 from disk, which means that face silently falls back to a system font. Fix the CSS
 to match disk before continuing.
 
-- [ ] **Step 6: Verify the build still succeeds**
+- [ ] **Step 6: Verify no CSS feature outside the support baseline**
+
+Run:
+```bash
+grep -nE 'color-mix\(|@container|:has\(' app/design-tokens.css
+```
+Expected: **no output.** Each of these is unsupported on the browser baseline
+(Chrome <111 / Safari <16.2 for `color-mix`), and an unsupported value causes the
+whole declaration to be dropped — silently, with no error anywhere. Status colour
+carries meaning here, so it may not depend on any of them.
+
+- [ ] **Step 7: Verify the build still succeeds**
 
 Run: `npm run build`
 Expected: build completes with no CSS errors, and the existing site pages still compile.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add app/design-tokens.css app/globals.css public/fonts scripts/fetch-fonts.mjs
@@ -2057,6 +2120,17 @@ export default function SiteHeaderV2({ locale }) {
           <LocaleSwitch current={locale} label={t(locale, 'language')} />
           <ThemeToggle label={t(locale, 'theme')} />
         </div>
+
+        {/* Below 768px the same links live here, in a horizontally scrollable
+            row, so no destination is ever unreachable on a narrow screen. */}
+        <nav className="db-nav-mobile" aria-label="Primary, compact">
+          {NAV.map((item) => (
+            <Link key={item.href} href={`/${locale}${item.href}`} className="db-nav-link">
+              {t(locale, item.key)}
+            </Link>
+          ))}
+          <Link href={`/${locale}/contact`} className="db-nav-cta">{t(locale, 'navContact')}</Link>
+        </nav>
       </div>
     </header>
   );
@@ -2093,6 +2167,14 @@ import SiteFooterV2 from '../../components/chrome/SiteFooterV2.jsx';
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
+
+/** Zooming must never be disabled — WCAG 2.2 AA and basic courtesy on a phone. */
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+};
 
 export default async function LocaleLayout({ children, params }) {
   const { locale } = await params;
@@ -2168,7 +2250,7 @@ Append:
 
 ```css
 .db-header{background:var(--db-plate-bg);color:var(--db-plate-fg);}
-.db-header-inner{max-width:1180px;margin:0 auto;padding:14px 20px;
+.db-header-inner{max-width:var(--db-shell);margin:0 auto;padding:14px clamp(12px,3vw,20px);
   display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;}
 .db-skip{position:absolute;left:-9999px;}
 .db-skip:focus{position:static;display:inline-block;padding:8px 12px;background:var(--db-accent-bright);color:#0B1620;}
@@ -2177,9 +2259,15 @@ Append:
   font-family:var(--db-font-display);font-weight:700;display:flex;align-items:center;justify-content:center;}
 .db-brand-name{font-family:var(--db-font-display);font-size:1.02rem;letter-spacing:.06em;display:block;line-height:1.1;}
 .db-brand-tag{font-size:.68rem;opacity:.6;}
-/* Visible from md so the nav never disappears on a landscape tablet. */
+/* Visible from md so the nav never disappears on a landscape tablet.
+   Below md the links move into the always-present overflow row rather than
+   vanishing — nothing is unreachable at any width. */
 .db-nav{display:none;gap:4px;margin-left:auto;align-items:center;flex-wrap:wrap;}
 @media (min-width:768px){.db-nav{display:flex;}}
+.db-nav-mobile{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  width:100%;padding-bottom:4px;scrollbar-width:none;}
+.db-nav-mobile::-webkit-scrollbar{display:none;}
+@media (min-width:768px){.db-nav-mobile{display:none;}}
 .db-nav-link,.db-nav-cta{font-family:var(--db-font-display);font-weight:600;font-size:.86rem;
   letter-spacing:.09em;text-transform:uppercase;padding:7px 11px;border-radius:2px;text-decoration:none;color:inherit;opacity:.78;}
 .db-nav-link:hover{opacity:1;}
@@ -2190,11 +2278,13 @@ Append:
   padding:4px 9px;border-radius:2px;text-decoration:none;color:inherit;opacity:.6;}
 .db-locale-btn[aria-current="true"]{background:var(--db-plate-accent);color:#0B1620;opacity:1;}
 .db-footer{border-top:1px solid var(--db-rule);margin-top:64px;}
-.db-footer-inner{max-width:1180px;margin:0 auto;padding:24px 20px;display:flex;flex-wrap:wrap;
-  gap:8px 24px;justify-content:space-between;color:var(--db-ink-3);font-size:.86rem;}
-.db-block{max-width:1180px;margin:0 auto;padding:40px 20px;}
-.db-prose{max-width:68ch;color:var(--db-ink-2);}
-.db-empty{max-width:1180px;margin:0 auto;padding:60px 20px;color:var(--db-ink-3);}
+.db-footer-inner{max-width:var(--db-shell);margin:0 auto;padding:24px clamp(12px,3vw,20px);
+  display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;
+  color:var(--db-ink-3);font-size:.86rem;}
+.db-block{max-width:var(--db-shell);margin:0 auto;padding:clamp(28px,5vw,40px) clamp(12px,3vw,20px);}
+.db-prose{max-width:var(--db-measure);color:var(--db-ink-2);}
+.db-prose table{display:block;overflow-x:auto;max-width:100%;}
+.db-empty{max-width:var(--db-shell);margin:0 auto;padding:60px clamp(12px,3vw,20px);color:var(--db-ink-3);}
 ```
 
 - [ ] **Step 9: Write the home-page seed script**
@@ -3441,12 +3531,79 @@ for (const path of LEGACY) {
 }
 ```
 
-- [ ] **Step 4: Run the suite**
+- [ ] **Step 4: Write the responsive spec**
+
+```js
+// tests/e2e/responsive.spec.js
+import { test, expect } from '@playwright/test';
+
+// 320 is the narrowest phone still in real use; 2560 is a desktop monitor.
+const VIEWPORTS = [
+  { name: 'phone-320', width: 320, height: 640 },
+  { name: 'phone-375', width: 375, height: 812 },
+  { name: 'tablet-768', width: 768, height: 1024 },
+  { name: 'tablet-1024', width: 1024, height: 768 },
+  { name: 'laptop-1280', width: 1280, height: 800 },
+  { name: 'desktop-2560', width: 2560, height: 1440 },
+];
+
+for (const vp of VIEWPORTS) {
+  test(`no horizontal overflow at ${vp.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('/en');
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    expect(overflow, `page scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(1);
+  });
+
+  test(`primary navigation is reachable at ${vp.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('/en');
+
+    // Either the full nav or the compact row must be visible — never neither.
+    const full = page.getByRole('navigation', { name: 'Primary' });
+    const compact = page.getByRole('navigation', { name: 'Primary, compact' });
+    const visible = (await full.isVisible()) || (await compact.isVisible());
+    expect(visible, 'no navigation visible at this width').toBe(true);
+  });
+}
+
+test('zooming is not disabled', async ({ page }) => {
+  await page.goto('/en');
+  const content = await page.locator('meta[name="viewport"]').getAttribute('content');
+  expect(content).not.toMatch(/user-scalable\s*=\s*no/);
+  expect(content).not.toMatch(/maximum-scale\s*=\s*1\b/);
+});
+
+test('touch targets meet the 44px minimum', async ({ browser }) => {
+  // A coarse pointer is what triggers the min-height rule.
+  const context = await browser.newContext({
+    viewport: { width: 375, height: 812 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await context.newPage();
+  await page.goto('/en');
+
+  const links = page.locator('.db-nav-mobile a');
+  const count = await links.count();
+  expect(count).toBeGreaterThan(0);
+  for (let i = 0; i < count; i += 1) {
+    const box = await links.nth(i).boundingBox();
+    expect(box.height, `nav link ${i} is only ${box.height}px tall`).toBeGreaterThanOrEqual(44);
+  }
+  await context.close();
+});
+```
+
+- [ ] **Step 5: Run the suite**
 
 Run: `npm run test:e2e`
 Expected: all specs PASS. If a legacy spec fails, the change that broke it must be reverted — the live site is not allowed to regress during this plan.
 
-- [ ] **Step 5: Run everything and build**
+- [ ] **Step 6: Run everything and build**
 
 Run:
 ```bash
@@ -3456,11 +3613,11 @@ npm run build
 ```
 Expected: all green; build succeeds with `output: 'standalone'` intact.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add tests/e2e
-git commit -m "test(e2e): add locale, theme and legacy-site smoke suites"
+git commit -m "test(e2e): add locale, theme, responsive and legacy-site suites"
 ```
 
 ---
@@ -3482,7 +3639,10 @@ git commit -m "test(e2e): add locale, theme and legacy-site smoke suites"
 | Type scale, self-hosted fonts, tabular numerals | 9 |
 | Theme switcher, Light/Dark/System, defaults to system | 10 |
 | Corridor components, signage plates | 9 (tokens + plate styles); the corridor strip itself is P2, Plan 2 |
-| Nav works at every width (defect 6) | 11 (`min-width: 768px`, not `xl`) |
+| Nav works at every width (defect 6) | 11 (`min-width: 768px`, not `xl`, plus a compact scrollable row below it) |
+| Fully responsive 320px–2560px, no horizontal body scroll | 9 (base rules), 11 (fluid chrome), 17 (six-viewport spec) |
+| Browser baseline; no `color-mix`/`@container`/`:has()` for meaning | 9 (explicit wash tokens + a grep step that fails the task if reintroduced) |
+| Touch targets ≥ 44×44, zoom not disabled | 9 (`pointer:coarse` rule), 11 (`viewport` export), 17 (assertions) |
 | Static generation + targeted revalidation (defect 9) | 13 |
 | `prefers-reduced-motion` | 9 |
 | Per-locale `lang` attributes | 11 |
