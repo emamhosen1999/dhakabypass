@@ -102,6 +102,18 @@ describe('pages', () => {
     expect((await P.getPageBlocks(page1)).map((x) => x.id)).toEqual([b1]);
   });
 
+  it('reorderBlocks throws when given a duplicate-padded array, and order is unchanged', async () => {
+    const pageId = await P.createPage({ slug: 'p', title: 'P' });
+    const a = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>a</p>' } });
+    const b = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>b</p>' } });
+
+    // Try to reorder with duplicate in the list: [a, a, b] has 3 elements but only 2 unique ids
+    await expect(P.reorderBlocks(pageId, [a, a, b])).rejects.toThrow('reorderBlocks needs every block id for the page');
+
+    // Verify order is unchanged (still [a, b])
+    expect((await P.getPageBlocks(pageId)).map((x) => x.id)).toEqual([a, b]);
+  });
+
   it('duplicateBlock on a nonexistent id rejects, and creates no new block row', async () => {
     const pageId = await P.createPage({ slug: 'p', title: 'P' });
     const a = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>a</p>' } });
