@@ -1973,6 +1973,23 @@ git commit -m "feat(design): add corridor/wayfinding tokens and self-hosted font
 
 ---
 
+### Task 9 — as built (amended after review)
+
+- `scripts/fetch-fonts.mjs` must extract and emit the `unicode-range` descriptor from
+  Google's CSS for every `@font-face` block. Without it, Google's `bengali` and `latin`
+  subsets for the same family and weight both default to the whole codepoint space, the
+  last-declared (latin) wins for every character, Bengali text falls through to the
+  system stack, and the Bengali `.woff2` files download unused. Nine blocks ship, each
+  with its range.
+- The plate comment was corrected, not the code. `--db-plate-bg` **is** redefined in the
+  dark blocks and that is deliberate: the light value `#0B1620` on the dark ground
+  `#0A141D` is two near-blacks and would be invisible. Plates keep their signage
+  character in both themes — never inverting to a light plate — but the ground lifts to
+  `#162835` in dark mode. `--db-plate-fg` and `--db-plate-accent` are genuinely
+  theme-invariant and are defined once in bare `:root`.
+
+---
+
 ## Task 10: Theme switcher
 
 **Files:**
