@@ -1308,11 +1308,15 @@ export default function StatRowBlock({ data }) {
       <dl className="db-statrow-grid">
         {stats.map((s, i) => (
           <div key={i} className="db-stat">
+            {/* dt MUST precede dd: the HTML content model requires it, and a
+                screen reader announces in DOM order — term first, then value.
+                The value is shown ABOVE the label visually via `order` in
+                app/design-tokens.css. Do not swap these back. */}
+            <dt className="db-stat-label">{s.label}</dt>
             <dd className="db-stat-value">
               {s.value}
               {s.unit ? <span className="db-stat-unit">{s.unit}</span> : null}
             </dd>
-            <dt className="db-stat-label">{s.label}</dt>
           </div>
         ))}
       </dl>
@@ -1882,10 +1886,15 @@ stamps win in both directions.
   background-image:repeating-linear-gradient(115deg,transparent 0 6px,rgba(128,64,0,.14) 6px 12px);}
 .db-tag-alert{background:var(--db-alert-wash);color:var(--db-alert);}
 
-.db-stat-value{font-family:var(--db-font-display);font-weight:700;font-size:clamp(1.9rem,1.2rem + 2.2vw,2.9rem);line-height:1;}
+/* The markup is dt-then-dd (required by the HTML content model, and the order a
+   screen reader announces). `order` puts the value on top visually without
+   touching DOM order — presentation and semantics stay independent. */
+.db-stat{display:flex;flex-direction:column;padding:18px 8px 18px 0;}
+.db-stat-value{order:1;font-family:var(--db-font-display);font-weight:700;
+  font-size:clamp(1.9rem,1.2rem + 2.2vw,2.9rem);line-height:1;margin:0;}
 .db-stat-unit{font-size:.48em;color:var(--db-accent);margin-left:2px;}
-.db-stat-label{font-family:var(--db-font-display);font-size:.7rem;letter-spacing:.15em;
-  text-transform:uppercase;color:var(--db-ink-3);margin-top:6px;}
+.db-stat-label{order:2;font-family:var(--db-font-display);font-size:.7rem;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--db-ink-3);margin-top:6px;}
 /* auto-fit + minmax reflows from 1 column at 320px to 4 across on a desktop
    with no breakpoints of its own. */
 .db-statrow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:0;margin:0;}
@@ -3788,6 +3797,7 @@ git commit -m "test(e2e): add locale, theme, responsive and legacy-site suites"
 | Touch targets ≥ 44×44, zoom not disabled | 9 (`pointer:coarse` rule), 11 (`viewport` export), 17 (assertions) |
 | Static generation + targeted revalidation (defect 9) | 13 |
 | `prefers-reduced-motion` | 9 |
+| Description lists are conformant (dt before dd); visual order via CSS `order` | 7 (markup), 9 (CSS) |
 | Per-locale `lang` attributes | 11 |
 | No CDN fonts | 9 |
 | Live site must not regress | 17 |
