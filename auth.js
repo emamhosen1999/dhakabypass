@@ -3,6 +3,7 @@ import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { query, dbEnabled } from './lib/db';
+import { ROLES } from './lib/auth/roles';
 
 /**
  * Admin auth: Google OAuth + email/password, JWT sessions (no session table).
@@ -42,7 +43,7 @@ const providers = [
       if (!dbEnabled()) return null;
 
       const rows = await query(
-        'SELECT id, email, name, password_hash FROM admin_users WHERE email = ? LIMIT 1',
+        'SELECT id, email, name, password_hash, role FROM users WHERE email = ? LIMIT 1',
         [email]
       );
       const user = rows?.[0];
@@ -51,7 +52,12 @@ const providers = [
       const ok = await bcrypt.compare(password, user.password_hash);
       if (!ok) return null;
 
-      return { id: String(user.id), email: user.email, name: user.name || user.email };
+      return {
+        id: String(user.id),
+        email: user.email,
+        name: user.name || user.email,
+        role: user.role || ROLES.EDITOR,
+      };
     },
   }),
 ];
@@ -75,12 +81,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user }) {
       return isAllowedAdmin(user?.email);
     },
-    async jwt({ token }) {
+    async jwt({ token, user }) {
       token.isAdmin = isAllowedAdmin(token.email);
+      // The role rides on the JWT after sign-in; allowlisted Google users who
+      // have no users row are treated as admins, matching the old behaviour.
+      if (user?.role) token.role = user.role;
+      if (!token.role) token.role = token.isAdmin ? ROLES.ADMIN : ROLES.EDITOR;
       return token;
     },
     async session({ session, token }) {
-      if (session.user) session.user.isAdmin = Boolean(token.isAdmin);
+      if (session.user) {
+        session.user.isAdmin = Boolean(token.isAdmin);
+        session.user.role = token.role;
+      }
       return session;
     },
   },
