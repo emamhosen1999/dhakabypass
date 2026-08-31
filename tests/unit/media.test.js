@@ -55,6 +55,13 @@ describe('extensionForMime', () => {
     expect(extensionForMime(undefined)).toBe(null);
   });
 
+  it('never resolves a prototype key — a plain object lookup would leak these', () => {
+    expect(extensionForMime('constructor')).toBe(null);
+    expect(extensionForMime('toString')).toBe(null);
+    expect(extensionForMime('__proto__')).toBe(null);
+    expect(extensionForMime('hasOwnProperty')).toBe(null);
+  });
+
   it('agrees with ALLOWED_MIME_TYPES, so the route and the extension map cannot drift', () => {
     for (const mime of ALLOWED_MIME_TYPES) {
       expect(extensionForMime(mime)).toBeTruthy();

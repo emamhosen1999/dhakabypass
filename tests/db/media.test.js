@@ -66,6 +66,14 @@ describe('saveUpload — the stored extension is never trusted from the client f
       M.saveUpload({ buffer: Buffer.from('x'), filename: 'a.txt', mime: 'text/plain' })
     ).rejects.toThrow();
   });
+
+  it('rejects mime "constructor" rather than writing a file with an inherited "extension"', async () => {
+    await expect(
+      M.saveUpload({ buffer: Buffer.from('x'), filename: 'a.png', mime: 'constructor' })
+    ).rejects.toThrow();
+    const files = await fs.readdir(tmpRoot);
+    expect(files.some((f) => f.startsWith('a'))).toBe(false);
+  });
 });
 
 describe('saveUpload — never overwrites, even under a name collision', () => {
