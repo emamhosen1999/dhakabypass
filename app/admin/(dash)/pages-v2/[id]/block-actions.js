@@ -12,6 +12,8 @@ import { revalidatePage } from '../../../../../lib/revalidate';
 
 const adminPath = (pageId) => `/admin/pages-v2/${pageId}`;
 
+const VALID_STATUSES = ['draft', 'published'];
+
 export async function addBlockAction(formData) {
   await assertCan('edit_blocks');
   const pageId = Number(formData.get('pageId'));
@@ -19,24 +21,42 @@ export async function addBlockAction(formData) {
   const type = String(formData.get('type') || '');
   if (!getBlock(type)) throw new Error(`"${type}" is not a block type`);
 
-  await addBlock({ pageId, type, data: defaultBlockData(type) });
-  revalidatePage(slug);
+  try {
+    await addBlock({ pageId, type, data: defaultBlockData(type) });
+  } catch {
+    // Never leak driver text (a connection drop, an FK violation from a
+    // forged pageId) to the browser.
+    throw new Error('Could not add the block. Please try again.');
+  }
+  if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
 }
 
 export async function deleteBlockAction(formData) {
   await assertCan('edit_blocks');
   const pageId = Number(formData.get('pageId'));
-  await deleteBlock(Number(formData.get('blockId')));
-  revalidatePage(String(formData.get('slug') || ''));
+  const slug = String(formData.get('slug') || '');
+
+  try {
+    await deleteBlock(Number(formData.get('blockId')));
+  } catch {
+    throw new Error('Could not delete the block. Please try again.');
+  }
+  if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
 }
 
 export async function duplicateBlockAction(formData) {
   await assertCan('edit_blocks');
   const pageId = Number(formData.get('pageId'));
-  await duplicateBlock(Number(formData.get('blockId')));
-  revalidatePage(String(formData.get('slug') || ''));
+  const slug = String(formData.get('slug') || '');
+
+  try {
+    await duplicateBlock(Number(formData.get('blockId')));
+  } catch {
+    throw new Error('Could not duplicate the block. Please try again.');
+  }
+  if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
 }
 
@@ -45,6 +65,7 @@ export async function moveBlockAction(formData) {
   const pageId = Number(formData.get('pageId'));
   const blockId = Number(formData.get('blockId'));
   const direction = String(formData.get('direction'));
+  const slug = String(formData.get('slug') || '');
 
   const blocks = await getPageBlocks(pageId);
   const ids = blocks.map((b) => b.id);
@@ -53,8 +74,12 @@ export async function moveBlockAction(formData) {
   if (i === -1 || j < 0 || j >= ids.length) return;
 
   [ids[i], ids[j]] = [ids[j], ids[i]];
-  await reorderBlocks(pageId, ids);
-  revalidatePage(String(formData.get('slug') || ''));
+  try {
+    await reorderBlocks(pageId, ids);
+  } catch {
+    throw new Error('Could not reorder the blocks. Please try again.');
+  }
+  if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
 }
 
@@ -65,13 +90,24 @@ export async function saveTranslationAction(formData) {
   const locale = String(formData.get('locale'));
   const type = String(formData.get('type'));
   const status = String(formData.get('status') || 'draft');
+  const slug = String(formData.get('slug') || '');
+
+  // 'missing' is a valid database value but means "no row exists" — it must
+  // never be settable from this form, only 'draft' or 'published'.
+  if (!VALID_STATUSES.includes(status)) {
+    throw new Error('Status must be "draft" or "published"');
+  }
 
   const data = parseBlockForm(type, formData);
   const check = validateBlockData(type, data);
   // A draft may be incomplete; publishing may not.
   if (status === 'published' && !check.ok) throw new Error(check.errors.join('. '));
 
-  await saveBlockTranslation({ blockId, locale, data, status, userId: Number(session.user.id) || null });
-  revalidatePage(String(formData.get('slug') || ''));
+  try {
+    await saveBlockTranslation({ blockId, locale, data, status, userId: Number(session.user.id) || null });
+  } catch {
+    throw new Error('Could not save. Please try again.');
+  }
+  if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
 }
