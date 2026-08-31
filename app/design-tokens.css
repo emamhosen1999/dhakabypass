@@ -157,3 +157,40 @@
   border:0;border-right:1px solid var(--db-rule);cursor:pointer;}
 .db-theme-btn:last-child{border-right:0;}
 .db-theme-btn[aria-pressed="true"]{background:var(--db-accent-bright);color:#0B1620;}
+
+.db-header{background:var(--db-plate-bg);color:var(--db-plate-fg);}
+.db-header-inner{max-width:var(--db-shell);margin:0 auto;padding:14px clamp(12px,3vw,20px);
+  display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;}
+.db-skip{position:absolute;left:-9999px;}
+.db-skip:focus{position:static;display:inline-block;padding:8px 12px;background:var(--db-accent-bright);color:#0B1620;}
+.db-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;}
+.db-brand-mark{width:34px;height:34px;border-radius:2px;background:var(--db-plate-accent);color:#0B1620;
+  font-family:var(--db-font-display);font-weight:700;display:flex;align-items:center;justify-content:center;}
+.db-brand-name{font-family:var(--db-font-display);font-size:1.02rem;letter-spacing:.06em;display:block;line-height:1.1;}
+.db-brand-tag{font-size:.68rem;opacity:.6;}
+/* Visible from md so the nav never disappears on a landscape tablet.
+   Below md the links move into the always-present overflow row rather than
+   vanishing — nothing is unreachable at any width. */
+.db-nav{display:none;gap:4px;margin-left:auto;align-items:center;flex-wrap:wrap;}
+@media (min-width:768px){.db-nav{display:flex;}}
+.db-nav-mobile{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  width:100%;padding-bottom:4px;scrollbar-width:none;}
+.db-nav-mobile::-webkit-scrollbar{display:none;}
+@media (min-width:768px){.db-nav-mobile{display:none;}}
+.db-nav-link,.db-nav-cta{font-family:var(--db-font-display);font-weight:600;font-size:.86rem;
+  letter-spacing:.09em;text-transform:uppercase;padding:7px 11px;border-radius:2px;text-decoration:none;color:inherit;opacity:.78;}
+.db-nav-link:hover{opacity:1;}
+.db-nav-cta{border:1px solid var(--db-plate-accent);color:var(--db-plate-accent);opacity:1;}
+.db-header-utils{display:flex;gap:10px;align-items:center;margin-left:auto;}
+.db-locale-switch{display:inline-flex;gap:2px;}
+.db-locale-btn{font-family:var(--db-font-display);font-size:.76rem;letter-spacing:.06em;
+  padding:4px 9px;border-radius:2px;text-decoration:none;color:inherit;opacity:.6;}
+.db-locale-btn[aria-current="true"]{background:var(--db-plate-accent);color:#0B1620;opacity:1;}
+.db-footer{border-top:1px solid var(--db-rule);margin-top:64px;}
+.db-footer-inner{max-width:var(--db-shell);margin:0 auto;padding:24px clamp(12px,3vw,20px);
+  display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;
+  color:var(--db-ink-3);font-size:.86rem;}
+.db-block{max-width:var(--db-shell);margin:0 auto;padding:clamp(28px,5vw,40px) clamp(12px,3vw,20px);}
+.db-prose{max-width:var(--db-measure);color:var(--db-ink-2);}
+.db-prose table{display:block;overflow-x:auto;max-width:100%;}
+.db-empty{max-width:var(--db-shell);margin:0 auto;padding:60px clamp(12px,3vw,20px);color:var(--db-ink-3);}
