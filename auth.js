@@ -4,6 +4,7 @@ import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { query, dbEnabled } from './lib/db';
 import { ROLES } from './lib/auth/roles';
+import { resolveUserRole } from './lib/auth/resolve-role';
 
 /**
  * Admin auth: Google OAuth + email/password, JWT sessions (no session table).
@@ -83,10 +84,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async jwt({ token, user }) {
       token.isAdmin = isAllowedAdmin(token.email);
-      // The role rides on the JWT after sign-in; allowlisted Google users who
-      // have no users row are treated as admins, matching the old behaviour.
-      if (user?.role) token.role = user.role;
-      if (!token.role) token.role = token.isAdmin ? ROLES.ADMIN : ROLES.EDITOR;
+      // The role is resolved once, at sign-in (when `user` is present), for
+      // EVERY provider — not just Credentials — so a Google sign-in cannot
+      // inherit a stronger role than the matching `users` row grants. It
+      // then rides on the token for the life of the session: we do NOT
+      // re-query on every request, since that would put a DB hit on every
+      // page view on a memory-limited shared host. A role change in `users`
+      // only takes effect the next time the user signs in. `isAdmin` is the
+      // immediate revocation path instead — it is re-derived from
+      // ADMIN_EMAILS on every request, independent of the cached role.
+      // If no `users` row matches, token.role is left undefined; can()
+      // already fails closed on an undefined role.
+      if (user) {
+        token.role = user.role || (await resolveUserRole(token.email)) || undefined;
+      }
       return token;
     },
     async session({ session, token }) {
