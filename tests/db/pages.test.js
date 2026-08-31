@@ -75,4 +75,53 @@ describe('pages', () => {
     expect(await P.getPageBySlug('p')).toBe(null);
     expect(await P.getPageBlocks(pageId)).toEqual([]);
   });
+
+  it('reorderBlocks throws when given a partial list, and the stored order is unchanged afterwards', async () => {
+    const pageId = await P.createPage({ slug: 'p', title: 'P' });
+    const a = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>a</p>' } });
+    const b = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>b</p>' } });
+    const c = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>c</p>' } });
+
+    // Try to reorder with only 2 of 3 blocks
+    await expect(P.reorderBlocks(pageId, [b, a])).rejects.toThrow('reorderBlocks needs every block id for the page');
+
+    // Verify order is unchanged
+    expect((await P.getPageBlocks(pageId)).map((x) => x.id)).toEqual([a, b, c]);
+  });
+
+  it('reorderBlocks throws when given an id from a different page', async () => {
+    const page1 = await P.createPage({ slug: 'p1', title: 'P1' });
+    const page2 = await P.createPage({ slug: 'p2', title: 'P2' });
+    const b1 = await P.addBlock({ pageId: page1, type: 'rich-text', data: { body: '<p>a</p>' } });
+    const b2 = await P.addBlock({ pageId: page2, type: 'rich-text', data: { body: '<p>b</p>' } });
+
+    // Try to reorder page1 with block from page2
+    await expect(P.reorderBlocks(page1, [b2])).rejects.toThrow('reorderBlocks needs every block id for the page');
+
+    // Verify original order is unchanged
+    expect((await P.getPageBlocks(page1)).map((x) => x.id)).toEqual([b1]);
+  });
+
+  it('duplicateBlock on a nonexistent id rejects, and creates no new block row', async () => {
+    const pageId = await P.createPage({ slug: 'p', title: 'P' });
+    const a = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>a</p>' } });
+    const blockCountBefore = (await P.getPageBlocks(pageId)).length;
+
+    await expect(P.duplicateBlock(999999)).rejects.toThrow('Block 999999 not found');
+
+    const blockCountAfter = (await P.getPageBlocks(pageId)).length;
+    expect(blockCountAfter).toBe(blockCountBefore);
+  });
+
+  it('createPage with a duplicate slug rejects, and leaves no orphan pages row', async () => {
+    await P.createPage({ slug: 'unique', title: 'First' });
+
+    // Try to create with duplicate slug
+    await expect(P.createPage({ slug: 'unique', title: 'Second' })).rejects.toThrow();
+
+    // Count pages with slug 'unique' — should still be 1 (no orphan)
+    const { query } = await import('../../lib/db.js');
+    const rows = await query('SELECT id FROM pages WHERE slug = ?', ['unique']);
+    expect(rows.length).toBe(1);
+  });
 });
