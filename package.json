@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "db:setup": "node scripts/db-setup.mjs",
-    "db:seed": "node scripts/db-seed.mjs"
+    "db:seed": "node scripts/db-seed.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "db:setup:v2": "node scripts/db-setup-v2.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
@@ -23,9 +27,13 @@
     "node": ">=18.18.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.3.2",
+    "@vitest/coverage-v8": "^3.2.7",
+    "dotenv": "^16.6.1",
     "node-html-parser": "^9.0.0",
     "postcss": "^8.5.17",
-    "tailwindcss": "^4.3.2"
+    "tailwindcss": "^4.3.2",
+    "vitest": "^3.2.7"
   }
 }
