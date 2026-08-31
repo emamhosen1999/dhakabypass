@@ -1,7 +1,4 @@
 import './globals.css';
-import SiteHeader from '../components/SiteHeader';
-import SiteFooter from '../components/SiteFooter';
-import { getSections } from '../lib/content';
 
 export const metadata = {
   title: "Dhaka Bypass Expressway - Bangladesh's First Fully Access-Controlled Highway",
@@ -10,25 +7,15 @@ export const metadata = {
   icons: { icon: [{ url: '/favicon.ico', type: 'image/x-icon', sizes: '16x16' }] },
 };
 
-// Content is DB-backed, so never statically freeze the shell.
-export const dynamic = 'force-dynamic';
-
-export default async function RootLayout({ children }) {
-  const { 'site.header': header, 'site.footer': footer } = await getSections([
-    'site.header',
-    'site.footer',
-  ]);
-
+/**
+ * Root layout is html/body only. The public site chrome (header/footer) lives in
+ * app/(site)/layout.jsx and the admin chrome in app/admin/(dash)/layout.jsx, so
+ * the admin never inherits the public header.
+ */
+export default function RootLayout({ children }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body>
-        <SiteHeader content={header} />
-        <div className="h-16" />
-        <div className="min-h-screen bg-white text-gray-800 font-sans">
-          {children}
-          <SiteFooter content={footer} />
-        </div>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
