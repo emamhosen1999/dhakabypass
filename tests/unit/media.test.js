@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { safeFilename } from '../../lib/media.js';
+import { safeFilename, extensionForMime, ALLOWED_MIME_TYPES } from '../../lib/media.js';
 
 describe('safeFilename', () => {
   it('lowercases and slugifies', () => {
@@ -8,7 +8,9 @@ describe('safeFilename', () => {
 
   it('strips path traversal', () => {
     expect(safeFilename('../../etc/passwd.png')).toBe('etc-passwd.png');
-    expect(safeFilename('..\\\\windows\\\\a.png')).toBe('windows-a.png');
+    // A single-backslash Windows path (`\\` in the JS source is one literal
+    // backslash at runtime) — not a doubled-up fake.
+    expect(safeFilename('..\\windows\\a.png')).toBe('windows-a.png');
   });
 
   it('drops characters that are not safe in a URL', () => {
@@ -27,5 +29,35 @@ describe('safeFilename', () => {
 
   it('never returns an empty name', () => {
     expect(safeFilename('///')).toBe('file');
+  });
+
+  it('caps the stem at 60 characters', () => {
+    const long = 'a'.repeat(200) + '.png';
+    const result = safeFilename(long);
+    const stem = result.slice(0, result.length - '.png'.length);
+    expect(stem.length).toBeLessThanOrEqual(60);
+    expect(result.endsWith('.png')).toBe(true);
+  });
+});
+
+describe('extensionForMime', () => {
+  it('maps each allowed mime to its real extension', () => {
+    expect(extensionForMime('image/webp')).toBe('.webp');
+    expect(extensionForMime('image/jpeg')).toBe('.jpg');
+    expect(extensionForMime('image/png')).toBe('.png');
+    expect(extensionForMime('image/svg+xml')).toBe('.svg');
+  });
+
+  it('returns null for anything not in the allowlist', () => {
+    expect(extensionForMime('text/html')).toBe(null);
+    expect(extensionForMime('application/x-php')).toBe(null);
+    expect(extensionForMime('')).toBe(null);
+    expect(extensionForMime(undefined)).toBe(null);
+  });
+
+  it('agrees with ALLOWED_MIME_TYPES, so the route and the extension map cannot drift', () => {
+    for (const mime of ALLOWED_MIME_TYPES) {
+      expect(extensionForMime(mime)).toBeTruthy();
+    }
   });
 });

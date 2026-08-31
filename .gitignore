@@ -9,6 +9,9 @@ build/
 
 # uploads written by the admin panel at runtime
 public/uploads/
+# local fallback for MEDIA_ROOT (lib/media.js uploadRoot()) — outside public/
+# on purpose, served by app/uploads/[...path]/route.js instead
+var/uploads/
 
 # local scratch / screenshots
 .playwright-mcp/
