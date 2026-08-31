@@ -39,16 +39,22 @@ export async function createPageAction(formData) {
     );
   }
   if (!isValidSlug(slug)) throw new Error(`"${slug}" is not a usable address`);
-  if (await getPageBySlug(slug)) throw new Error(`A page already lives at "${slug}"`);
 
   try {
+    if (await getPageBySlug(slug)) {
+      const dup = new Error(`A page already lives at "${slug}"`);
+      dup.code = 'DUPLICATE_SLUG';
+      throw dup;
+    }
     await createPage({ slug, title });
   } catch (err) {
-    // getPageBySlug above closes the common case, but it's a separate
-    // round-trip from the INSERT — the loser of a concurrent create for the
-    // same slug hits the UNIQUE constraint instead. Translate that into the
-    // same friendly message rather than letting the driver's error through.
-    if (err?.code === 'ER_DUP_ENTRY') {
+    // Duplicate detected — by the pre-check above, or by the loser of a
+    // concurrent create hitting the UNIQUE constraint on the INSERT (a
+    // separate round-trip from the pre-check, so it needs its own case) —
+    // gets the same friendly message. Anything else (a connection drop or
+    // SQL error from either call) must not leak the driver's text to the
+    // browser.
+    if (err?.code === 'DUPLICATE_SLUG' || err?.code === 'ER_DUP_ENTRY') {
       throw new Error(`A page already lives at "${slug}"`);
     }
     throw new Error('Could not create the page. Please try again.');
@@ -77,7 +83,9 @@ export async function deletePageAction(formData) {
         `This page has ${err.childCount} sub-page${err.childCount === 1 ? '' : 's'}. Delete or move them first.`
       );
     }
-    throw err;
+    // Anything else (a connection drop, a raw SQL error) must not leak the
+    // driver's text to the browser.
+    throw new Error('Could not delete the page. Please try again.');
   }
 
   if (slug) revalidatePage(slug);

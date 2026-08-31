@@ -118,7 +118,7 @@ describe('createPageAction', () => {
     await expect(createPageAction(formData({ title: 'Travel' }))).rejects.toThrow('A page already lives at "travel"');
   });
 
-  it('turns any other database error into a generic message, never the driver text', async () => {
+  it('turns any other database error from createPage into a generic message, never the driver text', async () => {
     getPageBySlug.mockResolvedValue(null);
     const dbErr = new Error('Data too long for column \'slug\' at row 1');
     dbErr.code = 'ER_DATA_TOO_LONG';
@@ -130,6 +130,20 @@ describe('createPageAction', () => {
     );
     // and definitely not the raw driver message
     await expect(createPageAction(formData({ title: 'Travel' }))).rejects.not.toThrow(/Data too long|sqlMessage/);
+  });
+
+  it('turns a database error from the getPageBySlug pre-check into the same generic message, never the driver text', async () => {
+    // The duplicate pre-check is its own round-trip, separate from
+    // createPage — a connection drop or SQL error there must be sanitized
+    // just like one from the INSERT itself.
+    const dbErr = new Error('Connection lost: The server closed the connection');
+    dbErr.code = 'PROTOCOL_CONNECTION_LOST';
+    getPageBySlug.mockRejectedValue(dbErr);
+    await expect(createPageAction(formData({ title: 'Travel' }))).rejects.toThrow(
+      'Could not create the page. Please try again.'
+    );
+    await expect(createPageAction(formData({ title: 'Travel' }))).rejects.not.toThrow(/Connection lost|PROTOCOL_/);
+    expect(createPage).not.toHaveBeenCalled();
   });
 
   it('creates the page, then revalidates the page and the admin list', async () => {
@@ -178,10 +192,16 @@ describe('deletePageAction', () => {
     );
   });
 
-  it('lets a non-HAS_CHILDREN error from deletePageIfChildless propagate', async () => {
+  it('turns any non-HAS_CHILDREN error from deletePageIfChildless into a generic message, never the driver text', async () => {
     const otherErr = new Error('connection lost');
+    otherErr.code = 'PROTOCOL_CONNECTION_LOST';
     deletePageIfChildless.mockRejectedValue(otherErr);
-    await expect(deletePageAction(formData({ id: '1', slug: 'travel' }))).rejects.toThrow('connection lost');
+    await expect(deletePageAction(formData({ id: '1', slug: 'travel' }))).rejects.toThrow(
+      'Could not delete the page. Please try again.'
+    );
+    await expect(deletePageAction(formData({ id: '1', slug: 'travel' }))).rejects.not.toThrow(
+      /connection lost|PROTOCOL_/
+    );
   });
 
   it('deletes a childless page and revalidates', async () => {
