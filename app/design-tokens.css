@@ -1,0 +1,147 @@
+/* Corridor / wayfinding design tokens. Light is the bare :root. */
+
+@font-face{font-family:'Archivo';font-style:normal;font-weight:400 700;font-display:swap;src:url('/fonts/Archivo-latin-400-700.woff2') format('woff2');}
+@font-face{font-family:'BarlowSemiCondensed';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/BarlowSemiCondensed-latin-600.woff2') format('woff2');}
+@font-face{font-family:'BarlowSemiCondensed';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/BarlowSemiCondensed-latin-700.woff2') format('woff2');}
+@font-face{font-family:'NotoSansBengali';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/NotoSansBengali-bengali-400.woff2') format('woff2');}
+@font-face{font-family:'NotoSansBengali';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/NotoSansBengali-latin-400.woff2') format('woff2');}
+@font-face{font-family:'NotoSansBengali';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/NotoSansBengali-bengali-600.woff2') format('woff2');}
+@font-face{font-family:'NotoSansBengali';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/NotoSansBengali-latin-600.woff2') format('woff2');}
+@font-face{font-family:'NotoSansBengali';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/NotoSansBengali-bengali-700.woff2') format('woff2');}
+@font-face{font-family:'NotoSansBengali';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/NotoSansBengali-latin-700.woff2') format('woff2');}
+
+:root{
+  --db-ground:#E7EBEE;
+  --db-surface:#FFFFFF;
+  --db-surface-2:#DCE3E8;
+  --db-ink:#0B1620;
+  --db-ink-2:#3D525F;
+  --db-ink-3:#687E8C;
+  --db-rule:#C2CCD3;
+  --db-rule-2:#9FADB7;
+  --db-accent:#8A5A00;
+  --db-accent-bright:#FFB000;
+  --db-open:#0F6B42;
+  --db-build:#9E3E05;
+  --db-alert:#93231A;
+
+  /* Signage plates keep their values in both themes: a road sign does not
+     change with the viewer's operating system. */
+  --db-plate-bg:#0B1620;
+  --db-plate-fg:#EDF2F5;
+  --db-plate-accent:#FFB000;
+
+  /* Status washes are explicit values, NOT color-mix(): color-mix is unsupported
+     before Chrome 111 / Safari 16.2, and an unsupported value drops the whole
+     declaration — status tags would lose their background entirely. */
+  --db-open-wash:#D3EBDF;
+  --db-build-wash:#F8DFCF;
+  --db-alert-wash:#F7DAD5;
+
+  /* Breakpoints, documented here so every component uses the same set. */
+  --db-bp-sm:480px;
+  --db-bp-md:768px;
+  --db-bp-lg:1024px;
+  --db-bp-xl:1280px;
+  --db-measure:68ch;
+  --db-shell:1180px;
+  --db-tap:44px;
+
+  --db-font-display:'BarlowSemiCondensed','NotoSansBengali',system-ui,sans-serif;
+  --db-font-body:'Archivo','NotoSansBengali',system-ui,sans-serif;
+  --db-font-zh:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
+}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --db-ground:#0A141D;
+    --db-surface:#101E29;
+    --db-surface-2:#162835;
+    --db-ink:#E6EDF1;
+    --db-ink-2:#A6B8C4;
+    --db-ink-3:#758997;
+    --db-rule:#1E3140;
+    --db-rule-2:#2F4759;
+    --db-accent:#FFB000;
+    --db-open:#3ECC85;
+    --db-build:#FF8A45;
+    --db-alert:#FF6A55;
+    --db-open-wash:#0E2C20;
+    --db-build-wash:#331A0C;
+    --db-alert-wash:#331411;
+    --db-plate-bg:#162835;
+  }
+}
+
+:root[data-theme="dark"]{
+  --db-ground:#0A141D;
+  --db-surface:#101E29;
+  --db-surface-2:#162835;
+  --db-ink:#E6EDF1;
+  --db-ink-2:#A6B8C4;
+  --db-ink-3:#758997;
+  --db-rule:#1E3140;
+  --db-rule-2:#2F4759;
+  --db-accent:#FFB000;
+  --db-open:#3ECC85;
+  --db-build:#FF8A45;
+  --db-alert:#FF6A55;
+  --db-open-wash:#0E2C20;
+  --db-build-wash:#331A0C;
+  --db-alert-wash:#331411;
+  --db-plate-bg:#162835;
+}
+
+/* Scoped to the new tree only — the live site must not change. */
+.db-root{
+  background:var(--db-ground);
+  color:var(--db-ink);
+  font-family:var(--db-font-body);
+  font-variant-numeric:tabular-nums;
+  /* The body must never scroll sideways at any viewport width. */
+  overflow-x:hidden;
+}
+/* Media and embeds never force the page wider than the viewport. */
+.db-root img,.db-root video,.db-root svg,.db-root iframe{max-width:100%;height:auto;}
+/* Wide content scrolls inside itself instead. */
+.db-scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
+/* Long unbroken strings (URLs, chainages) must not blow out narrow screens. */
+.db-root p,.db-root li,.db-root td,.db-root h1,.db-root h2,.db-root h3{overflow-wrap:break-word;}
+/* Every interactive target meets the 44px minimum on touch devices. */
+@media (pointer:coarse){
+  .db-root a,.db-root button,.db-root [role="button"],.db-root summary{
+    min-height:var(--db-tap);
+  }
+}
+.db-root:lang(zh){font-family:var(--db-font-zh);}
+.db-root h1,.db-root h2,.db-root h3,.db-root .db-display{
+  font-family:var(--db-font-display);font-weight:700;line-height:1.06;text-wrap:balance;
+}
+.db-root :focus-visible{outline:3px solid var(--db-accent-bright);outline-offset:2px;}
+
+.db-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--db-font-display);
+  font-weight:700;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:2px;}
+/* Status carries a shape and a label as well as a colour — never colour alone. */
+.db-tag-open{background:var(--db-open-wash);color:var(--db-open);}
+.db-tag-build{background:var(--db-build-wash);color:var(--db-build);
+  background-image:repeating-linear-gradient(115deg,transparent 0 6px,rgba(128,64,0,.14) 6px 12px);}
+.db-tag-alert{background:var(--db-alert-wash);color:var(--db-alert);}
+
+/* The markup is dt-then-dd (required by the HTML content model, and the order a
+   screen reader announces). `order` puts the value on top visually without
+   touching DOM order — presentation and semantics stay independent. */
+.db-stat{display:flex;flex-direction:column;padding:18px 8px 18px 0;}
+.db-stat-value{order:1;font-family:var(--db-font-display);font-weight:700;
+  font-size:clamp(1.9rem,1.2rem + 2.2vw,2.9rem);line-height:1;margin:0;}
+.db-stat-unit{font-size:.48em;color:var(--db-accent);margin-left:2px;}
+.db-stat-label{order:2;font-family:var(--db-font-display);font-size:.7rem;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--db-ink-3);margin-top:6px;}
+/* auto-fit + minmax reflows from 1 column at 320px to 4 across on a desktop
+   with no breakpoints of its own. */
+.db-statrow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:0;margin:0;}
+
+@media (prefers-reduced-motion:reduce){
+  .db-root *,.db-root *::before,.db-root *::after{
+    animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;
+  }
+}

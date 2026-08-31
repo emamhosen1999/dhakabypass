@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './design-tokens.css';
 
 /* Be explicit about where classes live so utilities are never missed. */
 @source "../app";
