@@ -16,7 +16,12 @@ for (const l of LOCALES) {
     expect(response.status()).toBe(200);
 
     await expect(page.locator('.db-root')).toHaveAttribute('lang', l.lang);
-    await expect(page.getByRole('navigation', { name: 'Primary' })).toContainText(l.nav);
+    // exact: true — Playwright's accessible-name matcher is substring by
+    // default, so an unqualified 'Primary' also matches the compact nav's
+    // "Primary, compact" label. Without `exact`, this only happened to
+    // resolve to one element because the hidden nav was display:none (and
+    // therefore out of the a11y tree) at the moment of the query.
+    await expect(page.getByRole('navigation', { name: 'Primary', exact: true })).toContainText(l.nav);
     expect(errors).toEqual([]);
   });
 }

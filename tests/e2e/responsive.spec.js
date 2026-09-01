@@ -26,11 +26,18 @@ for (const vp of VIEWPORTS) {
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto('/en');
 
-    // Either the full nav or the compact row must be visible — never neither.
-    const full = page.getByRole('navigation', { name: 'Primary' });
+    // exact: true — an unqualified 'Primary' also substring-matches the
+    // compact nav's "Primary, compact" accessible name.
+    const full = page.getByRole('navigation', { name: 'Primary', exact: true });
     const compact = page.getByRole('navigation', { name: 'Primary, compact' });
-    const visible = (await full.isVisible()) || (await compact.isVisible());
-    expect(visible, 'no navigation visible at this width').toBe(true);
+    const fullVisible = await full.isVisible();
+    const compactVisible = await compact.isVisible();
+
+    // Either the full nav or the compact row must be visible — never neither.
+    expect(fullVisible || compactVisible, 'no navigation visible at this width').toBe(true);
+    // ...and never both — a CSS breakpoint regression showing both at once
+    // would otherwise go undetected by the "at least one" check above.
+    expect(fullVisible && compactVisible, 'both navigations visible at this width').toBe(false);
   });
 }
 
@@ -51,12 +58,22 @@ test('touch targets meet the 44px minimum', async ({ browser }) => {
   const page = await context.newPage();
   await page.goto('/en');
 
-  const links = page.locator('.db-nav-mobile a');
-  const count = await links.count();
-  expect(count).toBeGreaterThan(0);
-  for (let i = 0; i < count; i += 1) {
-    const box = await links.nth(i).boundingBox();
-    expect(box.height, `nav link ${i} is only ${box.height}px tall`).toBeGreaterThanOrEqual(44);
+  // The 44px rule in design-tokens.css applies to every
+  // `a, button, [role=button], summary` under .db-root, not just nav links —
+  // the header's theme and locale controls are equally touch targets.
+  const targets = [
+    { label: 'nav link', locator: page.locator('.db-nav-mobile a') },
+    { label: 'theme button', locator: page.locator('.db-theme-btn') },
+    { label: 'locale link', locator: page.locator('.db-locale-btn') },
+  ];
+
+  for (const { label, locator } of targets) {
+    const count = await locator.count();
+    expect(count, `no ${label} elements found`).toBeGreaterThan(0);
+    for (let i = 0; i < count; i += 1) {
+      const box = await locator.nth(i).boundingBox();
+      expect(box.height, `${label} ${i} is only ${box.height}px tall`).toBeGreaterThanOrEqual(44);
+    }
   }
   await context.close();
 });
