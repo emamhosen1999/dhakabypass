@@ -58,7 +58,12 @@ try {
       section        VARCHAR(191) NOT NULL DEFAULT '',
       amount_bdt     DECIMAL(10,2) NOT NULL,
       effective_from DATE NOT NULL,
+      payment_methods JSON NULL,
       updated_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      -- Ensures exactly one rate per vehicle_class per effective_from date.
+      -- Task 6 relies on this to guarantee "one rate in force today" without duplicate rows.
+      -- Per-section pricing (same class, same date, different section) requires schema change.
+      UNIQUE KEY uq_class_effective (vehicle_class, effective_from),
       INDEX idx_effective (effective_from),
       INDEX idx_class (vehicle_class, effective_from)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
