@@ -83,21 +83,30 @@ describe('domain schema', () => {
     const classLabels = JSON.stringify({ en: 'Car', bn: 'গাড়ি' });
 
     // First insert succeeds
-    await conn.query(
+    const [inserted] = await conn.query(
       'INSERT INTO toll_rates (vehicle_class, class_labels, amount_bdt, effective_from) VALUES (?, ?, ?, ?)',
       ['car', classLabels, 500, now]
     );
 
-    // Second insert with same class and date must fail
     try {
-      await conn.query(
-        'INSERT INTO toll_rates (vehicle_class, class_labels, amount_bdt, effective_from) VALUES (?, ?, ?, ?)',
-        ['car', classLabels, 600, now]
-      );
-      throw new Error('Expected duplicate key error but insert succeeded');
-    } catch (err) {
-      // Expected: Duplicate entry for key 'uq_class_effective'
-      expect(err.message).toMatch(/Duplicate entry.*uq_class_effective/);
+      // Second insert with same class and date must fail
+      try {
+        await conn.query(
+          'INSERT INTO toll_rates (vehicle_class, class_labels, amount_bdt, effective_from) VALUES (?, ?, ?, ?)',
+          ['car', classLabels, 600, now]
+        );
+        throw new Error('Expected duplicate key error but insert succeeded');
+      } catch (err) {
+        // Expected: Duplicate entry for key 'uq_class_effective'
+        expect(err.message).toMatch(/Duplicate entry.*uq_class_effective/);
+      }
+    } finally {
+      // This test verifies structure, not data — it must leave the table as it
+      // found it. Delete only the row it created (by id), never a blanket
+      // TRUNCATE/DELETE-by-class, since a sibling test running in another
+      // Vitest worker against this same shared database may legitimately hold
+      // rows of its own at this moment.
+      await conn.query('DELETE FROM toll_rates WHERE id = ?', [inserted.insertId]);
     }
   });
 
