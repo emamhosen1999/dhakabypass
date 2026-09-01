@@ -133,6 +133,56 @@ describe('moveBlockAction — error handling', () => {
   });
 });
 
+describe('saveTranslationAction — type validation', () => {
+  it('rejects an unregistered block type before any write, leaving the existing translation intact', async () => {
+    auth.mockResolvedValue(TRANSLATOR_SESSION);
+    // Without this check, an unknown type would flow through parseBlockForm
+    // (which returns {} for it) straight to saveBlockTranslation — and
+    // because a draft save skips validateBlockData entirely, the ON
+    // DUPLICATE KEY UPDATE would silently overwrite the block's existing
+    // translation for this locale with an empty object.
+    await expect(
+      saveTranslationAction(formData({
+        pageId: '1', slug: 'home', blockId: '9', locale: 'en', type: 'not-a-real-block', status: 'draft',
+      }))
+    ).rejects.toThrow('"not-a-real-block" is not a block type');
+    expect(saveBlockTranslation).not.toHaveBeenCalled();
+  });
+
+  it('rejects an unregistered block type even when publishing', async () => {
+    auth.mockResolvedValue(TRANSLATOR_SESSION);
+    await expect(
+      saveTranslationAction(formData({
+        pageId: '1', slug: 'home', blockId: '9', locale: 'en', type: 'not-a-real-block', status: 'published',
+      }))
+    ).rejects.toThrow('"not-a-real-block" is not a block type');
+    expect(saveBlockTranslation).not.toHaveBeenCalled();
+  });
+});
+
+describe('saveTranslationAction — locale validation', () => {
+  it('rejects an unsupported locale before any write, leaving the existing translation intact', async () => {
+    auth.mockResolvedValue(TRANSLATOR_SESSION);
+    await expect(
+      saveTranslationAction(formData({
+        pageId: '1', slug: 'home', blockId: '9', locale: 'fr', type: 'rich-text', status: 'draft',
+        'f.heading': 'Hi', 'f.body': '<p>x</p>',
+      }))
+    ).rejects.toThrow('"fr" is not a supported language');
+    expect(saveBlockTranslation).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty locale', async () => {
+    auth.mockResolvedValue(TRANSLATOR_SESSION);
+    await expect(
+      saveTranslationAction(formData({
+        pageId: '1', slug: 'home', blockId: '9', locale: '', type: 'rich-text', status: 'draft',
+      }))
+    ).rejects.toThrow('is not a supported language');
+    expect(saveBlockTranslation).not.toHaveBeenCalled();
+  });
+});
+
 describe('saveTranslationAction — status validation', () => {
   it('rejects an invalid status with a clear message and does not write', async () => {
     auth.mockResolvedValue(TRANSLATOR_SESSION);

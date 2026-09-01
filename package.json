@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:setup:v2": "node scripts/db-setup-v2.mjs",
-    "db:migrate:users": "node scripts/migrate-users.mjs"
+    "db:migrate:users": "node scripts/migrate-users.mjs",
+    "db:seed:home": "node scripts/seed-home.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",

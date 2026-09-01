@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { LOCALE_LABELS } from '../../../../lib/i18n/locales';
 import { listPages, getPageBlocks } from '../../../../lib/content/pages';
 import { summarizeTranslations } from '../../../../lib/content/summary';
-import { assertCan } from '../pages-v2/actions';
+import { assertCan } from '../../../../lib/auth/assert-can';
 
 export const dynamic = 'force-dynamic';
 

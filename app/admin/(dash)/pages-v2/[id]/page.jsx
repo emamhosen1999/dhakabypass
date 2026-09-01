@@ -5,7 +5,7 @@ import '../../../../../lib/blocks/index';
 import { listPages, getPageBlocks } from '../../../../../lib/content/pages';
 import { translationStatus } from '../../../../../lib/content/resolve';
 import BlockFields from '../../../../../components/admin/BlockFields';
-import { assertCan } from '../actions';
+import { assertCan } from '../../../../../lib/auth/assert-can';
 import {
   addBlockAction, deleteBlockAction, duplicateBlockAction, moveBlockAction, saveTranslationAction,
 } from './block-actions';

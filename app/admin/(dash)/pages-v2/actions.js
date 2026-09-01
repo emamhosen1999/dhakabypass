@@ -2,22 +2,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { auth } from '../../../../auth';
-import { can } from '../../../../lib/auth/roles';
+import { assertCan } from '../../../../lib/auth/assert-can';
 import { listPages, createPage, deletePageIfChildless, getPageBySlug } from '../../../../lib/content/pages';
 import { normalizeSlug, isValidSlug } from '../../../../lib/content/slug';
 import { revalidatePage } from '../../../../lib/revalidate';
 
 const ADMIN_PATH = '/admin/pages-v2';
-
-export async function assertCan(action) {
-  const session = await auth();
-  if (!session?.user?.isAdmin) throw new Error('Sign in to continue');
-  if (!can(session.user.role, action)) {
-    throw new Error(`Your role cannot ${action.replace(/_/g, ' ')}`);
-  }
-  return session;
-}
 
 export async function listPagesAction() {
   await assertCan('manage_pages');

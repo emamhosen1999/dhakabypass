@@ -71,7 +71,7 @@ describe('pages', () => {
   it('removes blocks when the page is deleted', async () => {
     const pageId = await P.createPage({ slug: 'p', title: 'P' });
     await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>a</p>' } });
-    await P.deletePage(pageId);
+    await P.deletePageUnchecked(pageId);
     expect(await P.getPageBySlug('p')).toBe(null);
     expect(await P.getPageBlocks(pageId)).toEqual([]);
   });

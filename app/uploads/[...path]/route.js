@@ -64,6 +64,11 @@ export async function GET(_request, { params }) {
     'Content-Type': contentType,
     'X-Content-Type-Options': 'nosniff',
     'Content-Security-Policy': "default-src 'none'; sandbox",
+    // saveUpload() never overwrites a name (the `wx` flag plus a numeric
+    // suffix on collision), so a given URL's bytes never change — safe to
+    // cache aggressively as immutable, sparing a memory-limited shared host
+    // a disk read on every image request.
+    'Cache-Control': 'public, max-age=31536000, immutable',
   };
   // An SVG is XML a browser will happily execute as a document if opened
   // directly — forcing a download prevents that without needing a

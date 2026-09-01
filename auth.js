@@ -3,7 +3,6 @@ import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { query, dbEnabled } from './lib/db';
-import { ROLES } from './lib/auth/roles';
 import { resolveUserRole } from './lib/auth/resolve-role';
 
 /**
@@ -57,7 +56,15 @@ const providers = [
         id: String(user.id),
         email: user.email,
         name: user.name || user.email,
-        role: user.role || ROLES.EDITOR,
+        // Deliberately NO default here. `users.role` is NOT NULL with a DB
+        // default today, but that is an invariant of a different file
+        // (scripts/db-setup-v2.mjs) with nothing tying it to this one. If a
+        // row ever has no role — a nullable column, a renamed field, a
+        // SELECT that drops it — this must degrade to "no role", not quietly
+        // grant editor (manage_pages, edit_blocks, publish, manage_media).
+        // undefined here falls through jwt()'s resolveUserRole() and then to
+        // undefined, on which can() already fails closed.
+        role: user.role || undefined,
       };
     },
   }),
