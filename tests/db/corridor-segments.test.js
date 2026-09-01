@@ -73,6 +73,19 @@ describe('segments', () => {
     await S.deleteSegment(id);
     expect(await S.listSegments()).toEqual([]);
   });
+
+  it('rejects updating a segment that no longer exists', async () => {
+    await expect(S.saveSegment({ id: 999999, from_m: 0, to_m: 100, status: 'open' }))
+      .rejects.toThrow(/no longer exists/i);
+    expect(await S.listSegments()).toEqual([]);
+  });
+
+  it('lets a segment be updated when id is passed as a string', async () => {
+    const id = await S.saveSegment({ from_m: 0, to_m: 10000, status: 'open' });
+    await expect(S.saveSegment({ id: String(id), from_m: 0, to_m: 12000, status: 'open' }))
+      .resolves.toBe(id);
+    expect((await S.listSegments())[0].to_m).toBe(12000);
+  });
 });
 
 describe('interchanges', () => {
@@ -106,5 +119,23 @@ describe('interchanges', () => {
     const id = await I.saveInterchange({ chainage_m: 0, names: { en: 'X' }, kind: 'interchange' });
     await I.deleteInterchange(id);
     expect(await I.listInterchanges()).toEqual([]);
+  });
+
+  it('rejects updating an interchange that no longer exists', async () => {
+    await expect(I.saveInterchange({ id: 999999, chainage_m: 0, names: { en: 'X' }, kind: 'interchange' }))
+      .rejects.toThrow(/no longer exists/i);
+  });
+
+  it('does not throw when a row has a malformed facilities value', async () => {
+    const { query } = await import('../../lib/db.js');
+    await query(
+      `INSERT INTO interchanges (chainage_m, names, kind, status, connects_to, facilities)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [50, JSON.stringify({ en: 'Bad Row' }), 'interchange', 'planned', '', JSON.stringify('cafe')]
+    );
+    const rows = await I.listInterchanges();
+    const row = rows.find((r) => r.chainage_m === 50);
+    expect(row).toBeTruthy();
+    expect(row.facilities).toEqual([]);
   });
 });
