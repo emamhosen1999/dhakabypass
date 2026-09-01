@@ -217,3 +217,11 @@
 .db-prose{max-width:var(--db-measure);color:var(--db-ink-2);}
 .db-prose table{display:block;overflow-x:auto;max-width:100%;}
 .db-empty{max-width:var(--db-shell);margin:0 auto;padding:60px clamp(12px,3vw,20px);color:var(--db-ink-3);}
+
+/* Status is never colour alone: this carries a text tag as well. */
+.db-illustrative{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;
+  max-width:var(--db-shell);margin:0 auto;padding:10px clamp(12px,3vw,20px);
+  border-left:3px solid var(--db-build);background:var(--db-build-wash);
+  color:var(--db-ink-2);font-size:.88rem;}
+.db-illustrative-tag{font-family:var(--db-font-display);font-weight:700;font-size:.72rem;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--db-build);white-space:nowrap;}
