@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:setup:v2": "node scripts/db-setup-v2.mjs",
+    "db:setup:v3": "node scripts/db-setup-v3.mjs",
     "db:migrate:users": "node scripts/migrate-users.mjs",
     "db:seed:home": "node scripts/seed-home.mjs"
   },
