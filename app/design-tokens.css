@@ -225,3 +225,51 @@
   color:var(--db-ink-2);font-size:.88rem;}
 .db-illustrative-tag{font-family:var(--db-font-display);font-weight:700;font-size:.72rem;
   letter-spacing:.12em;text-transform:uppercase;color:var(--db-build);white-space:nowrap;}
+
+/* ---- corridor strip ---- */
+.db-strip-wrap{max-width:var(--db-shell);margin:0 auto;padding:0 clamp(12px,3vw,20px);}
+.db-strip{position:relative;padding:8px 0 74px;}
+.db-strip-rail{position:relative;height:12px;border-radius:2px;background:var(--db-surface-2);overflow:hidden;}
+.db-band{position:absolute;top:0;bottom:0;}
+.db-band-open{background:var(--db-open);}
+/* Hatched as well as coloured: status is never colour alone. */
+.db-band-construction{background:var(--db-build);
+  background-image:repeating-linear-gradient(115deg,rgba(0,0,0,.22) 0 6px,transparent 6px 12px);}
+.db-band-planned{background:var(--db-rule-2);}
+.db-strip-markers{position:relative;height:0;}
+.db-marker{position:absolute;top:6px;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;width:84px;text-align:center;}
+.db-marker-pin{width:13px;height:13px;border-radius:50%;border:3px solid var(--db-ground);background:var(--db-rule-2);}
+.db-marker-open{background:var(--db-open);}
+.db-marker-construction{background:var(--db-build);}
+.db-marker-name{margin-top:6px;font-family:var(--db-font-display);font-weight:600;
+  font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--db-ink-2);line-height:1.1;}
+.db-marker-ch{font-family:var(--db-font-display);font-size:.66rem;letter-spacing:.06em;color:var(--db-ink-3);}
+.db-strip-legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding-top:4px;
+  font-family:var(--db-font-display);font-size:.72rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--db-ink-3);}
+.db-legend-item{display:inline-flex;align-items:center;gap:7px;}
+.db-legend-swatch{display:inline-block;width:22px;height:8px;border-radius:1px;}
+/* Below 700px the strip's labels collide; the table below it carries the data. */
+@media (max-width:699px){ .db-strip{display:none;} }
+
+/* ---- tables ---- */
+.db-table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:560px;}
+.db-table-caption{caption-side:top;text-align:left;padding-bottom:8px;color:var(--db-ink-3);font-size:.86rem;}
+.db-table th,.db-table td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--db-rule);vertical-align:top;}
+.db-table thead th{font-family:var(--db-font-display);font-size:.72rem;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--db-ink-3);background:var(--db-surface-2);}
+.db-table tbody th{font-weight:600;}
+.db-num{font-variant-numeric:tabular-nums;white-space:nowrap;}
+.db-empty-inline{color:var(--db-ink-3);padding:12px 0;}
+
+/* ---- progress ---- */
+.db-progress{max-width:var(--db-shell);margin:0 auto;padding:0 clamp(12px,3vw,20px);}
+.db-progress-head{display:flex;align-items:baseline;gap:10px;}
+.db-progress-value{font-family:var(--db-font-display);font-weight:700;
+  font-size:clamp(1.8rem,1.2rem + 2vw,2.6rem);line-height:1;font-variant-numeric:tabular-nums;}
+.db-progress-label{font-family:var(--db-font-display);font-size:.72rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--db-ink-3);}
+.db-progress-rail{height:10px;border-radius:2px;background:var(--db-surface-2);margin-top:10px;overflow:hidden;}
+.db-progress-fill{display:block;height:100%;background:var(--db-open);}
+.db-progress-note{margin-top:6px;color:var(--db-ink-3);font-size:.84rem;font-variant-numeric:tabular-nums;}
