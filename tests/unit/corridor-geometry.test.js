@@ -96,4 +96,65 @@ describe('overlaps', () => {
   it('detects containment', () => {
     expect(overlaps({ from_m: 0, to_m: 500 }, { from_m: 100, to_m: 200 })).toBe(true);
   });
+
+  it('returns false when either argument is null or undefined', () => {
+    expect(overlaps(null, { from_m: 0, to_m: 100 })).toBe(false);
+    expect(overlaps({ from_m: 0, to_m: 100 }, null)).toBe(false);
+    expect(overlaps(undefined, { from_m: 0, to_m: 100 })).toBe(false);
+    expect(overlaps({ from_m: 0, to_m: 100 }, undefined)).toBe(false);
+    expect(overlaps(undefined, undefined)).toBe(false);
+  });
+
+  it('returns false when arguments lack finite values', () => {
+    expect(overlaps({ from_m: 'abc', to_m: 100 }, { from_m: 0, to_m: 100 })).toBe(false);
+    expect(overlaps({ from_m: 0, to_m: 'xyz' }, { from_m: 0, to_m: 100 })).toBe(false);
+    expect(overlaps({ from_m: 0, to_m: 100 }, { from_m: NaN, to_m: 100 })).toBe(false);
+  });
+});
+
+describe('malformed segment handling', () => {
+  it('skips null elements in segments array', () => {
+    const segmentsWithNull = [
+      { from_m: 0, to_m: 100, status: 'open' },
+      null,
+      { from_m: 100, to_m: 200, status: 'open' },
+    ];
+    expect(corridorExtent(segmentsWithNull)).toEqual({ from_m: 0, to_m: 200, length_m: 200 });
+    expect(openLength(segmentsWithNull)).toBe(200);
+    expect(percentOpen(segmentsWithNull)).toBe(100);
+  });
+
+  it('skips segments with non-numeric from_m or to_m', () => {
+    const segmentsWithBadData = [
+      { from_m: 0, to_m: 100, status: 'open' },
+      { from_m: 'abc', to_m: 200, status: 'open' },
+      { from_m: 200, to_m: 300, status: 'open' },
+    ];
+    expect(corridorExtent(segmentsWithBadData)).toEqual({ from_m: 0, to_m: 300, length_m: 300 });
+    expect(openLength(segmentsWithBadData)).toBe(200);
+    expect(percentOpen(segmentsWithBadData)).toBe(66.7);
+    expect(Number.isNaN(percentOpen(segmentsWithBadData))).toBe(false);
+  });
+
+  it('skips inverted segments (to_m < from_m)', () => {
+    const segmentsWithInverted = [
+      { from_m: 0, to_m: 100, status: 'open' },
+      { from_m: 200, to_m: 150, status: 'open' },
+      { from_m: 200, to_m: 300, status: 'open' },
+    ];
+    expect(corridorExtent(segmentsWithInverted)).toEqual({ from_m: 0, to_m: 300, length_m: 300 });
+    expect(openLength(segmentsWithInverted)).toBe(200);
+    expect(percentOpen(segmentsWithInverted)).toBe(66.7);
+  });
+
+  it('clamps percentOpen to 0–100 even with overlapping open segments', () => {
+    // Overlapping segments: 0–200 and 100–300 both open = 300 total, but extent is only 300
+    const overlappingSegments = [
+      { from_m: 0, to_m: 200, status: 'open' },
+      { from_m: 100, to_m: 300, status: 'open' },
+    ];
+    const result = percentOpen(overlappingSegments);
+    expect(result).toBeLessThanOrEqual(100);
+    expect(result).toBeGreaterThanOrEqual(0);
+  });
 });
