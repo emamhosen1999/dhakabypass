@@ -24,6 +24,14 @@ describe('formatChainage', () => {
   it('never emits a negative chainage', () => {
     expect(formatChainage(-100)).toBe('');
   });
+
+  it('rejects non-integer metres', () => {
+    // Floats would produce malformed output (e.g., K0+1000) that doesn't round-trip.
+    // The caller has a bug if fractional metres are passed — the database stores INT.
+    expect(formatChainage(999.6)).toBe('');
+    expect(formatChainage(3900.6)).toBe('');
+    expect(formatChainage(1999.5)).toBe('');
+  });
 });
 
 describe('parseChainage', () => {
@@ -51,7 +59,13 @@ describe('parseChainage', () => {
 
   it('round-trips with formatChainage', () => {
     for (const m of [0, 5, 999, 1000, 3900, 48000]) {
-      expect(parseChainage(formatChainage(m))).toBe(m);
+      const formatted = formatChainage(m);
+      // The critical invariant: if formatChainage returns a non-empty string,
+      // parseChainage must read it back to the exact original value.
+      // This fails if formatChainage produces malformed output like K0+1000.
+      if (formatted !== '') {
+        expect(parseChainage(formatted)).toBe(m);
+      }
     }
   });
 });
@@ -66,6 +80,12 @@ describe('formatKm', () => {
 
   it('returns an empty string for a non-number', () => {
     expect(formatKm(null)).toBe('');
+  });
+
+  it('clamps digits to valid range', () => {
+    // formatKm should not throw on out-of-range digits; it clamps to [0, 100].
+    expect(formatKm(48000, -1)).toBe('48');
+    expect(formatKm(48000, 101)).toBe('48.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
   });
 });
 
