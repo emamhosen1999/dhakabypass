@@ -76,6 +76,19 @@ describe('toll rates', () => {
       amount_bdt: 150, effective_from: '2099-01-01' });
     expect(await T.listAllTollRates()).toHaveLength(2);
   });
+
+  it('treats "today" as the Dhaka calendar date, not the UTC one', async () => {
+    // 2026-06-01T19:00:00Z is still 1 June in UTC but already 01:00 on
+    // 2 June in Dhaka (UTC+6). A rate effective 2026-06-02 must already be
+    // in force at this instant. Computing the cutoff from toISOString()
+    // (UTC) would still see 1 June and wrongly exclude it.
+    await T.saveTollRate({ vehicle_class: 'car', class_labels: { en: 'Car' }, class_order: 1,
+      amount_bdt: 200, effective_from: '2026-06-02' });
+
+    const rates = await T.listTollRates({ on: new Date('2026-06-01T19:00:00Z') });
+    expect(rates).toHaveLength(1);
+    expect(Number(rates[0].amount_bdt)).toBe(200);
+  });
 });
 
 describe('formatTaka', () => {
@@ -127,5 +140,26 @@ describe('advisories', () => {
     expect(A.localeMessage({ messages: { en: 'Open', bn: 'খোলা' } }, 'bn')).toBe('খোলা');
     expect(A.localeMessage({ messages: { en: 'Open' } }, 'zh')).toBe('Open');
     expect(A.localeMessage({ messages: {} }, 'en')).toBe('');
+  });
+
+  it('reads a localised message even when messages is still a raw JSON string', () => {
+    // A future caller may hand localeMessage an unshaped row. Object.hasOwn
+    // on a boxed string would otherwise silently resolve to '' instead of
+    // parsing the JSON.
+    expect(A.localeMessage({ messages: '{"en":"Open","bn":"খোলা"}' }, 'bn')).toBe('খোলা');
+  });
+
+  it('activates a closure scheduled for local Dhaka midnight immediately, not ~6 hours late', async () => {
+    // 2026-06-01T19:00:00Z is still 1 June in UTC but already 01:00 on
+    // 2 June in Dhaka (UTC+6). An advisory starting at local midnight on
+    // 2 June must already be active at this instant. Comparing against a
+    // UTC "now" would still see 1 June and wrongly treat it as not yet
+    // started — a closure hidden for the first six hours of its own day.
+    await A.saveAdvisory({ severity: 'closure', messages: { en: 'Bridge closed' },
+      starts_at: '2026-06-02 00:00:00', ends_at: null, is_active: 1 });
+
+    const live = await A.activeAdvisories({ at: new Date('2026-06-01T19:00:00Z') });
+    expect(live).toHaveLength(1);
+    expect(live[0].severity).toBe('closure');
   });
 });
