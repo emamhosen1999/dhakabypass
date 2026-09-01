@@ -105,7 +105,18 @@
   font-variant-numeric:tabular-nums;
   /* The body must never scroll sideways at any viewport width. */
   overflow-x:hidden;
+  /* Fill the viewport even on a short page, so the ground colour reaches the
+     bottom instead of stopping under the footer and showing the browser's
+     white through. Deliberately scoped to .db-root rather than set on `body`,
+     because the legacy site shares that element. 100vh first for anything
+     that does not know 100dvh. */
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
 }
+/* Push the footer down: main takes the slack on a short page. */
+.db-root > main{flex:1 0 auto;}
 /* Media and embeds never force the page wider than the viewport. */
 .db-root img,.db-root video,.db-root svg,.db-root iframe{max-width:100%;height:auto;}
 /* Wide content scrolls inside itself instead. */
@@ -151,8 +162,8 @@
   }
 }
 
-.db-theme-toggle{display:inline-flex;border:1px solid var(--db-rule);border-radius:3px;overflow:hidden;}
-.db-theme-btn{font-family:var(--db-font-display);font-size:.74rem;letter-spacing:.1em;
+.db-theme-toggle{display:inline-flex;flex:none;border:1px solid var(--db-rule);border-radius:3px;overflow:hidden;}
+.db-theme-btn{white-space:nowrap;font-family:var(--db-font-display);font-size:.74rem;letter-spacing:.1em;
   text-transform:uppercase;padding:6px 10px;background:transparent;color:var(--db-ink-3);
   border:0;border-right:1px solid var(--db-rule);cursor:pointer;}
 .db-theme-btn:last-child{border-right:0;}
@@ -177,13 +188,25 @@
   width:100%;padding-bottom:4px;scrollbar-width:none;}
 .db-nav-mobile::-webkit-scrollbar{display:none;}
 @media (min-width:768px){.db-nav-mobile{display:none;}}
-.db-nav-link,.db-nav-cta{font-family:var(--db-font-display);font-weight:600;font-size:.86rem;
+/* nowrap + flex:none: the compact row below 768px scrolls horizontally, so a
+   link must keep its own line rather than wrapping onto two. */
+.db-nav-link,.db-nav-cta{white-space:nowrap;flex:none;
+  font-family:var(--db-font-display);font-weight:600;font-size:.86rem;
   letter-spacing:.09em;text-transform:uppercase;padding:7px 11px;border-radius:2px;text-decoration:none;color:inherit;opacity:.78;}
 .db-nav-link:hover{opacity:1;}
 .db-nav-cta{border:1px solid var(--db-plate-accent);color:var(--db-plate-accent);opacity:1;}
-.db-header-utils{display:flex;gap:10px;align-items:center;margin-left:auto;}
-.db-locale-switch{display:inline-flex;gap:2px;}
-.db-locale-btn{font-family:var(--db-font-display);font-size:.76rem;letter-spacing:.06em;
+/* At narrow widths the brand alone fills the row, so the utilities wrap onto
+   their own line instead of overflowing. .db-root sets overflow-x:hidden, which
+   would CLIP a too-wide control rather than reveal it — the SYSTEM button was
+   genuinely untappable at 320px before this. min-width:0 lets the flex children
+   shrink instead of forcing the row wider than the viewport. */
+.db-header-utils{display:flex;gap:10px;align-items:center;margin-left:auto;
+  flex-wrap:wrap;min-width:0;}
+@media (max-width:479px){
+  .db-header-utils{margin-left:0;width:100%;justify-content:flex-start;}
+}
+.db-locale-switch{display:inline-flex;gap:2px;flex-wrap:wrap;}
+.db-locale-btn{white-space:nowrap;font-family:var(--db-font-display);font-size:.76rem;letter-spacing:.06em;
   padding:4px 9px;border-radius:2px;text-decoration:none;color:inherit;opacity:.6;}
 .db-locale-btn[aria-current="true"]{background:var(--db-plate-accent);color:#0B1620;opacity:1;}
 .db-footer{border-top:1px solid var(--db-rule);margin-top:64px;}

@@ -77,3 +77,48 @@ test('touch targets meet the 44px minimum', async ({ browser }) => {
   }
   await context.close();
 });
+
+// The overflow test above cannot catch this. `.db-root` sets overflow-x:hidden,
+// which CLIPS content wider than the viewport rather than letting the document
+// scroll — so scrollWidth stays equal to clientWidth and the assertion passes
+// while a control sits off-screen, unreachable. That is exactly what happened:
+// at 320px the theme toggle's SYSTEM button was cut off and untappable, and the
+// suite was green. This checks the thing that actually matters — every header
+// control is inside the viewport.
+for (const width of [320, 375, 768, 1280]) {
+  test(`every header control is within the viewport at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto('/en');
+
+    const controls = page.locator(
+      '.db-header a:visible, .db-header button:visible'
+    );
+    const count = await controls.count();
+    expect(count, 'no header controls found').toBeGreaterThan(0);
+
+    for (let i = 0; i < count; i += 1) {
+      const control = controls.nth(i);
+      const box = await control.boundingBox();
+      if (!box) continue;
+
+      // Two deliberate exemptions:
+      //  - the compact nav row scrolls horizontally on purpose, so its links
+      //    are allowed to start off-screen;
+      //  - the skip link is parked at left:-9999px until focused, which is the
+      //    standard way to offer it to keyboard users without showing it.
+      const exempt = await control.evaluate(
+        (el) => !!el.closest('.db-nav-mobile') || el.classList.contains('db-skip')
+      );
+      if (exempt) continue;
+
+      const text = (await control.innerText()).trim().slice(0, 24) || '(icon)';
+      expect(
+        box.x, `"${text}" starts left of the viewport at ${width}px`
+      ).toBeGreaterThanOrEqual(-1);
+      expect(
+        box.x + box.width,
+        `"${text}" is clipped at ${width}px — ends at ${Math.round(box.x + box.width)}px, viewport is ${width}px`
+      ).toBeLessThanOrEqual(width + 1);
+    }
+  });
+}

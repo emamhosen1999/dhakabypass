@@ -28,3 +28,8 @@ hero-restored.png
 test-results/
 playwright-report/
 coverage/
+
+# local visual-check scratch (screenshots + throwaway scripts)
+var/shots/
+var/hyd.mjs
+var/rate.mjs
