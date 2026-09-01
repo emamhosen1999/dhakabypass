@@ -142,6 +142,10 @@
 .db-tag-build{background:var(--db-build-wash);color:var(--db-build);
   background-image:repeating-linear-gradient(115deg,transparent 0 6px,rgba(128,64,0,.14) 6px 12px);}
 .db-tag-alert{background:var(--db-alert-wash);color:var(--db-alert);}
+/* Planned is a real, expected status distinct from construction — it must
+   not collapse onto the same orange tag. Same ink/surface pairing already
+   used for the table header (line ~261 below), so no new contrast pair. */
+.db-tag-planned{background:var(--db-surface-2);color:var(--db-ink-3);}
 
 /* The markup is dt-then-dd (required by the HTML content model, and the order a
    screen reader announces). `order` puts the value on top visually without
@@ -228,9 +232,15 @@
 
 /* ---- corridor strip ---- */
 .db-strip-wrap{max-width:var(--db-shell);margin:0 auto;padding:0 clamp(12px,3vw,20px);}
-.db-strip{position:relative;padding:8px 0 74px;}
+/* Left/right padding insets the rail and the markers together so a marker
+   centred at 0% or 100% (translateX(-50%) on an 84px-wide label) has room
+   to sit fully inside the box instead of the outer half spilling into
+   .db-root's overflow-x:hidden, where it would be silently clipped. 44px
+   is half the 84px marker width (42px) plus a 2px rounding buffer. Bottom
+   padding is sized for two staggered marker rows — see .db-marker-alt. */
+.db-strip{position:relative;padding:8px 44px 152px;}
 .db-strip-rail{position:relative;height:12px;border-radius:2px;background:var(--db-surface-2);overflow:hidden;}
-.db-band{position:absolute;top:0;bottom:0;}
+.db-band{position:absolute;top:0;bottom:0;background:var(--db-rule-2);}
 .db-band-open{background:var(--db-open);}
 /* Hatched as well as coloured: status is never colour alone. */
 .db-band-construction{background:var(--db-build);
@@ -239,6 +249,12 @@
 .db-strip-markers{position:relative;height:0;}
 .db-marker{position:absolute;top:6px;transform:translateX(-50%);
   display:flex;flex-direction:column;align-items:center;width:84px;text-align:center;}
+/* Adjacent markers are only ~19.6% of the extent apart at the closest real
+   spacing (see strip's collision arithmetic), which collides below ~1074px.
+   Staggering alternate markers onto a second row means only every OTHER
+   marker needs 84px of horizontal clearance from its row neighbour, not
+   every marker from the next one — the transit-map fix for tight stops. */
+.db-marker-alt{top:64px;}
 .db-marker-pin{width:13px;height:13px;border-radius:50%;border:3px solid var(--db-ground);background:var(--db-rule-2);}
 .db-marker-open{background:var(--db-open);}
 .db-marker-construction{background:var(--db-build);}

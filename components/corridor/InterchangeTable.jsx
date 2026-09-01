@@ -9,6 +9,9 @@ const KIND_KEY = {
   pedestrian_overpass: 'kindPedestrianOverpass',
 };
 const STATUS_KEY = { open: 'statusOpen', construction: 'statusConstruction', planned: 'statusPlanned' };
+// planned is a real, expected status — it must not visually collapse onto
+// the same tag as construction just because both are "not yet open".
+const TAG_CLASS = { open: 'open', construction: 'build', planned: 'planned' };
 
 /**
  * The accessible equivalent of the strip, and useful in its own right — this is
@@ -41,7 +44,7 @@ export default function InterchangeTable({ interchanges, locale, caption }) {
               <td>{t(locale, KIND_KEY[i.kind] || 'kindInterchange')}</td>
               <td>{i.connectsTo || '—'}</td>
               <td>
-                <span className={`db-tag db-tag-${i.status === 'open' ? 'open' : 'build'}`}>
+                <span className={`db-tag db-tag-${TAG_CLASS[i.status] || 'planned'}`}>
                   {t(locale, STATUS_KEY[i.status] || 'statusPlanned')}
                 </span>
               </td>
