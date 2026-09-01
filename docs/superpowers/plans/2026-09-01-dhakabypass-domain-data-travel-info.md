@@ -2733,6 +2733,9 @@ Append:
 .db-facility-name{font-size:1.05rem;text-transform:uppercase;letter-spacing:.05em;}
 .db-facility-ch{color:var(--db-ink-3);font-family:var(--db-font-display);font-size:.78rem;letter-spacing:.08em;}
 .db-facility-tags{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px;}
+/* The facility chips use the accent tag variant, which P0+P1 never defined —
+   only -open, -build and -alert exist. Defined here so they are not unstyled. */
+.db-tag-accent{background:var(--db-accent-wash);color:var(--db-accent);}
 ```
 
 - [ ] **Step 6: Verify and run the suites**
