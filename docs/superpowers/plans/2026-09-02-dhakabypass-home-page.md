@@ -25,7 +25,7 @@
 - **Photographs of identifiable people may not be published on the new site until DBEDC confirms it holds consent.** Several inherited images — `/friends.webp` and much of `/photo/` — show recognisable faces, including children, in CSR settings. They were on the old site, which is not evidence of consent. Until the Boss confirms, only images whose subject is the *road* may be seeded. This is a hard gate, not a preference.
 - **Every link rendered inside `/[locale]/` must stay inside it.** A link to `/gallery` or `/contact` from `/bn` drops a Bangla reader onto the legacy English site. Until a localised destination exists, either point at a localised route that does exist or omit the link. Never seed a bare legacy path into localised content.
 - All new CSS uses existing tokens from `app/design-tokens.css`. Define a token before referencing it.
-- Tests: `npx vitest run` must stay green. Test files live under `tests/unit/` or `tests/db/` — the vitest `include` globs match nowhere else, so a test written outside them silently never runs. `vitest.config.mjs` has `fileParallelism: false`; that line is load-bearing and must not change. Task 3 widens the `include` glob to admit `.jsx`; no other edit to that file is authorised.
+- Tests: `npx vitest run` must stay green. Test files live under `tests/unit/` or `tests/db/` — the vitest `include` globs match nowhere else, so a test written outside them silently never runs. `vitest.config.mjs` has `fileParallelism: false`; that line is load-bearing and must not change. Task 3 widens the `include` glob to admit `.jsx` and adds a top-level `esbuild: { jsx: 'automatic' }` key; no other edit to that file is authorised.
 
 ---
 
@@ -580,7 +580,20 @@ describe('SiteImage', () => {
     expect(renderToStaticMarkup(<SiteImage media={row} locale="en" />)).toContain('loading="lazy"');
     const p = renderToStaticMarkup(<SiteImage media={row} locale="en" priority />);
     expect(p).toContain('loading="eager"');
-    expect(p).toContain('fetchpriority="high"');
+    // React 19 serialises this prop as camelCase `fetchPriority`. HTML attribute
+    // names are case-insensitive, so assert the behaviour rather than React's
+    // choice of casing — this must not break on a React upgrade.
+    expect(p.toLowerCase()).toContain('fetchpriority="high"');
+  });
+
+  it('asks the browser to preload the priority image', () => {
+    // React 19 emits a <link rel="preload"> for an image marked high priority.
+    // That preload is the actual performance win on a hero, so it is worth
+    // asserting: losing it silently would cost exactly what priority buys.
+    const p = renderToStaticMarkup(<SiteImage media={row} locale="en" priority />);
+    expect(p).toContain('rel="preload"');
+    expect(p).toContain('as="image"');
+    expect(renderToStaticMarkup(<SiteImage media={row} locale="en" />)).not.toContain('rel="preload"');
   });
 
   it('renders nothing when there is no media row', () => {
@@ -615,14 +628,33 @@ which matches `.test.js` only, so `site-image.test.jsx` would be silently ignore
 include: ['tests/unit/**/*.test.{js,jsx}', 'tests/db/**/*.test.js'],
 ```
 
+Then add a **top-level** `esbuild` key, as a sibling of `test` (not inside it):
+
+```js
+export default defineConfig({
+  esbuild: {
+    // This project has no tsconfig.json, jsconfig.json or @vitejs/plugin-react,
+    // so esbuild defaults to the CLASSIC JSX runtime and emits bare
+    // React.createElement(...) calls with nothing bringing React into scope —
+    // every JSX test dies on "React is not defined". Next compiles the app's
+    // JSX with the automatic runtime already; this makes the test transform
+    // agree with it, rather than making every component import React purely to
+    // satisfy the test runner.
+    jsx: 'automatic',
+  },
+  test: {
+    include: ['tests/unit/**/*.test.{js,jsx}', 'tests/db/**/*.test.js'],
+    // ...everything else unchanged
+  },
+});
+```
+
 Change **nothing else in that file**. In particular `fileParallelism: false` stays exactly as it is — it is load-bearing, and the comment above it explains why.
 
 Then confirm the file is now collected:
 
 Run: `npx vitest run tests/unit/site-image.test.jsx`
-Expected: a real module-resolution failure, not `No test files found`.
-
-Vitest transforms `.jsx` through esbuild automatically. If the run instead fails on the JSX syntax itself or on a missing React import, stop and report the exact error — do not add a Babel config or a `jsx` pragma on your own initiative.
+Expected: a real module-resolution failure, not `No test files found` and not `React is not defined`.
 
 - [ ] **Step 3: Write the component**
 
@@ -667,7 +699,7 @@ export default function SiteImage({ media, locale, sizes, className, priority = 
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run tests/unit/site-image.test.jsx`
-Expected: PASS, 6 tests.
+Expected: PASS, 7 tests.
 
 - [ ] **Step 5: Add the figure styles**
 
@@ -1020,7 +1052,7 @@ Append to `app/design-tokens.css`:
 - [ ] **Step 7: Run the tests**
 
 Run: `npx vitest run tests/unit/blocks-home-types.test.js`
-Expected: PASS, 6 tests.
+Expected: PASS, 7 tests.
 
 - [ ] **Step 8: Commit**
 
