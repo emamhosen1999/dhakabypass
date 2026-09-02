@@ -3,8 +3,11 @@
 // Runs the real seed script (scripts/seed-corridor.mjs) against the
 // throwaway test database and asserts on the ROWS IT ACTUALLY WROTE — not on
 // the script's source — so a future edit that reintroduces a motorcycle or
-// three-wheeler toll row, or breaks the class_order sequencing, fails loudly
-// here instead of only being caught by someone reading the diff.
+// three-wheeler toll row, breaks the class_order sequencing, or drifts the
+// real corridor geometry (Task 13b: waypoints, toll plazas and bridges
+// supplied by the client, see
+// .superpowers/sdd/2026-09-01-dhakabypass-domain-data-travel-info/REAL-DATA-FROM-BOSS.md)
+// fails loudly here instead of only being caught by someone reading the diff.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { execFileSync } from 'node:child_process';
 
@@ -73,21 +76,101 @@ describe('seeded prohibited-vehicles setting', () => {
   });
 });
 
-describe('seeded interchange coordinates', () => {
-  it('leaves the first two interchanges without coordinates and fills the rest', async () => {
+describe('seeded published length setting', () => {
+  it('records the official 48 km design figure, separate from the measured extent', async () => {
+    const { getPublishedLengthKm } = await import('../../lib/settings.js');
+    expect(await getPublishedLengthKm()).toBe(48);
+  });
+});
+
+describe('seeded corridor geometry (real client data)', () => {
+  it('spans the full measured corridor, 0 to 47611 m', async () => {
+    const S = await import('../../lib/corridor/segments.js');
+    const summary = await S.corridorSummary();
+    expect(summary.extent.from_m).toBe(0);
+    expect(summary.extent.to_m).toBe(47611);
+    expect(summary.extent.length_m).toBe(47611);
+  });
+
+  it('seeds exactly twenty points (8 waypoints + 9 toll plazas + 3 bridges)', async () => {
     const I = await import('../../lib/corridor/interchanges.js');
     const rows = await I.listInterchanges();
-    expect(rows).toHaveLength(7);
+    expect(rows).toHaveLength(20);
+  });
 
-    const [first, second, ...rest] = rows;
-    expect(first.lat).toBe(null);
-    expect(first.lng).toBe(null);
-    expect(second.lat).toBe(null);
-    expect(second.lng).toBe(null);
-
-    for (const row of rest) {
-      expect(row.lat).not.toBe(null);
-      expect(row.lng).not.toBe(null);
+  it('gives every point both a lat and a lng — none null', async () => {
+    const I = await import('../../lib/corridor/interchanges.js');
+    const rows = await I.listInterchanges();
+    for (const row of rows) {
+      expect(row.lat, `lat for "${row.names.en}"`).not.toBe(null);
+      expect(row.lng, `lng for "${row.names.en}"`).not.toBe(null);
     }
+  });
+
+  it('orders points by strictly increasing chainage', async () => {
+    const I = await import('../../lib/corridor/interchanges.js');
+    const rows = await I.listInterchanges();
+    const chainages = rows.map((r) => r.chainage_m);
+    const sorted = [...new Set(chainages)].sort((a, b) => a - b);
+    expect(chainages.every((c, idx) => idx === 0 || c > chainages[idx - 1])).toBe(true);
+    expect(chainages).toEqual(sorted);
+  });
+
+  it('places Vogra Toll Plaza (RHS) at K3+218, replacing the old fictional Bhogra interchange', async () => {
+    const I = await import('../../lib/corridor/interchanges.js');
+    const rows = await I.listInterchanges();
+    const vogra = rows.find((r) => r.chainage_m === 3218 && r.kind === 'toll_plaza');
+    expect(vogra).toBeTruthy();
+    expect(vogra.names.en).toBe('Vogra Toll Plaza (RHS)');
+    expect(vogra.names.bn).toContain('ভোগড়া');
+  });
+
+  it('places Purbachal Toll Plaza at K24+522, not the old K21+900 interchange', async () => {
+    const I = await import('../../lib/corridor/interchanges.js');
+    const rows = await I.listInterchanges();
+    const purbachal = rows.find((r) => r.names.en === 'Purbachal Toll Plaza');
+    expect(purbachal).toBeTruthy();
+    expect(purbachal.chainage_m).toBe(24522);
+  });
+
+  it('does not seed a Bhaowal service area (it does not exist in the real data)', async () => {
+    const I = await import('../../lib/corridor/interchanges.js');
+    const rows = await I.listInterchanges();
+    expect(rows.some((r) => /bhaowal/i.test(r.names.en))).toBe(false);
+  });
+
+  it('seeds the three named bridges under the pedestrian_overpass kind (no bridge kind exists in the schema)', async () => {
+    const I = await import('../../lib/corridor/interchanges.js');
+    const rows = await I.listInterchanges();
+    const bridgeNames = ['Nagda Bridge', 'Ulukhola Bridge', 'Kanchan Bridge'];
+    for (const name of bridgeNames) {
+      const row = rows.find((r) => r.names.en === name);
+      expect(row, `expected a row for "${name}"`).toBeTruthy();
+      expect(row.kind).toBe('pedestrian_overpass');
+    }
+  });
+});
+
+describe('seeded segments (real open-section geometry)', () => {
+  it('opens exactly Vogra Toll Plaza (K3+218) to K21+218', async () => {
+    const S = await import('../../lib/corridor/segments.js');
+    const rows = await S.listSegments();
+    const open = rows.find((r) => r.status === 'open');
+    expect(open).toBeTruthy();
+    expect(open.from_m).toBe(3218);
+    expect(open.to_m).toBe(21218);
+  });
+
+  it('is exactly 18000 m (18.000 km) long, per the Boss-confirmed figure', async () => {
+    const S = await import('../../lib/corridor/segments.js');
+    const summary = await S.corridorSummary();
+    expect(summary.openLength).toBe(18000);
+  });
+});
+
+describe('corridor.illustrative stays on', () => {
+  it('is still true — facilities, rules and toll-section labelling remain reconstructed', async () => {
+    const { isDataIllustrative } = await import('../../lib/settings.js');
+    expect(await isDataIllustrative()).toBe(true);
   });
 });

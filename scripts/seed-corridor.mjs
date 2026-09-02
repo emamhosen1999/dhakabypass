@@ -2,13 +2,13 @@
  * Seeds corridor data so the Travel Info pages have something to render
  * before DBEDC supplies the full official schedule.
  *
- * The toll rates and the five interchange coordinates below are real,
- * supplied by the client (see
- * .superpowers/sdd/2026-09-01-dhakabypass-domain-data-travel-info/REAL-DATA-FROM-BOSS.md)
- * — everything else (the interchange schedule, section statuses, facilities,
- * and the mapping of the partial toll rates to specific interchanges) is
- * still reconstructed from public reporting, NOT an official source.
- * corridor.illustrative therefore stays true so the site keeps saying so.
+ * Geometry (waypoints, toll plazas, bridges, segments) is now the REAL
+ * surveyed/road-network data supplied by the client, replacing the earlier
+ * fictional seed (see
+ * .superpowers/sdd/2026-09-01-dhakabypass-domain-data-travel-info/REAL-DATA-FROM-BOSS.md,
+ * sections 4-5, sourced from CORRIDOR-WAYPOINTS.xlsx). Facilities and rules
+ * content, and the toll-section labelling, are still reconstructed — that is
+ * why corridor.illustrative stays true below.
  *
  *   node scripts/seed-corridor.mjs [--database=name]
  */
@@ -27,39 +27,91 @@ const db = await mysql.createConnection({
   database: DB_NAME,
 });
 
+// This label predates the real geometry and is kept only as the toll rows'
+// `section` value, which is explicitly out of scope for this task (the
+// mapping of these rates to specific interchanges is still unresolved —
+// see the OPEN QUESTION below). Do not rename it here.
 const OPEN_SECTION_LABEL = 'Kodda – Purbachal';
 
+// Corridor length: the road-network model measures 47,611 m end to end
+// (WP8/Madanpur). The gazette, ADB and press all use the official design
+// figure of 48 km. The 389 m gap is because the physical pavement ends
+// short of the nominal start (see corridor.published_length_km below) — it
+// is not a measurement error. All chainages here are relative to the
+// measured 47,611 m model, because that is what makes individual positions
+// accurate; only the published headline figure stays 48.
 const SEGMENTS = [
-  { from_m: 0,     to_m: 3900,  status: 'construction', labels: { en: 'Kodda approach' } },
-  { from_m: 3900,  to_m: 21900, status: 'open',         labels: { en: OPEN_SECTION_LABEL }, opened_on: '2025-08-24' },
-  { from_m: 21900, to_m: 48000, status: 'construction', labels: { en: 'Purbachal – Madanpur' } },
+  { from_m: 0,     to_m: 3218,  status: 'construction', labels: { en: 'Naojor approach' } },
+  // Open section: Vogra Toll Plaza (K3+218) -> K21+218, exactly 18.000 km.
+  // The Boss confirmed this directly: "not till purbachal, it is 18 km from
+  // the vogra K3+218 to 23.8707560703556, 90.5080711423332." An independent
+  // haversine interpolation of that coordinate along the WP4->WP5 road
+  // segment lands at K21+301 — 83 m from the Boss's K21+218, which is close
+  // enough to call the figure self-consistent, so K21+218 is used here.
+  //
+  // NOTE: Purbachal Toll Plaza (K24+522, see TOLL PLAZAS below) sits 3.3 km
+  // BEYOND the end of this open section. The toll rows below still carry
+  // section = "Kodda – Purbachal", a label invented before this geometry
+  // arrived. If the road only opens to K21+218, a driver cannot actually
+  // reach the Purbachal plaza on the open section, so that label may
+  // misstate what these rates cover. Left alone per task scope — resolving
+  // it is a follow-up.
+  { from_m: 3218,  to_m: 21218, status: 'open',         labels: { en: OPEN_SECTION_LABEL }, opened_on: '2025-08-24' },
+  { from_m: 21218, to_m: 47611, status: 'construction', labels: { en: 'Purbachal – Madanpur' } },
 ];
 
-// lat/lng below come from the Boss's patrol-corridor screenshot ("Route
-// Waypoint Patrol Corridor — K0-48", 7 waypoints, corridor tolerance 300 m),
-// not from any survey. They are good enough to place a marker on a map —
-// NOT authoritative interchange positions or chainage. Waypoints 1 and 2
-// (interchanges 1 and 2 below: Kodda, Toll Plaza) were scrolled out of the
-// screenshot and are still outstanding; leave their lat/lng null rather than
-// guess. Waypoints 3-7 map onto interchanges 3-7 in chainage order, north
-// (Gazipur) to south (Narayanganj), per REAL-DATA-FROM-BOSS.md.
+// Waypoints (interchanges), toll plazas and bridges below come from the
+// client-supplied CORRIDOR-WAYPOINTS.xlsx workbook, projected onto a
+// TomTom-routed polyline (see REAL-DATA-FROM-BOSS.md section 4). Chainages
+// are model-derived from that projection, not surveyed chainage markers —
+// still far better grounded than the old patrol-screenshot placeholder data
+// they replace.
+//
+// Per the workbook: DO NOT use the straight-line sheet's start coordinate
+// (24.004888, 90.325339) for WP "S" — the file states it was extrapolated
+// along the S->2 bearing purely to force the total to exactly 48.000 km. It
+// is an arithmetic artefact, not a real place, so the true WP "S" (Naojor)
+// coordinate below is used instead.
 const INTERCHANGES = [
-  { chainage_m: 0,     names: { en: 'Kodda' },      kind: 'interchange',  status: 'construction', connects_to: 'N3 · Dhaka–Mymensingh',    lat: null,       lng: null },
-  { chainage_m: 3900,  names: { en: 'Toll Plaza' }, kind: 'toll_plaza',   status: 'open',         connects_to: '',                         lat: null,       lng: null },
-  { chainage_m: 9400,  names: { en: 'Bhogra' },     kind: 'interchange',  status: 'open',         connects_to: 'N4 · Dhaka–Tangail link',  lat: 23.949671,  lng: 90.414551 },
-  { chainage_m: 16200, names: { en: 'Bhaowal' },    kind: 'service_area', status: 'open',         connects_to: '',                         lat: 23.930211,  lng: 90.452655 },
-  { chainage_m: 21900, names: { en: 'Purbachal' },  kind: 'interchange',  status: 'open',         connects_to: 'Purbachal Link Road',      lat: 23.834773,  lng: 90.540481 },
-  { chainage_m: 34600, names: { en: 'Bhulta' },     kind: 'interchange',  status: 'construction', connects_to: 'N2 · Dhaka–Sylhet',        lat: 23.785562,  lng: 90.568720 },
-  { chainage_m: 48000, names: { en: 'Madanpur' },   kind: 'interchange',  status: 'construction', connects_to: 'N1 · Dhaka–Chattogram',    lat: 23.690198,  lng: 90.547047 },
+  // -- Waypoints: kind 'interchange' --------------------------------------
+  { chainage_m: 0,     names: { en: 'Naojor (corridor start)', bn: 'নাওজোড়' },        kind: 'interchange', status: 'construction', connects_to: '', lat: 23.986737, lng: 90.362246 },
+  { chainage_m: 2314,  names: { en: 'Waypoint 2', bn: 'ওয়েপয়েন্ট ২' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.977568, lng: 90.380874 },
+  { chainage_m: 7554,  names: { en: 'Waypoint 3', bn: 'ওয়েপয়েন্ট ৩' },                kind: 'interchange', status: 'open',         connects_to: '', lat: 23.949671, lng: 90.414551 },
+  { chainage_m: 12090, names: { en: 'Waypoint 4', bn: 'ওয়েপয়েন্ট ৪' },                kind: 'interchange', status: 'open',         connects_to: '', lat: 23.930211, lng: 90.452655 },
+  { chainage_m: 26799, names: { en: 'Waypoint 5', bn: 'ওয়েপয়েন্ট ৫' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.834773, lng: 90.540481 },
+  { chainage_m: 34973, names: { en: 'Waypoint 6', bn: 'ওয়েপয়েন্ট ৬' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.785562, lng: 90.568720 },
+  { chainage_m: 41371, names: { en: 'Waypoint 7', bn: 'ওয়েপয়েন্ট ৭' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.731516, lng: 90.587646 },
+  { chainage_m: 47611, names: { en: 'Madanpur (corridor end)', bn: 'মদনপুর' },        kind: 'interchange', status: 'construction', connects_to: '', lat: 23.690500, lng: 90.546722 },
+
+  // -- Toll plazas: kind 'toll_plaza' -------------------------------------
+  { chainage_m: 3218,  names: { en: 'Vogra Toll Plaza (RHS)', bn: 'ভোগড়া টোল প্লাজা (আরএইচএস)' }, kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9753672, lng: 90.3892800 },
+  { chainage_m: 3706,  names: { en: 'Vogra Toll Plaza (LHS)', bn: 'ভোগড়া টোল প্লাজা (এলএইচএস)' }, kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9743656, lng: 90.3920315 },
+  { chainage_m: 11365, names: { en: 'Mirer Bazar (A)', bn: 'মীরের বাজার (এ)' },                    kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9350313, lng: 90.4459478 },
+  { chainage_m: 13184, names: { en: 'Mirer Bazar (RHS)', bn: 'মীরের বাজার (আরএইচএস)' },            kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9235064, lng: 90.4598731 },
+  { chainage_m: 13403, names: { en: 'Mirer Bazar (LHS)', bn: 'মীরের বাজার (এলএইচএস)' },            kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9230806, lng: 90.4613011 },
+  { chainage_m: 24522, names: { en: 'Purbachal Toll Plaza', bn: 'পূর্বাচল টোল প্লাজা' },           kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.8517101, lng: 90.5247815 },
+  { chainage_m: 34353, names: { en: 'Toll Plaza (K34)', bn: 'টোল প্লাজা (কে৩৪)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.791205,  lng: 90.569644 },
+  { chainage_m: 36554, names: { en: 'Toll Plaza (K36)', bn: 'টোল প্লাজা (কে৩৬)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.772146,  lng: 90.571652 },
+  { chainage_m: 45965, names: { en: 'Toll Plaza (K46)', bn: 'টোল প্লাজা (কে৪৬)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.703585,  lng: 90.555454 },
+
+  // -- Bridges: no 'bridge' kind exists in the schema; 'pedestrian_overpass'
+  // is the closest existing enum value. This task must not alter the
+  // schema (per spec), so bridges are seeded under that kind as a known
+  // mislabel — a later migration should add a proper 'bridge' kind and
+  // correct these three rows.
+  { chainage_m: 14584, names: { en: 'Nagda Bridge', bn: 'নাগদা সেতু' },       kind: 'pedestrian_overpass', status: 'open', connects_to: '', lat: 23.9172678, lng: 90.4687529 },
+  { chainage_m: 16795, names: { en: 'Ulukhola Bridge', bn: 'উলুখোলা সেতু' }, kind: 'pedestrian_overpass', status: 'open', connects_to: '', lat: 23.8996764, lng: 90.4811561 },
+  { chainage_m: 27403, names: { en: 'Kanchan Bridge', bn: 'কাঞ্চন সেতু' },   kind: 'pedestrian_overpass', status: 'construction', connects_to: '', lat: 23.8362275, lng: 90.5457149 },
 ];
 
-// Officially introduced rates for the opened 18 km Kodda–Purbachal section
-// (Boss, citing The Business Standard and others) — NOT the full-corridor
-// rates, and NOT a full commercial-operation schedule. Motorcycles and
-// three-wheelers are strictly prohibited on this expressway, so there is no
-// rate row for them — see corridor.prohibited_vehicles below. Do not add a
-// zero-rate or "N/A" row for a banned class; the absence of a row IS the
-// statement that the class has no rate.
+// Officially introduced rates for the opened 18 km section (Boss, citing The
+// Business Standard and others) — NOT the full-corridor rates, and NOT a
+// full commercial-operation schedule. Motorcycles and three-wheelers are
+// strictly prohibited on this expressway, so there is no rate row for them
+// — see corridor.prohibited_vehicles below. Do not add a zero-rate or "N/A"
+// row for a banned class; the absence of a row IS the statement that the
+// class has no rate. Toll rates and their `section` label are explicitly
+// out of scope for this task — left exactly as previously seeded.
 const TOLLS = [
   { vehicle_class: 'car',           class_labels: { en: 'Sedan / Private Car', bn: 'প্রাইভেট কার', zh: '小轿车' },                                          class_order: 1, amount_bdt: 150, effective_from: '2025-08-24' },
   { vehicle_class: 'pickup',        class_labels: { en: 'Pickup, Jeep, Wrecker, Crane (3 tons)', bn: 'পিকআপ, জিপ, রেকার, ক্রেন (৩ টন)', zh: '皮卡、吉普、清障车、起重车（3 吨）' },     class_order: 2, amount_bdt: 180, effective_from: '2025-08-24' },
@@ -111,6 +163,19 @@ try {
     `INSERT INTO site_settings (setting_key, value) VALUES (?, ?)
      ON DUPLICATE KEY UPDATE value = VALUES(value)`,
     ['corridor.prohibited_vehicles', JSON.stringify(PROHIBITED_VEHICLES)]
+  );
+  // corridor.published_length_km: the official design figure (48 km) used
+  // by the gazette, ADB and the press. Kept SEPARATE from the measured
+  // 47,611 m the segments/interchanges above are chainage-relative to,
+  // because the pavement physically ends short of the nominal start — see
+  // the SEGMENTS comment above. Positions must stay accurate against the
+  // measured value, so this setting is not wired into any page yet; that is
+  // a follow-up once it's decided where/how to show "48 km (official)" next
+  // to the measured figure without contradicting the map.
+  await db.execute(
+    `INSERT INTO site_settings (setting_key, value) VALUES (?, ?)
+     ON DUPLICATE KEY UPDATE value = VALUES(value)`,
+    ['corridor.published_length_km', JSON.stringify(48)]
   );
 
   console.log(
