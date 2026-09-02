@@ -1055,7 +1055,7 @@ Append to `app/design-tokens.css`:
 - [ ] **Step 7: Run the tests**
 
 Run: `npx vitest run tests/unit/blocks-home-types.test.js`
-Expected: PASS, 7 tests.
+Expected: PASS, 6 tests — hero's 4 plus media-prose's 2.
 
 - [ ] **Step 8: Commit**
 
@@ -1111,7 +1111,7 @@ describe('card-grid block', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/unit/blocks-home-types.test.js`
-Expected: FAIL on both new describes.
+Expected: FAIL on the two `is registered` assertions (`expected null to be truthy`). Note that `figure-grid > rejects a non-array items value` PASSES here VACUOUSLY: `validateBlockData` returns `{ok:false}` for any unregistered type, so it is satisfied for the wrong reason until the block exists. It becomes a real check afterwards. Confirm the file COLLECTED and that the two registration assertions genuinely failed before implementing.
 
 - [ ] **Step 3: Write both definitions**
 
