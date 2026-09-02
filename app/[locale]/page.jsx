@@ -1,8 +1,26 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { isLocale } from '../../lib/i18n/locales.js';
 import { getPageBySlugCached, getPageBlocksCached } from '../../lib/content/cache.js';
 import { resolveTranslation } from '../../lib/content/resolve.js';
 import BlockRenderer from '../../components/blocks/BlockRenderer.jsx';
+import {
+  getCorridorSummaryCached, getInterchangesCached, getTollRatesCached, getIllustrativeCached,
+} from '../../lib/corridor/cache';
+import { buildStripModel } from '../../lib/corridor/strip';
+import { formatTaka } from '../../lib/corridor/tolls';
+import CorridorStrip from '../../components/corridor/CorridorStrip';
+import InterchangeTable from '../../components/corridor/InterchangeTable';
+import ProgressBar from '../../components/corridor/ProgressBar';
+import IllustrativeNotice from '../../components/corridor/IllustrativeNotice';
+import { t } from '../../lib/i18n/ui';
+
+// Safe defaults for a dead database, mirroring app/[locale]/travel/status/page.jsx:
+// the home page is the most-visited route on a memory-limited shared host, so a
+// dead query must render a degraded page rather than take the whole front door
+// down with it. illustrative defaults true — the same safe direction
+// isDataIllustrative() takes internally when its own read fails.
+const EMPTY_SUMMARY = { extent: { from_m: 0, to_m: 0, length_m: 0 }, openLength: 0, percentOpen: 0, segments: [] };
 
 async function load(params) {
   const { locale } = await params;
@@ -44,5 +62,43 @@ export default async function LocaleHome({ params }) {
   }
 
   const blocks = await getPageBlocksCached(page.id, 'home');
-  return <BlockRenderer blocks={blocks} locale={locale} />;
+
+  let summary = EMPTY_SUMMARY;
+  let interchanges = [];
+  let rates = [];
+  let illustrative = true;
+  try {
+    [summary, interchanges, rates, illustrative] = await Promise.all([
+      getCorridorSummaryCached(), getInterchangesCached(), getTollRatesCached(), getIllustrativeCached(),
+    ]);
+  } catch {
+    // A dead query must not produce a stack trace in a browser — this is the
+    // most-visited page on the site. Fall through with the safe defaults above.
+  }
+  const model = buildStripModel({ segments: summary.segments, interchanges, locale });
+  // The car rate is the one most visitors are looking for.
+  const topRate = rates.find((r) => r.vehicle_class === 'car') || rates[0] || null;
+
+  return (
+    <>
+      {summary.segments.length === 0 ? null : (
+        <section className="db-block">
+          <h2 className="db-h2">{t(locale, 'homeCorridorHeading')}</h2>
+          {illustrative ? <IllustrativeNotice locale={locale} /> : null}
+          <ProgressBar summary={summary} locale={locale} />
+          <CorridorStrip model={model} locale={locale} />
+          <InterchangeTable interchanges={model.markers.slice(0, 5)} locale={locale} />
+          <p className="db-actions">
+            <Link href={`/${locale}/travel/toll`} className="db-btn db-btn-primary">
+              {t(locale, 'seeAllTolls')}{topRate ? ` — ${formatTaka(topRate.amount_bdt)}` : ''}
+            </Link>
+            <Link href={`/${locale}/travel/route`} className="db-btn db-btn-secondary">
+              {t(locale, 'seeRoute')}
+            </Link>
+          </p>
+        </section>
+      )}
+      <BlockRenderer blocks={blocks} locale={locale} />
+    </>
+  );
 }

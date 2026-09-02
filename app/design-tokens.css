@@ -350,3 +350,9 @@
    --db-accent-wash likewise did not exist before this task (only accent's
    text colour did); it is added above alongside the other status washes. */
 .db-tag-accent{background:var(--db-accent-wash);color:var(--db-accent);}
+
+.db-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
+.db-btn{font-family:var(--db-font-display);font-weight:700;font-size:.88rem;letter-spacing:.09em;
+  text-transform:uppercase;padding:12px 20px;border-radius:2px;text-decoration:none;display:inline-block;}
+.db-btn-primary{background:var(--db-accent-bright);color:#0B1620;}
+.db-btn-secondary{border:1px solid var(--db-rule-2);color:var(--db-ink);}
