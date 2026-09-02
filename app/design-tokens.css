@@ -42,6 +42,10 @@
   --db-open-wash:#D3EBDF;
   --db-build-wash:#F8DFCF;
   --db-alert-wash:#F7DAD5;
+  /* Added by the route/facilities/rules task for the facility-tag chip
+     (.db-tag-accent below) — no tag used --db-accent before this, so no
+     wash existed for it. Same lightness family as the washes above. */
+  --db-accent-wash:#F1E3C4;
 
   /* Breakpoints, documented here so every component uses the same set. */
   --db-bp-sm:480px;
@@ -74,6 +78,7 @@
     --db-open-wash:#0E2C20;
     --db-build-wash:#331A0C;
     --db-alert-wash:#331411;
+    --db-accent-wash:#332405;
     --db-plate-bg:#162835;
   }
 }
@@ -94,6 +99,7 @@
   --db-open-wash:#0E2C20;
   --db-build-wash:#331A0C;
   --db-alert-wash:#331411;
+  --db-accent-wash:#332405;
   --db-plate-bg:#162835;
 }
 
@@ -332,3 +338,15 @@
    status, rather than inventing a new treatment. */
 .db-prohibited{margin-top:28px;}
 .db-prohibited-list{display:flex;flex-wrap:wrap;gap:8px 10px;margin:12px 0 0;padding:0;list-style:none;}
+
+.db-facility-list{list-style:none;margin:0;padding:0;display:grid;gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+.db-facility{border:1px solid var(--db-rule);border-radius:3px;padding:16px 18px;background:var(--db-surface);}
+.db-facility-name{font-size:1.05rem;text-transform:uppercase;letter-spacing:.05em;}
+.db-facility-ch{color:var(--db-ink-3);font-family:var(--db-font-display);font-size:.78rem;letter-spacing:.08em;}
+.db-facility-tags{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px;}
+/* The facility chips use the accent tag variant, which P0+P1 never defined —
+   only -open, -build and -alert exist. Defined here so they are not unstyled.
+   --db-accent-wash likewise did not exist before this task (only accent's
+   text colour did); it is added above alongside the other status washes. */
+.db-tag-accent{background:var(--db-accent-wash);color:var(--db-accent);}
