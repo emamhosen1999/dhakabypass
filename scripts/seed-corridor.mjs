@@ -1,11 +1,14 @@
 /**
- * Seeds ILLUSTRATIVE corridor data so the Travel Info pages have something to
- * render before DBEDC supplies the official schedule.
+ * Seeds corridor data so the Travel Info pages have something to render
+ * before DBEDC supplies the full official schedule.
  *
- * Every figure here is reconstructed from public reporting, NOT from an official
- * source. K3+900 and the 18 km Kodda–Purbachal open section are sourced; the
- * intermediate chainages are interpolated. corridor.illustrative is set to true
- * so the site says so on every page that shows these numbers.
+ * The toll rates and the five interchange coordinates below are real,
+ * supplied by the client (see
+ * .superpowers/sdd/2026-09-01-dhakabypass-domain-data-travel-info/REAL-DATA-FROM-BOSS.md)
+ * — everything else (the interchange schedule, section statuses, facilities,
+ * and the mapping of the partial toll rates to specific interchanges) is
+ * still reconstructed from public reporting, NOT an official source.
+ * corridor.illustrative therefore stays true so the site keeps saying so.
  *
  *   node scripts/seed-corridor.mjs [--database=name]
  */
@@ -24,31 +27,57 @@ const db = await mysql.createConnection({
   database: DB_NAME,
 });
 
+const OPEN_SECTION_LABEL = 'Kodda – Purbachal';
+
 const SEGMENTS = [
   { from_m: 0,     to_m: 3900,  status: 'construction', labels: { en: 'Kodda approach' } },
-  { from_m: 3900,  to_m: 21900, status: 'open',         labels: { en: 'Kodda – Purbachal' }, opened_on: '2025-08-24' },
+  { from_m: 3900,  to_m: 21900, status: 'open',         labels: { en: OPEN_SECTION_LABEL }, opened_on: '2025-08-24' },
   { from_m: 21900, to_m: 48000, status: 'construction', labels: { en: 'Purbachal – Madanpur' } },
 ];
 
+// lat/lng below come from the Boss's patrol-corridor screenshot ("Route
+// Waypoint Patrol Corridor — K0-48", 7 waypoints, corridor tolerance 300 m),
+// not from any survey. They are good enough to place a marker on a map —
+// NOT authoritative interchange positions or chainage. Waypoints 1 and 2
+// (interchanges 1 and 2 below: Kodda, Toll Plaza) were scrolled out of the
+// screenshot and are still outstanding; leave their lat/lng null rather than
+// guess. Waypoints 3-7 map onto interchanges 3-7 in chainage order, north
+// (Gazipur) to south (Narayanganj), per REAL-DATA-FROM-BOSS.md.
 const INTERCHANGES = [
-  { chainage_m: 0,     names: { en: 'Kodda' },      kind: 'interchange',  status: 'construction', connects_to: 'N3 · Dhaka–Mymensingh' },
-  { chainage_m: 3900,  names: { en: 'Toll Plaza' }, kind: 'toll_plaza',   status: 'open',         connects_to: '' },
-  { chainage_m: 9400,  names: { en: 'Bhogra' },     kind: 'interchange',  status: 'open',         connects_to: 'N4 · Dhaka–Tangail link' },
-  { chainage_m: 16200, names: { en: 'Bhaowal' },    kind: 'service_area', status: 'open',         connects_to: '' },
-  { chainage_m: 21900, names: { en: 'Purbachal' },  kind: 'interchange',  status: 'open',         connects_to: 'Purbachal Link Road' },
-  { chainage_m: 34600, names: { en: 'Bhulta' },     kind: 'interchange',  status: 'construction', connects_to: 'N2 · Dhaka–Sylhet' },
-  { chainage_m: 48000, names: { en: 'Madanpur' },   kind: 'interchange',  status: 'construction', connects_to: 'N1 · Dhaka–Chattogram' },
+  { chainage_m: 0,     names: { en: 'Kodda' },      kind: 'interchange',  status: 'construction', connects_to: 'N3 · Dhaka–Mymensingh',    lat: null,       lng: null },
+  { chainage_m: 3900,  names: { en: 'Toll Plaza' }, kind: 'toll_plaza',   status: 'open',         connects_to: '',                         lat: null,       lng: null },
+  { chainage_m: 9400,  names: { en: 'Bhogra' },     kind: 'interchange',  status: 'open',         connects_to: 'N4 · Dhaka–Tangail link',  lat: 23.949671,  lng: 90.414551 },
+  { chainage_m: 16200, names: { en: 'Bhaowal' },    kind: 'service_area', status: 'open',         connects_to: '',                         lat: 23.930211,  lng: 90.452655 },
+  { chainage_m: 21900, names: { en: 'Purbachal' },  kind: 'interchange',  status: 'open',         connects_to: 'Purbachal Link Road',      lat: 23.834773,  lng: 90.540481 },
+  { chainage_m: 34600, names: { en: 'Bhulta' },     kind: 'interchange',  status: 'construction', connects_to: 'N2 · Dhaka–Sylhet',        lat: 23.785562,  lng: 90.568720 },
+  { chainage_m: 48000, names: { en: 'Madanpur' },   kind: 'interchange',  status: 'construction', connects_to: 'N1 · Dhaka–Chattogram',    lat: 23.690198,  lng: 90.547047 },
 ];
 
+// Officially introduced rates for the opened 18 km Kodda–Purbachal section
+// (Boss, citing The Business Standard and others) — NOT the full-corridor
+// rates, and NOT a full commercial-operation schedule. Motorcycles and
+// three-wheelers are strictly prohibited on this expressway, so there is no
+// rate row for them — see corridor.prohibited_vehicles below. Do not add a
+// zero-rate or "N/A" row for a banned class; the absence of a row IS the
+// statement that the class has no rate.
 const TOLLS = [
-  { vehicle_class: 'motorcycle', class_labels: { en: 'Motorcycle' },      class_order: 1, amount_bdt: 40,  effective_from: '2025-08-24' },
-  { vehicle_class: 'car',        class_labels: { en: 'Car / Jeep' },      class_order: 2, amount_bdt: 100, effective_from: '2025-08-24' },
-  { vehicle_class: 'microbus',   class_labels: { en: 'Microbus' },        class_order: 3, amount_bdt: 150, effective_from: '2025-08-24' },
-  { vehicle_class: 'bus_small',  class_labels: { en: 'Bus (up to 31)' },  class_order: 4, amount_bdt: 250, effective_from: '2025-08-24' },
-  { vehicle_class: 'bus_large',  class_labels: { en: 'Bus (32+)' },       class_order: 5, amount_bdt: 350, effective_from: '2025-08-24' },
-  { vehicle_class: 'truck_4',    class_labels: { en: 'Truck (4 wheel)' }, class_order: 6, amount_bdt: 300, effective_from: '2025-08-24' },
-  { vehicle_class: 'truck_6',    class_labels: { en: 'Truck (6 wheel)' }, class_order: 7, amount_bdt: 500, effective_from: '2025-08-24' },
+  { vehicle_class: 'car',           class_labels: { en: 'Sedan / Private Car', bn: 'প্রাইভেট কার', zh: '小轿车' },                                          class_order: 1, amount_bdt: 150, effective_from: '2025-08-24' },
+  { vehicle_class: 'pickup',        class_labels: { en: 'Pickup, Jeep, Wrecker, Crane (3 tons)', bn: 'পিকআপ, জিপ, রেকার, ক্রেন (৩ টন)', zh: '皮卡、吉普、清障车、起重车（3 吨）' },     class_order: 2, amount_bdt: 180, effective_from: '2025-08-24' },
+  { vehicle_class: 'microbus',      class_labels: { en: 'Microbus', bn: 'মাইক্রোবাস', zh: '微型客车' },                                                    class_order: 3, amount_bdt: 190, effective_from: '2025-08-24' },
+  { vehicle_class: 'minibus',       class_labels: { en: 'Small Bus / Minibus (under 31 seats)', bn: 'মিনিবাস (৩১ আসনের কম)', zh: '小型客车／中巴（31 座以下）' },        class_order: 4, amount_bdt: 210, effective_from: '2025-08-24' },
+  { vehicle_class: 'small_truck',   class_labels: { en: 'Small Truck (3 tons)', bn: 'ছোট ট্রাক (৩ টন)', zh: '小型货车（3 吨）' },                                class_order: 5, amount_bdt: 260, effective_from: '2025-08-24' },
+  { vehicle_class: 'large_bus',     class_labels: { en: 'Large Bus (31+ seats)', bn: 'বড় বাস (৩১+ আসন)', zh: '大型客车（31 座以上）' },                          class_order: 6, amount_bdt: 310, effective_from: '2025-08-24' },
+  { vehicle_class: 'medium_truck',  class_labels: { en: 'Medium Truck (5–7 tons)', bn: 'মাঝারি ট্রাক (৫–৭ টন)', zh: '中型货车（5–7 吨）' },                        class_order: 7, amount_bdt: 400, effective_from: '2025-08-24' },
+  { vehicle_class: 'heavy_truck',   class_labels: { en: 'Heavy Truck (2–3 axles, 7+ tons)', bn: 'ভারী ট্রাক (২–৩ এক্সেল, ৭+ টন)', zh: '重型货车（2–3 轴，7 吨以上）' },  class_order: 8, amount_bdt: 610, effective_from: '2025-08-24' },
+  { vehicle_class: 'large_truck',   class_labels: { en: 'Large Truck (Trailer, 6-axle, 15–25 tons)', bn: 'ট্রেইলার / বড় ট্রাক (৬ এক্সেল, ১৫–২৫ টন)', zh: '大型拖挂车（6 轴，15–25 吨）' }, class_order: 9, amount_bdt: 740, effective_from: '2025-08-24' },
 ];
+
+// Reused as the site_settings value for corridor.prohibited_vehicles.
+const PROHIBITED_VEHICLES = {
+  en: ['Motorcycles', 'Three-wheelers (CNG and auto-rickshaw)'],
+  bn: ['মোটরসাইকেল', 'তিন চাকার যান (সিএনজি ও অটোরিকশা)'],
+  zh: ['摩托车', '三轮车（CNG 和机动三轮车）'],
+};
 
 try {
   await db.query('DELETE FROM segments');
@@ -63,20 +92,25 @@ try {
   }
   for (const i of INTERCHANGES) {
     await db.execute(
-      'INSERT INTO interchanges (chainage_m, names, kind, status, connects_to, facilities) VALUES (?, ?, ?, ?, ?, ?)',
-      [i.chainage_m, JSON.stringify(i.names), i.kind, i.status, i.connects_to, JSON.stringify([])]
+      'INSERT INTO interchanges (chainage_m, names, kind, status, connects_to, facilities, lat, lng) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [i.chainage_m, JSON.stringify(i.names), i.kind, i.status, i.connects_to, JSON.stringify([]), i.lat, i.lng]
     );
   }
   for (const t of TOLLS) {
     await db.execute(
       'INSERT INTO toll_rates (vehicle_class, class_labels, class_order, section, amount_bdt, effective_from) VALUES (?, ?, ?, ?, ?, ?)',
-      [t.vehicle_class, JSON.stringify(t.class_labels), t.class_order, 'Full corridor', t.amount_bdt, t.effective_from]
+      [t.vehicle_class, JSON.stringify(t.class_labels), t.class_order, OPEN_SECTION_LABEL, t.amount_bdt, t.effective_from]
     );
   }
 
   await db.execute(
     `INSERT INTO site_settings (setting_key, value) VALUES ('corridor.illustrative', 'true')
      ON DUPLICATE KEY UPDATE value = VALUES(value)`
+  );
+  await db.execute(
+    `INSERT INTO site_settings (setting_key, value) VALUES (?, ?)
+     ON DUPLICATE KEY UPDATE value = VALUES(value)`,
+    ['corridor.prohibited_vehicles', JSON.stringify(PROHIBITED_VEHICLES)]
   );
 
   console.log(

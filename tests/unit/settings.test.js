@@ -7,7 +7,7 @@ vi.mock('../../lib/db.js', () => ({
 }));
 
 import { query } from '../../lib/db.js';
-import { getSetting, isDataIllustrative } from '../../lib/settings.js';
+import { getSetting, isDataIllustrative, getProhibitedVehicles } from '../../lib/settings.js';
 
 describe('settings (query failure)', () => {
   beforeEach(() => {
@@ -25,5 +25,36 @@ describe('settings (query failure)', () => {
     query.mockRejectedValue(new Error('ECONNREFUSED'));
 
     expect(await isDataIllustrative()).toBe(true);
+  });
+});
+
+describe('getProhibitedVehicles', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns the English list when the requested locale is missing', async () => {
+    query.mockResolvedValue([{ value: { en: ['Motorcycles', 'Three-wheelers (CNG and auto-rickshaw)'] } }]);
+
+    expect(await getProhibitedVehicles('fr')).toEqual([
+      'Motorcycles',
+      'Three-wheelers (CNG and auto-rickshaw)',
+    ]);
+  });
+
+  it('returns [] when the setting is absent', async () => {
+    query.mockResolvedValue([]);
+
+    expect(await getProhibitedVehicles('en')).toEqual([]);
+  });
+
+  it('tolerates a raw JSON string value', async () => {
+    // A future caller may hand this a value that is still a raw JSON
+    // string rather than the object getSetting normally hands back —
+    // Object.hasOwn on a boxed string must not silently resolve to [].
+    const map = { en: ['Motorcycles'], bn: ['মোটরসাইকেল'] };
+    query.mockResolvedValue([{ value: JSON.stringify(JSON.stringify(map)) }]);
+
+    expect(await getProhibitedVehicles('bn')).toEqual(['মোটরসাইকেল']);
   });
 });
