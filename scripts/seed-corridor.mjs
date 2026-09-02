@@ -90,6 +90,17 @@ const INTERCHANGES = [
   { chainage_m: 13184, names: { en: 'Mirer Bazar (RHS)', bn: 'মীরের বাজার (আরএইচএস)' },            kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9235064, lng: 90.4598731 },
   { chainage_m: 13403, names: { en: 'Mirer Bazar (LHS)', bn: 'মীরের বাজার (এলএইচএস)' },            kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9230806, lng: 90.4613011 },
   { chainage_m: 24522, names: { en: 'Purbachal Toll Plaza', bn: 'পূর্বাচল টোল প্লাজা' },           kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.8517101, lng: 90.5247815 },
+
+  // TP-07/08/09 below (K34+353, K36+554, K45+965) are EXTRAPOLATED, not
+  // well-projected like the six toll plazas above (those landed within
+  // 0.5-17.3 m of the routed polyline). The workbook flags these three as
+  // +/-200-300 m along the corridor, with a field GPS fix still outstanding,
+  // and notes specifically that K36+554 "may be a bridge/lay-by rather than
+  // a toll gantry" — i.e. it may not even be a toll plaza. The client
+  // directed they be published as confident pending that fix, so they are
+  // seeded as ordinary toll_plaza rows below — that is a presentation call,
+  // not new certainty about the positions. Correcting any one of them once
+  // field GPS lands is a one-row change here.
   { chainage_m: 34353, names: { en: 'Toll Plaza (K34)', bn: 'টোল প্লাজা (কে৩৪)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.791205,  lng: 90.569644 },
   { chainage_m: 36554, names: { en: 'Toll Plaza (K36)', bn: 'টোল প্লাজা (কে৩৬)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.772146,  lng: 90.571652 },
   { chainage_m: 45965, names: { en: 'Toll Plaza (K46)', bn: 'টোল প্লাজা (কে৪৬)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.703585,  lng: 90.555454 },
