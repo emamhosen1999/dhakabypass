@@ -48,3 +48,27 @@ describe('media-prose block', () => {
     expect(r.ok).toBe(true);
   });
 });
+
+describe('figure-grid block', () => {
+  it('is registered and takes a list of items', () => {
+    expect(getBlock('figure-grid')).toBeTruthy();
+    expect(validateBlockData('figure-grid', {
+      heading: 'The corridor', intro: '', linkLabel: '', linkHref: '',
+      items: [{ image: '/photo/1.webp', caption: 'Open carriageway' }],
+    }).ok).toBe(true);
+  });
+
+  it('rejects a non-array items value', () => {
+    expect(validateBlockData('figure-grid', { heading: 'x', items: 'nope' }).ok).toBe(false);
+  });
+});
+
+describe('card-grid block', () => {
+  it('is registered and takes a list of cards', () => {
+    expect(getBlock('card-grid')).toBeTruthy();
+    expect(validateBlockData('card-grid', {
+      heading: 'Connections', intro: '',
+      items: [{ title: 'N1', body: 'Dhaka-Chattogram', meta: 'South' }],
+    }).ok).toBe(true);
+  });
+});
