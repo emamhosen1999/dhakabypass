@@ -32,8 +32,11 @@ import { imageSize } from '../lib/media/probe.js';
  * problem, and two of them would also misrepresent another country's road as
  * this one. They are excluded here and must not be reinstated without a licence.
  *
- * Images showing identifiable people (friends.webp and most of /photo/) are
- * excluded pending the consent confirmation named in Global Constraints.
+ * Images showing identifiable people are INCLUDED: the Boss confirmed on
+ * 2026-09-03 that DBEDC holds releases, and each carries that confirmation in
+ * its credit line. They are registered for use on an About or Community page,
+ * not on the home page. friends.webp is rejected below on separate grounds --
+ * it is generic flag artwork of unknown provenance, not a photograph of anyone.
  *
  * `status` is written to media.credit so the admin screen can show an operator
  * why an image is or is not available.
