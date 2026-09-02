@@ -393,3 +393,13 @@
 .db-btn-ondark{background:transparent;color:var(--db-plate-fg);
   border:1px solid rgba(237,242,245,.5);}
 .db-btn-ondark:hover{border-color:var(--db-plate-fg);}
+
+/* ---- Image and text ------------------------------------------------------ */
+.db-mediaprose{display:grid;gap:clamp(20px,3.5vw,44px);align-items:start;
+  grid-template-columns:1fr;}
+.db-mediaprose-figure{min-width:0;}
+@media (min-width:860px){
+  .db-mediaprose{grid-template-columns:1fr 1fr;align-items:center;}
+  .db-mediaprose-left .db-mediaprose-text{order:2;}
+  .db-mediaprose-left .db-mediaprose-figure{order:1;}
+}

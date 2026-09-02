@@ -32,3 +32,19 @@ describe('hero block', () => {
     }
   });
 });
+
+describe('media-prose block', () => {
+  it('is registered and requires a heading', () => {
+    expect(getBlock('media-prose')).toBeTruthy();
+    expect(validateBlockData('media-prose', { heading: '' }).ok).toBe(false);
+  });
+
+  it('accepts a full record', () => {
+    const r = validateBlockData('media-prose', {
+      image: '/bypass-ex.webp', side: 'right', heading: 'What this road does',
+      body: '<p>Real prose.</p>', linkLabel: 'The route', linkHref: '/en/travel/route',
+      caption: 'The open carriageway near Mirer Bazar.',
+    });
+    expect(r.ok).toBe(true);
+  });
+});
