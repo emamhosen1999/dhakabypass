@@ -82,8 +82,15 @@ export default async function LocaleHome({ params }) {
   // The car rate is the one most visitors are looking for.
   const topRate = rates.find((r) => r.vehicle_class === 'car') || rates[0] || null;
 
+  // The hero is the masthead and sits above the corridor summary; everything
+  // else sits below it, so the first actionable thing on the page is always
+  // the live status of the road.
+  const heroBlocks = blocks.filter((b) => b.type === 'hero');
+  const restBlocks = blocks.filter((b) => b.type !== 'hero');
+
   return (
     <>
+      <BlockRenderer blocks={heroBlocks} locale={locale} />
       {summary.segments.length === 0 ? null : (
         <section className="db-block">
           <h2 className="db-h2">{t(locale, 'homeCorridorHeading')}</h2>
@@ -101,7 +108,7 @@ export default async function LocaleHome({ params }) {
           </p>
         </section>
       )}
-      <BlockRenderer blocks={blocks} locale={locale} />
+      <BlockRenderer blocks={restBlocks} locale={locale} />
     </>
   );
 }
