@@ -24,11 +24,24 @@ export default async function TollPage({ params }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [rates, illustrative, prohibited] = await Promise.all([
-    getTollRatesCached(),
-    getIllustrativeCached(),
-    getProhibitedVehicles(locale),
-  ]);
+  // A dead query must not produce a stack trace in a browser — this is a
+  // public page on a shared host. rates=[] falls through to the "no toll
+  // rates" message below; illustrative defaults true, the same safe
+  // direction isDataIllustrative() takes internally when its own read
+  // fails. getProhibitedVehicles is excluded from this guard: it already
+  // degrades to [] internally (lib/settings.js's getSetting catches its own
+  // query) and never rejects.
+  let rates = [];
+  let illustrative = true;
+  try {
+    [rates, illustrative] = await Promise.all([
+      getTollRatesCached(),
+      getIllustrativeCached(),
+    ]);
+  } catch {
+    // Fall through with the safe defaults above.
+  }
+  const prohibited = await getProhibitedVehicles(locale);
 
   return (
     <>

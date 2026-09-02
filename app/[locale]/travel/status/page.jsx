@@ -16,15 +16,30 @@ export async function generateMetadata({ params }) {
   return { title: t(locale, 'travelStatus'), description: t(locale, 'travelStatusIntro') };
 }
 
+// Safe defaults for a dead database: an empty corridor renders 0% progress
+// and the interchange table's own "nothing published yet" message rather
+// than throwing out of the query and taking the page down with it.
+// illustrative defaults true — the same safe direction isDataIllustrative()
+// takes internally when its own read fails.
+const EMPTY_SUMMARY = { extent: { from_m: 0, to_m: 0, length_m: 0 }, openLength: 0, percentOpen: 0, segments: [] };
+
 export default async function StatusPage({ params }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [summary, interchanges, illustrative] = await Promise.all([
-    getCorridorSummaryCached(),
-    getInterchangesCached(),
-    getIllustrativeCached(),
-  ]);
+  let summary = EMPTY_SUMMARY;
+  let interchanges = [];
+  let illustrative = true;
+  try {
+    [summary, interchanges, illustrative] = await Promise.all([
+      getCorridorSummaryCached(),
+      getInterchangesCached(),
+      getIllustrativeCached(),
+    ]);
+  } catch {
+    // A dead query must not produce a stack trace in a browser — this is a
+    // public page on a shared host. Fall through with the safe defaults above.
+  }
 
   const model = buildStripModel({ segments: summary.segments, interchanges, locale });
 
