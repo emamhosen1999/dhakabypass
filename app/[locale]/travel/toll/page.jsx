@@ -1,0 +1,85 @@
+import { notFound } from 'next/navigation';
+import { isLocale, DEFAULT_LOCALE } from '../../../../lib/i18n/locales';
+import { t } from '../../../../lib/i18n/ui';
+import { getTollRatesCached, getIllustrativeCached } from '../../../../lib/corridor/cache';
+import { formatTaka } from '../../../../lib/corridor/tolls';
+import { getProhibitedVehicles } from '../../../../lib/settings';
+import IllustrativeNotice from '../../../../components/corridor/IllustrativeNotice';
+
+export async function generateMetadata({ params }) {
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
+  return { title: t(locale, 'travelToll'), description: t(locale, 'travelTollIntro') };
+}
+
+/** Own-property read with English fallback — class_labels is data. */
+function classLabel(row, locale) {
+  const labels = row.class_labels || {};
+  if (Object.hasOwn(labels, locale) && labels[locale]) return labels[locale];
+  if (Object.hasOwn(labels, DEFAULT_LOCALE) && labels[DEFAULT_LOCALE]) return labels[DEFAULT_LOCALE];
+  return row.vehicle_class;
+}
+
+export default async function TollPage({ params }) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+
+  const [rates, illustrative, prohibited] = await Promise.all([
+    getTollRatesCached(),
+    getIllustrativeCached(),
+    getProhibitedVehicles(locale),
+  ]);
+
+  return (
+    <>
+      <header className="db-page-head">
+        <h1 className="db-h1">{t(locale, 'travelToll')}</h1>
+        <p className="db-lede">{t(locale, 'travelTollIntro')}</p>
+      </header>
+
+      {illustrative ? <IllustrativeNotice locale={locale} /> : null}
+
+      <section className="db-block">
+        {rates.length === 0 ? (
+          <p className="db-empty-inline">{t(locale, 'noTollRates')}</p>
+        ) : (
+          <div className="db-scroll-x">
+            <table className="db-table">
+              <caption className="db-table-caption">{t(locale, 'tollCaption')}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{t(locale, 'colVehicle')}</th>
+                  <th scope="col">{t(locale, 'colSection')}</th>
+                  <th scope="col">{t(locale, 'colToll')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rates.map((r) => (
+                  <tr key={r.id}>
+                    <th scope="row">{classLabel(r, locale)}</th>
+                    <td>{r.section || '—'}</td>
+                    <td className="db-num db-toll-amount">{formatTaka(r.amount_bdt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {prohibited.length > 0 ? (
+          <div className="db-prohibited">
+            <h2 className="db-h2">{t(locale, 'prohibitedVehicles')}</h2>
+            <p className="db-lede">{t(locale, 'prohibitedNote')}</p>
+            <ul className="db-prohibited-list">
+              {prohibited.map((vehicle) => (
+                <li key={vehicle}>
+                  <span className="db-tag db-tag-alert">{vehicle}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </section>
+    </>
+  );
+}
