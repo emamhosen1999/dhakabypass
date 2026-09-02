@@ -3,6 +3,7 @@ import { LOCALES, LOCALE_HTML_LANG, isLocale } from '../../lib/i18n/locales.js';
 import ThemeScript from '../../components/chrome/ThemeScript.jsx';
 import SiteHeaderV2 from '../../components/chrome/SiteHeaderV2.jsx';
 import SiteFooterV2 from '../../components/chrome/SiteFooterV2.jsx';
+import AdvisoryBar from '../../components/corridor/AdvisoryBar.jsx';
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -23,6 +24,7 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <div className="db-root" lang={LOCALE_HTML_LANG[locale]}>
       <ThemeScript />
+      <AdvisoryBar locale={locale} />
       <SiteHeaderV2 locale={locale} />
       <main id="main">{children}</main>
       <SiteFooterV2 locale={locale} />

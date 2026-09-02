@@ -289,3 +289,17 @@
 .db-progress-rail{height:10px;border-radius:2px;background:var(--db-surface-2);margin-top:10px;overflow:hidden;}
 .db-progress-fill{display:block;height:100%;background:var(--db-open);}
 .db-progress-note{margin-top:6px;color:var(--db-ink-3);font-size:.84rem;font-variant-numeric:tabular-nums;}
+
+.db-advisory{border-bottom:1px solid var(--db-rule);}
+.db-advisory-inner{max-width:var(--db-shell);margin:0 auto;
+  padding:9px clamp(12px,3vw,20px);display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;}
+.db-advisory-tag{font-family:var(--db-font-display);font-weight:700;font-size:.72rem;
+  letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;}
+.db-advisory-msg{font-size:.9rem;}
+/* Each severity carries its own text tag as well as its colour. */
+.db-advisory-info{background:var(--db-surface-2);color:var(--db-ink-2);}
+.db-advisory-info .db-advisory-tag{color:var(--db-ink-3);}
+.db-advisory-warning{background:var(--db-build-wash);color:var(--db-ink);}
+.db-advisory-warning .db-advisory-tag{color:var(--db-build);}
+.db-advisory-closure{background:var(--db-alert-wash);color:var(--db-ink);}
+.db-advisory-closure .db-advisory-tag{color:var(--db-alert);}
