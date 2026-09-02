@@ -29,11 +29,16 @@ function localeMap(formData, prefix) {
 }
 
 /**
- * Our own validation messages are user-facing and must survive; a driver error
- * carries `code`/`sqlMessage` and must not reach the browser.
+ * Allowlist, not a denylist: only errors WE recognise as safe -- our own
+ * validation from lib/corridor/* and lib/corridor/form.js, each marked with
+ * `.code = 'VALIDATION'` by their own `validationError()` helper -- are
+ * shown to the browser unchanged. Everything else (a raw driver error such
+ * as ER_DUP_ENTRY, a misconfiguration message naming DB_HOST/DB_NAME/DB_USER,
+ * or an internal TypeError) becomes the caller's generic fallback instead. A
+ * new failure mode added later defaults to hidden, not to leaking.
  */
 function friendly(err, fallback) {
-  if (err && !err.code && !err.sqlMessage && typeof err.message === 'string') throw err;
+  if (err?.code === 'VALIDATION') throw err;
   throw new Error(fallback);
 }
 
