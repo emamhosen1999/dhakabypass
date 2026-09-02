@@ -72,3 +72,25 @@ describe('card-grid block', () => {
     }).ok).toBe(true);
   });
 });
+
+describe('cta-band block', () => {
+  it('is registered and requires a heading', () => {
+    expect(getBlock('cta-band')).toBeTruthy();
+    expect(validateBlockData('cta-band', { heading: '' }).ok).toBe(false);
+    expect(validateBlockData('cta-band', {
+      heading: 'Report a problem on the road', body: 'Call the control room.',
+      primaryLabel: 'Contact', primaryHref: '/en/contact',
+      secondaryLabel: '', secondaryHref: '',
+    }).ok).toBe(true);
+  });
+});
+
+describe('partner-row block', () => {
+  it('is registered and takes partners', () => {
+    expect(getBlock('partner-row')).toBeTruthy();
+    expect(validateBlockData('partner-row', {
+      heading: 'Who runs this road', intro: '',
+      items: [{ name: 'SRBG', role: 'Lead partner', share: '60%' }],
+    }).ok).toBe(true);
+  });
+});

@@ -417,3 +417,21 @@
 .db-card-title{font-family:var(--db-font-display);font-size:1.15rem;text-transform:uppercase;
   letter-spacing:.03em;margin:6px 0 0;}
 .db-card-body{margin:8px 0 0;color:var(--db-ink-2);font-size:.95rem;}
+
+/* ---- CTA band and partners ----------------------------------------------- */
+.db-ctaband{background:var(--db-plate-bg);color:var(--db-plate-fg);border-radius:3px;
+  padding:clamp(22px,3.6vw,40px);display:grid;gap:20px;align-items:center;}
+@media (min-width:820px){ .db-ctaband{grid-template-columns:1fr auto;} }
+.db-ctaband-title{font-family:var(--db-font-display);font-weight:700;text-transform:uppercase;
+  letter-spacing:.03em;line-height:1.06;margin:0;font-size:clamp(1.4rem,1rem + 1.6vw,2.1rem);}
+.db-ctaband-body{margin:10px 0 0;color:rgba(237,242,245,.8);max-width:52ch;}
+.db-ctaband .db-actions{margin:0;}
+.db-partners{display:grid;gap:2px;margin:20px 0 0;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));}
+.db-partner{background:var(--db-surface);padding:16px 18px;display:flex;
+  flex-direction:column;gap:4px;}
+.db-partner-name{font-family:var(--db-font-display);font-weight:700;font-size:1.1rem;
+  text-transform:uppercase;letter-spacing:.03em;}
+.db-partner-role{margin:0;color:var(--db-ink-2);font-size:.93rem;
+  display:flex;justify-content:space-between;gap:10px;}
+.db-partner-share{font-variant-numeric:tabular-nums;color:var(--db-ink);font-weight:600;}
