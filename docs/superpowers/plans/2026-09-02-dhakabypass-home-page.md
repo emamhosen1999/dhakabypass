@@ -587,9 +587,12 @@ describe('SiteImage', () => {
   });
 
   it('asks the browser to preload the priority image', () => {
-    // React 19 emits a <link rel="preload"> for an image marked high priority.
-    // That preload is the actual performance win on a hero, so it is worth
-    // asserting: losing it silently would cost exactly what priority buys.
+    // React 19 emits a <link rel="preload"> for any image that is NOT lazy --
+    // loading="eager", decoding="sync" and fetchPriority="high" each trigger it
+    // independently (verified by mutation). So this guards the `priority` flag
+    // as a whole, not fetchPriority in particular: the assertion above does that
+    // job. The preload is the actual performance win on a hero, and losing it
+    // silently would cost exactly what the flag exists to buy.
     const p = renderToStaticMarkup(<SiteImage media={row} locale="en" priority />);
     expect(p).toContain('rel="preload"');
     expect(p).toContain('as="image"');
