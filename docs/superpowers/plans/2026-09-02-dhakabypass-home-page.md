@@ -25,7 +25,7 @@
 - **Photographs of identifiable people may not be published on the new site until DBEDC confirms it holds consent.** Several inherited images — `/friends.webp` and much of `/photo/` — show recognisable faces, including children, in CSR settings. They were on the old site, which is not evidence of consent. Until the Boss confirms, only images whose subject is the *road* may be seeded. This is a hard gate, not a preference.
 - **Every link rendered inside `/[locale]/` must stay inside it.** A link to `/gallery` or `/contact` from `/bn` drops a Bangla reader onto the legacy English site. Until a localised destination exists, either point at a localised route that does exist or omit the link. Never seed a bare legacy path into localised content.
 - All new CSS uses existing tokens from `app/design-tokens.css`. Define a token before referencing it.
-- Tests: `npx vitest run` must stay green; `vitest.config.mjs` has `fileParallelism: false` — do not change it.
+- Tests: `npx vitest run` must stay green. Test files live under `tests/unit/` or `tests/db/` — the vitest `include` globs match nowhere else, so a test written outside them silently never runs. `vitest.config.mjs` has `fileParallelism: false`; that line is load-bearing and must not change. Task 3 widens the `include` glob to admit `.jsx`; no other edit to that file is authorised.
 
 ---
 
@@ -62,7 +62,7 @@
 - `app/design-tokens.css` — modified: new block classes
 
 **Tests**
-- `tests/media-probe.test.js`, `tests/media-repo.test.js`, `tests/blocks-home-types.test.js`, `tests/blocks-toll-preview.test.js`, `tests/e2e/home.spec.js`
+- `tests/unit/media-probe.test.js`, `tests/unit/media-repo.test.js`, `tests/unit/blocks-home-types.test.js`, `tests/unit/blocks-toll-preview.test.js`, `tests/e2e/home.spec.js`
 
 ---
 
@@ -71,7 +71,7 @@
 **Files:**
 - Create: `scripts/db-setup-v4.mjs`
 - Create: `lib/media/probe.js`
-- Test: `tests/media-probe.test.js`
+- Test: `tests/unit/media-probe.test.js`
 
 **Interfaces:**
 - Consumes: nothing.
@@ -80,11 +80,11 @@
 - [ ] **Step 1: Write the failing test**
 
 ```js
-// tests/media-probe.test.js
+// tests/unit/media-probe.test.js
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { imageSize } from '../lib/media/probe.js';
+import { imageSize } from '../../lib/media/probe.js';
 
 const pub = (p) => fs.readFileSync(path.join(process.cwd(), 'public', p));
 
@@ -116,7 +116,7 @@ describe('imageSize', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/media-probe.test.js`
+Run: `npx vitest run tests/unit/media-probe.test.js`
 Expected: FAIL — cannot resolve `../lib/media/probe.js`.
 
 - [ ] **Step 3: Write the implementation**
@@ -187,7 +187,7 @@ export function imageSize(buffer) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run tests/media-probe.test.js`
+Run: `npx vitest run tests/unit/media-probe.test.js`
 Expected: PASS, 5 tests.
 
 - [ ] **Step 5: Write the migration**
@@ -204,7 +204,9 @@ Expected: PASS, 5 tests.
  *
  * Safe to re-run: each ALTER is guarded by an information_schema check.
  */
-import './load-env.mjs';
+import { loadEnv } from './load-env.mjs';
+
+loadEnv();
 import mysql from 'mysql2/promise';
 
 const db = await mysql.createConnection({
@@ -238,7 +240,7 @@ Expected: first run prints `added media.origin` / `added media.credit`; second p
 - [ ] **Step 7: Commit**
 
 ```bash
-git add lib/media/probe.js tests/media-probe.test.js scripts/db-setup-v4.mjs
+git add lib/media/probe.js tests/unit/media-probe.test.js scripts/db-setup-v4.mjs
 git commit -m "feat(media): read image dimensions and record asset provenance"
 ```
 
@@ -249,7 +251,7 @@ git commit -m "feat(media): read image dimensions and record asset provenance"
 **Files:**
 - Create: `scripts/import-legacy-media.mjs`
 - Create: `lib/media/repo.js`
-- Test: `tests/media-repo.test.js`
+- Test: `tests/unit/media-repo.test.js`
 
 **Interfaces:**
 - Consumes: `imageSize` from Task 1; `media.origin` / `media.credit` columns from Task 1.
@@ -258,9 +260,9 @@ git commit -m "feat(media): read image dimensions and record asset provenance"
 - [ ] **Step 1: Write the failing test**
 
 ```js
-// tests/media-repo.test.js
+// tests/unit/media-repo.test.js
 import { describe, it, expect } from 'vitest';
-import { mediaAlt } from '../lib/media/repo.js';
+import { mediaAlt } from '../../lib/media/repo.js';
 
 describe('mediaAlt', () => {
   it('returns the requested locale', () => {
@@ -292,7 +294,7 @@ describe('mediaAlt', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/media-repo.test.js`
+Run: `npx vitest run tests/unit/media-repo.test.js`
 Expected: FAIL — cannot resolve `../lib/media/repo.js`.
 
 - [ ] **Step 3: Write the repository**
@@ -340,7 +342,7 @@ export async function getMediaByPath(path) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run tests/media-repo.test.js`
+Run: `npx vitest run tests/unit/media-repo.test.js`
 Expected: PASS, 5 tests.
 
 - [ ] **Step 5: Write the import script**
@@ -362,7 +364,9 @@ Alt text below is written fresh — it describes what is actually in each frame.
  * placeholder in the admin media screen. Re-running updates dimensions and
  * origin but never clobbers an alt or credit the operator has edited.
  */
-import './load-env.mjs';
+import { loadEnv } from './load-env.mjs';
+
+loadEnv();
 import fs from 'node:fs';
 import path from 'node:path';
 import mysql from 'mysql2/promise';
@@ -446,46 +450,65 @@ const db = await mysql.createConnection({
 });
 
 const root = path.join(process.cwd(), 'public');
-const files = [];
-for (const name of fs.readdirSync(root)) {
-  if (name.toLowerCase().endsWith('.webp')) files.push('/' + name);
-}
-const photoDir = path.join(root, 'photo');
-if (fs.existsSync(photoDir)) {
-  for (const name of fs.readdirSync(photoDir)) {
-    if (name.toLowerCase().endsWith('.webp')) files.push('/photo/' + name);
-  }
-}
-files.sort();
 
+/**
+ * Drive the loop from AUDITED, not from a directory listing.
+ *
+ * Reading the directory and filtering would register anything a future commit
+ * drops into public/ without anybody looking at it — which is exactly how the
+ * old site ended up publishing a Belt and Road infographic. An image reaches
+ * the database only because a person opened it and wrote a line for it here.
+ */
 let ok = 0;
-let skipped = 0;
-for (const rel of files) {
+let missing = 0;
+let unreadable = 0;
+
+for (const [rel, entry] of Object.entries(AUDITED)) {
+  if (REJECTED[rel]) {
+    // Belt and braces: a path must never appear in both maps. If one does,
+    // stop rather than guess which list the author meant.
+    throw new Error(`${rel} is in AUDITED and REJECTED. Resolve the audit before importing.`);
+  }
   const abs = path.join(root, rel);
+  if (!fs.existsSync(abs)) {
+    console.warn(`  ! missing on disk, skipped: ${rel}`);
+    missing += 1;
+    continue;
+  }
   const buf = fs.readFileSync(abs);
   const size = imageSize(buf);
-  if (!size) { console.warn(`  ! unreadable, skipped: ${rel}`); skipped += 1; continue; }
-  const alt = JSON.stringify(ALT[rel] ? { en: ALT[rel] } : {});
+  if (!size) {
+    console.warn(`  ! unreadable, skipped: ${rel}`);
+    unreadable += 1;
+    continue;
+  }
   await db.execute(
     `INSERT INTO media (path, width, height, bytes, mime, alt, origin, credit)
-     VALUES (?, ?, ?, ?, ?, ?, 'legacy', 'DBEDC')
+     VALUES (?, ?, ?, ?, ?, ?, 'legacy', ?)
      ON DUPLICATE KEY UPDATE
        width = VALUES(width), height = VALUES(height),
-       bytes = VALUES(bytes), mime = VALUES(mime), origin = 'legacy'`,
-    [rel, size.width, size.height, buf.length, size.mime, alt],
+       bytes = VALUES(bytes), mime = VALUES(mime),
+       origin = 'legacy', credit = VALUES(credit)`,
+    [rel, size.width, size.height, buf.length, size.mime,
+      JSON.stringify({ en: entry.alt }), entry.credit],
   );
   ok += 1;
 }
 
-console.log(`registered ${ok} legacy images, skipped ${skipped}`);
-console.log('every one is a PLACEHOLDER — see docs/admin/replacing-images.md');
+// alt is deliberately NOT in the ON DUPLICATE KEY UPDATE list: re-running must
+// never overwrite alt text an operator has edited or translated in the admin.
+
+console.log(`registered ${ok} audited images (${missing} missing, ${unreadable} unreadable)`);
+console.log(`${Object.keys(REJECTED).length} files excluded by the audit and NOT registered:`);
+for (const [rel, why] of Object.entries(REJECTED)) console.log(`  - ${rel}  ${why}`);
+console.log('Every registered image is a PLACEHOLDER — see docs/admin/replacing-images.md');
 await db.end();
 ```
 
 - [ ] **Step 6: Run the import twice**
 
 Run: `node scripts/import-legacy-media.mjs && node scripts/import-legacy-media.mjs`
-Expected: `registered 51 legacy images, skipped 0` both times, no error.
+Expected: `registered 28 audited images (0 missing, 0 unreadable)` both times, followed by the list of 10 excluded files, and no error. If the count is not 28, the AUDITED map and the audit document have drifted apart — stop and report rather than adjusting the number to match.
 
 Then verify no alt was clobbered on the second pass:
 
@@ -503,7 +526,7 @@ Expected: one row, width 686, height 386, alt present.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add lib/media/repo.js tests/media-repo.test.js scripts/import-legacy-media.mjs
+git add lib/media/repo.js tests/unit/media-repo.test.js scripts/import-legacy-media.mjs
 git commit -m "feat(media): register the legacy photo library as replaceable placeholders"
 ```
 
@@ -514,7 +537,7 @@ git commit -m "feat(media): register the legacy photo library as replaceable pla
 **Files:**
 - Create: `components/SiteImage.jsx`
 - Modify: `app/design-tokens.css` (append the `.db-figure` group)
-- Test: `tests/site-image.test.jsx`
+- Test: `tests/unit/site-image.test.jsx`
 
 **Interfaces:**
 - Consumes: `mediaAlt` from Task 2.
@@ -523,10 +546,10 @@ git commit -m "feat(media): register the legacy photo library as replaceable pla
 - [ ] **Step 1: Write the failing test**
 
 ```jsx
-// tests/site-image.test.jsx
+// tests/unit/site-image.test.jsx
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import SiteImage from '../components/SiteImage.jsx';
+import SiteImage from '../../components/SiteImage.jsx';
 
 const row = {
   path: '/bg-hero.webp', width: 686, height: 386,
@@ -570,8 +593,33 @@ describe('SiteImage', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/site-image.test.jsx`
-Expected: FAIL — cannot resolve `../components/SiteImage.jsx`.
+Run: `npx vitest run tests/unit/site-image.test.jsx`
+Expected: FAIL — cannot resolve `../../components/SiteImage.jsx`.
+
+**If instead you get `No test files found`,** the config change in Step 2a has not been made yet. Make it, then re-run and confirm you get a real failure before implementing. A test that cannot be collected is not a red test.
+
+- [ ] **Step 2a: Let vitest collect `.jsx` tests**
+
+This is the project's first JSX test file. `vitest.config.mjs` currently has:
+
+```js
+include: ['tests/unit/**/*.test.js', 'tests/db/**/*.test.js'],
+```
+
+which matches `.test.js` only, so `site-image.test.jsx` would be silently ignored — it would never run, and never fail, no matter how broken the component was. Change that one line to:
+
+```js
+include: ['tests/unit/**/*.test.{js,jsx}', 'tests/db/**/*.test.js'],
+```
+
+Change **nothing else in that file**. In particular `fileParallelism: false` stays exactly as it is — it is load-bearing, and the comment above it explains why.
+
+Then confirm the file is now collected:
+
+Run: `npx vitest run tests/unit/site-image.test.jsx`
+Expected: a real module-resolution failure, not `No test files found`.
+
+Vitest transforms `.jsx` through esbuild automatically. If the run instead fails on the JSX syntax itself or on a missing React import, stop and report the exact error — do not add a Babel config or a `jsx` pragma on your own initiative.
 
 - [ ] **Step 3: Write the component**
 
@@ -615,7 +663,7 @@ export default function SiteImage({ media, locale, sizes, className, priority = 
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run tests/site-image.test.jsx`
+Run: `npx vitest run tests/unit/site-image.test.jsx`
 Expected: PASS, 6 tests.
 
 - [ ] **Step 5: Add the figure styles**
@@ -645,7 +693,7 @@ Expected: both appear in a `:root` declaration **before** the block just added. 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add components/SiteImage.jsx tests/site-image.test.jsx app/design-tokens.css
+git add components/SiteImage.jsx tests/unit/site-image.test.jsx app/design-tokens.css vitest.config.mjs
 git commit -m "feat(media): add SiteImage with intrinsic sizing and focal-point cropping"
 ```
 
@@ -658,7 +706,7 @@ git commit -m "feat(media): add SiteImage with intrinsic sizing and focal-point 
 - Create: `components/blocks/HeroBlock.jsx`
 - Modify: `lib/blocks/index.js`
 - Modify: `app/design-tokens.css`
-- Test: `tests/blocks-home-types.test.js`
+- Test: `tests/unit/blocks-home-types.test.js`
 
 **Interfaces:**
 - Consumes: `registerBlock` from `lib/blocks/registry.js`; `SiteImage` from Task 3; `getMediaByPath` from Task 2.
@@ -667,9 +715,9 @@ git commit -m "feat(media): add SiteImage with intrinsic sizing and focal-point 
 - [ ] **Step 1: Write the failing test**
 
 ```js
-// tests/blocks-home-types.test.js
+// tests/unit/blocks-home-types.test.js
 import { describe, it, expect, beforeAll } from 'vitest';
-import { getBlock, validateBlockData, defaultBlockData } from '../lib/blocks/registry.js';
+import { getBlock, validateBlockData, defaultBlockData } from '../../lib/blocks/registry.js';
 
 beforeAll(async () => { await import('../lib/blocks/index.js'); });
 
@@ -706,7 +754,7 @@ describe('hero block', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/blocks-home-types.test.js`
+Run: `npx vitest run tests/unit/blocks-home-types.test.js`
 Expected: FAIL — `getBlock('hero')` returns null.
 
 - [ ] **Step 3: Write the block definition**
@@ -828,14 +876,14 @@ Expected: each is declared in `:root` earlier in the file. If `--db-plate-bg` or
 
 - [ ] **Step 8: Run the tests**
 
-Run: `npx vitest run tests/blocks-home-types.test.js`
+Run: `npx vitest run tests/unit/blocks-home-types.test.js`
 Expected: PASS, 4 tests.
 
 - [ ] **Step 9: Commit**
 
 ```bash
 git add lib/blocks/types/hero.js components/blocks/HeroBlock.jsx lib/blocks/index.js \
-        app/design-tokens.css tests/blocks-home-types.test.js
+        app/design-tokens.css tests/unit/blocks-home-types.test.js
 git commit -m "feat(blocks): add hero block"
 ```
 
@@ -846,7 +894,7 @@ git commit -m "feat(blocks): add hero block"
 **Files:**
 - Create: `lib/blocks/types/media-prose.js`
 - Create: `components/blocks/MediaProseBlock.jsx`
-- Modify: `lib/blocks/index.js`, `app/design-tokens.css`, `tests/blocks-home-types.test.js`
+- Modify: `lib/blocks/index.js`, `app/design-tokens.css`, `tests/unit/blocks-home-types.test.js`
 
 **Interfaces:**
 - Consumes: `SiteImage`, `getMediaByPath`.
@@ -854,7 +902,7 @@ git commit -m "feat(blocks): add hero block"
 
 - [ ] **Step 1: Add the failing test**
 
-Append to `tests/blocks-home-types.test.js`:
+Append to `tests/unit/blocks-home-types.test.js`:
 
 ```js
 describe('media-prose block', () => {
@@ -876,7 +924,7 @@ describe('media-prose block', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/blocks-home-types.test.js`
+Run: `npx vitest run tests/unit/blocks-home-types.test.js`
 Expected: FAIL — `getBlock('media-prose')` is null.
 
 - [ ] **Step 3: Write the definition**
@@ -968,14 +1016,14 @@ Append to `app/design-tokens.css`:
 
 - [ ] **Step 7: Run the tests**
 
-Run: `npx vitest run tests/blocks-home-types.test.js`
+Run: `npx vitest run tests/unit/blocks-home-types.test.js`
 Expected: PASS, 6 tests.
 
 - [ ] **Step 8: Commit**
 
 ```bash
 git add lib/blocks/types/media-prose.js components/blocks/MediaProseBlock.jsx \
-        lib/blocks/index.js app/design-tokens.css tests/blocks-home-types.test.js
+        lib/blocks/index.js app/design-tokens.css tests/unit/blocks-home-types.test.js
 git commit -m "feat(blocks): add image-and-text block"
 ```
 
@@ -986,7 +1034,7 @@ git commit -m "feat(blocks): add image-and-text block"
 **Files:**
 - Create: `lib/blocks/types/figure-grid.js`, `components/blocks/FigureGridBlock.jsx`
 - Create: `lib/blocks/types/card-grid.js`, `components/blocks/CardGridBlock.jsx`
-- Modify: `lib/blocks/index.js`, `app/design-tokens.css`, `tests/blocks-home-types.test.js`
+- Modify: `lib/blocks/index.js`, `app/design-tokens.css`, `tests/unit/blocks-home-types.test.js`
 
 **Interfaces:**
 - Consumes: `SiteImage`, `listMedia`/`getMediaByPath`.
@@ -994,7 +1042,7 @@ git commit -m "feat(blocks): add image-and-text block"
 
 - [ ] **Step 1: Add the failing tests**
 
-Append to `tests/blocks-home-types.test.js`:
+Append to `tests/unit/blocks-home-types.test.js`:
 
 ```js
 describe('figure-grid block', () => {
@@ -1024,7 +1072,7 @@ describe('card-grid block', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/blocks-home-types.test.js`
+Run: `npx vitest run tests/unit/blocks-home-types.test.js`
 Expected: FAIL on both new describes.
 
 - [ ] **Step 3: Write both definitions**
@@ -1163,7 +1211,7 @@ Append to `app/design-tokens.css`:
 Run: `grep -n -- "--db-surface:\|--db-accent:\|--db-ink-2:" app/design-tokens.css | head`
 Expected: all three declared in `:root`. Then:
 
-Run: `npx vitest run tests/blocks-home-types.test.js`
+Run: `npx vitest run tests/unit/blocks-home-types.test.js`
 Expected: PASS, 9 tests.
 
 - [ ] **Step 8: Commit**
@@ -1171,7 +1219,7 @@ Expected: PASS, 9 tests.
 ```bash
 git add lib/blocks/types/figure-grid.js lib/blocks/types/card-grid.js \
         components/blocks/FigureGridBlock.jsx components/blocks/CardGridBlock.jsx \
-        lib/blocks/index.js app/design-tokens.css tests/blocks-home-types.test.js
+        lib/blocks/index.js app/design-tokens.css tests/unit/blocks-home-types.test.js
 git commit -m "feat(blocks): add photo grid and card grid blocks"
 ```
 
@@ -1182,14 +1230,14 @@ git commit -m "feat(blocks): add photo grid and card grid blocks"
 **Files:**
 - Create: `lib/blocks/types/cta-band.js`, `components/blocks/CtaBandBlock.jsx`
 - Create: `lib/blocks/types/partner-row.js`, `components/blocks/PartnerRowBlock.jsx`
-- Modify: `lib/blocks/index.js`, `app/design-tokens.css`, `tests/blocks-home-types.test.js`
+- Modify: `lib/blocks/index.js`, `app/design-tokens.css`, `tests/unit/blocks-home-types.test.js`
 
 **Interfaces:**
 - Produces: block type `'cta-band'` with fields `heading` (required), `body`, `primaryLabel`, `primaryHref`, `secondaryLabel`, `secondaryHref`. Block type `'partner-row'` with fields `heading`, `intro`, `items` (list of `{ name, role, share }`).
 
 - [ ] **Step 1: Add the failing tests**
 
-Append to `tests/blocks-home-types.test.js`:
+Append to `tests/unit/blocks-home-types.test.js`:
 
 ```js
 describe('cta-band block', () => {
@@ -1217,7 +1265,7 @@ describe('partner-row block', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/blocks-home-types.test.js`
+Run: `npx vitest run tests/unit/blocks-home-types.test.js`
 Expected: FAIL on both new describes.
 
 - [ ] **Step 3: Write both definitions**
@@ -1346,7 +1394,7 @@ Append to `app/design-tokens.css`:
 
 - [ ] **Step 7: Run the tests**
 
-Run: `npx vitest run tests/blocks-home-types.test.js`
+Run: `npx vitest run tests/unit/blocks-home-types.test.js`
 Expected: PASS, 11 tests.
 
 - [ ] **Step 8: Commit**
@@ -1354,7 +1402,7 @@ Expected: PASS, 11 tests.
 ```bash
 git add lib/blocks/types/cta-band.js lib/blocks/types/partner-row.js \
         components/blocks/CtaBandBlock.jsx components/blocks/PartnerRowBlock.jsx \
-        lib/blocks/index.js app/design-tokens.css tests/blocks-home-types.test.js
+        lib/blocks/index.js app/design-tokens.css tests/unit/blocks-home-types.test.js
 git commit -m "feat(blocks): add call-to-action band and partner row"
 ```
 
@@ -1366,7 +1414,7 @@ git commit -m "feat(blocks): add call-to-action band and partner row"
 - Create: `lib/blocks/types/toll-preview.js`, `components/blocks/TollPreviewBlock.jsx`
 - Create: `lib/blocks/tollPreview.js` (the pure selection function)
 - Modify: `lib/blocks/index.js`, `app/design-tokens.css`
-- Test: `tests/blocks-toll-preview.test.js`
+- Test: `tests/unit/blocks-toll-preview.test.js`
 
 **Interfaces:**
 - Consumes: `getTollRatesCached` from `lib/corridor/cache`, `formatTaka` from `lib/corridor/tolls`.
@@ -1375,9 +1423,9 @@ git commit -m "feat(blocks): add call-to-action band and partner row"
 - [ ] **Step 1: Write the failing test**
 
 ```js
-// tests/blocks-toll-preview.test.js
+// tests/unit/blocks-toll-preview.test.js
 import { describe, it, expect } from 'vitest';
-import { pickRates } from '../lib/blocks/tollPreview.js';
+import { pickRates } from '../../lib/blocks/tollPreview.js';
 
 const RATES = [
   { vehicle_class: 'car', amount_bdt: 150 },
@@ -1415,7 +1463,7 @@ describe('pickRates', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run tests/blocks-toll-preview.test.js`
+Run: `npx vitest run tests/unit/blocks-toll-preview.test.js`
 Expected: FAIL — cannot resolve `../lib/blocks/tollPreview.js`.
 
 - [ ] **Step 3: Write the helper**
@@ -1446,7 +1494,7 @@ export function pickRates(rates, wanted) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run tests/blocks-toll-preview.test.js`
+Run: `npx vitest run tests/unit/blocks-toll-preview.test.js`
 Expected: PASS, 5 tests.
 
 - [ ] **Step 5: Write the definition and renderer**
@@ -1537,7 +1585,7 @@ Expected: every test file passes. Report the exact `Test Files` / `Tests` counts
 ```bash
 git add lib/blocks/tollPreview.js lib/blocks/types/toll-preview.js \
         components/blocks/TollPreviewBlock.jsx lib/blocks/index.js \
-        app/design-tokens.css tests/blocks-toll-preview.test.js
+        app/design-tokens.css tests/unit/blocks-toll-preview.test.js
 git commit -m "feat(blocks): add toll rates preview reading live rates"
 ```
 
@@ -1639,7 +1687,9 @@ git commit -m "feat(home): render the hero above the corridor summary"
  * Re-running replaces the home page's blocks wholesale. It does not touch any
  * other page.
  */
-import './load-env.mjs';
+import { loadEnv } from './load-env.mjs';
+
+loadEnv();
 import mysql from 'mysql2/promise';
 
 const db = await mysql.createConnection({
