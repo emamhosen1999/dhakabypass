@@ -757,7 +757,7 @@ git commit -m "feat(media): add SiteImage with intrinsic sizing and focal-point 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { getBlock, validateBlockData, defaultBlockData } from '../../lib/blocks/registry.js';
 
-beforeAll(async () => { await import('../lib/blocks/index.js'); });
+beforeAll(async () => { await import('../../lib/blocks/index.js'); });
 
 describe('hero block', () => {
   it('is registered', () => {
