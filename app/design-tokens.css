@@ -312,11 +312,19 @@
   font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;
   border-radius:2px;text-decoration:none;color:var(--db-ink-2);}
 .db-subnav-link:hover{background:var(--db-surface-2);color:var(--db-ink);}
+/* Active item, styled consistently with .db-locale-btn[aria-current]. Placed
+   after :hover so it wins on equal specificity — the active item stays
+   marked even while hovered. */
+.db-subnav-link[aria-current]{background:var(--db-plate-accent);color:#0B1620;}
 .db-page-head{max-width:var(--db-shell);margin:0 auto;padding:clamp(24px,4vw,40px) clamp(12px,3vw,20px) 0;}
 .db-h1{font-size:clamp(1.9rem,1.3rem + 2.4vw,3rem);text-transform:uppercase;letter-spacing:.01em;}
 .db-h2{font-size:clamp(1.4rem,1.1rem + 1.4vw,2rem);text-transform:uppercase;letter-spacing:.02em;}
 .db-lede{max-width:var(--db-measure);margin-top:10px;color:var(--db-ink-2);font-size:1.02rem;}
-.db-toll-amount{font-family:var(--db-font-display);font-weight:700;font-size:1.05rem;}
+.db-toll-amount{font-family:var(--db-font-display);font-weight:700;font-size:1.05rem;text-align:right;}
+/* Column-header counterpart, so the "Toll" heading sits over its figures.
+   Kept separate from .db-num, which InterchangeTable also uses for
+   chainage — right-aligning that would misalign its column, not fix it. */
+.db-col-right{text-align:right;}
 
 /* Prohibited vehicle classes on the toll page. Reuses .db-tag/.db-tag-alert
    (the same pill already used for a closure/alert status tag elsewhere) so a

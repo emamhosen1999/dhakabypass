@@ -63,7 +63,7 @@ export default async function TollPage({ params }) {
                 <tr>
                   <th scope="col">{t(locale, 'colVehicle')}</th>
                   <th scope="col">{t(locale, 'colSection')}</th>
-                  <th scope="col">{t(locale, 'colToll')}</th>
+                  <th scope="col" className="db-col-right">{t(locale, 'colToll')}</th>
                 </tr>
               </thead>
               <tbody>
