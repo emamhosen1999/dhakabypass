@@ -101,14 +101,20 @@ describe('friendly() — allowlist, not a denylist', () => {
     await expect(saveTollRateAction(formData(validToll))).rejects.not.toThrow(/insertId|TypeError/);
   });
 
-  it('still replaces a real driver ER_DUP_ENTRY error with the generic fallback (regression pin)', async () => {
+  it('maps a real driver ER_DUP_ENTRY error to a specific, actionable message, not the generic fallback', async () => {
+    // toll_rates has UNIQUE KEY uq_class_effective (vehicle_class, effective_from).
+    // The most likely way an operator hits this is following the admin's own
+    // scheduling advice (add a new row, same class, future date) on a date that
+    // already has one -- a permanent failure, so "please try again" would be
+    // actively wrong: it tells the operator to retry something that can never
+    // succeed as submitted.
     const dupErr = new Error("Duplicate entry 'car-2026-01-01' for key 'toll_rates.vehicle_class'");
     dupErr.code = 'ER_DUP_ENTRY';
     dupErr.sqlMessage = "Duplicate entry 'car-2026-01-01' for key 'toll_rates.vehicle_class'";
     saveTollRate.mockRejectedValue(dupErr);
 
     await expect(saveTollRateAction(formData(validToll))).rejects.toThrow(
-      'Could not save the toll rate. Please try again.'
+      'A rate for that vehicle class already exists on that date.'
     );
     await expect(saveTollRateAction(formData(validToll))).rejects.not.toThrow(/Duplicate entry|ER_DUP_ENTRY/);
   });

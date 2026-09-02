@@ -139,14 +139,14 @@ describe('seeded corridor geometry (real client data)', () => {
     expect(rows.some((r) => /bhaowal/i.test(r.names.en))).toBe(false);
   });
 
-  it('seeds the three named bridges under the pedestrian_overpass kind (no bridge kind exists in the schema)', async () => {
+  it('seeds the three named bridges under the bridge kind', async () => {
     const I = await import('../../lib/corridor/interchanges.js');
     const rows = await I.listInterchanges();
     const bridgeNames = ['Nagda Bridge', 'Ulukhola Bridge', 'Kanchan Bridge'];
     for (const name of bridgeNames) {
       const row = rows.find((r) => r.names.en === name);
       expect(row, `expected a row for "${name}"`).toBeTruthy();
-      expect(row.kind).toBe('pedestrian_overpass');
+      expect(row.kind).toBe('bridge');
     }
   });
 });

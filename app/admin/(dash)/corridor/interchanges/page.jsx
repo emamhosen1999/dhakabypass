@@ -3,7 +3,7 @@ import { formatChainage } from '../../../../../lib/corridor/chainage';
 
 export const dynamic = 'force-dynamic';
 
-const KINDS = ['interchange', 'toll_plaza', 'service_area', 'u_loop', 'pedestrian_overpass'];
+const KINDS = ['interchange', 'toll_plaza', 'service_area', 'u_loop', 'pedestrian_overpass', 'bridge'];
 const STATUSES = ['open', 'construction', 'planned'];
 
 function InterchangeForm({ interchange }) {

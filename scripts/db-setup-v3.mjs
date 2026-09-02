@@ -39,7 +39,7 @@ try {
       id          INT AUTO_INCREMENT PRIMARY KEY,
       chainage_m  INT NOT NULL,
       names       JSON NOT NULL,
-      kind        ENUM('interchange','toll_plaza','service_area','u_loop','pedestrian_overpass') NOT NULL DEFAULT 'interchange',
+      kind        ENUM('interchange','toll_plaza','service_area','u_loop','pedestrian_overpass','bridge') NOT NULL DEFAULT 'interchange',
       status      ENUM('open','construction','planned') NOT NULL DEFAULT 'planned',
       connects_to VARCHAR(191) NOT NULL DEFAULT '',
       facilities  JSON NULL,

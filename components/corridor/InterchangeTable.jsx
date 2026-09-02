@@ -7,6 +7,7 @@ const KIND_KEY = {
   service_area: 'kindServiceArea',
   u_loop: 'kindULoop',
   pedestrian_overpass: 'kindPedestrianOverpass',
+  bridge: 'kindBridge',
 };
 const STATUS_KEY = { open: 'statusOpen', construction: 'statusConstruction', planned: 'statusPlanned' };
 // planned is a real, expected status — it must not visually collapse onto

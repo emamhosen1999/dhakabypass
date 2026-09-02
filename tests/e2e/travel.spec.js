@@ -5,11 +5,11 @@
 // the fictional placeholder the section was originally built against:
 //
 //   - corridor spans 0 -> 47611 m (20 points: 8 interchange, 9 toll_plaza,
-//     3 pedestrian_overpass — the schema has no "bridge" kind)
+//     3 bridge)
 //   - segments: 0-3218 construction, 3218-21218 open (18000 m exactly),
 //     21218-47611 construction
 //   - 9 toll classes, class_order ascending == amount ascending, 150..740
-//     BDT, every row's section is 'Kodda – Purbachal'
+//     BDT, every row's section is 'Vogra – K21+218 (open section)'
 //   - prohibited vehicles: motorcycles, three-wheelers (rendered on /toll
 //     and /rules)
 //   - corridor.illustrative = true, so IllustrativeNotice renders everywhere
@@ -32,7 +32,7 @@ const PAGE_TITLE_KEY = {
   '/travel/rules': 'travelRules',
 };
 // Exact string from scripts/seed-corridor.mjs's OPEN_SECTION_LABEL.
-const TOLL_SECTION = 'Kodda – Purbachal';
+const TOLL_SECTION = 'Vogra – K21+218 (open section)';
 const PROHIBITED_EN = ['Motorcycles', 'Three-wheelers (CNG and auto-rickshaw)'];
 
 for (const locale of LOCALES) {
@@ -151,11 +151,11 @@ test('the route table excludes the bridges the status table includes', async ({ 
   const routeRows = await page.locator('table.db-table tbody tr').count();
 
   // /route filters markers to kind === interchange | toll_plaza; /status
-  // shows every marker, including the three pedestrian_overpass bridges.
+  // shows every marker, including the three bridge rows.
   // Route must show strictly fewer rows, not the same set re-labelled.
   expect(routeRows).toBeLessThan(statusRows);
 
-  const bridgeLabel = t('en', 'kindPedestrianOverpass');
+  const bridgeLabel = t('en', 'kindBridge');
   const bridgeCells = page.locator('table.db-table tbody tr', { hasText: bridgeLabel });
   expect(await bridgeCells.count()).toBe(0);
 });
@@ -163,7 +163,7 @@ test('the route table excludes the bridges the status table includes', async ({ 
 test('the facilities page shows the no-facilities message when no service areas are seeded', async ({ page }) => {
   await page.goto('/en/travel/facilities');
   // The current seed has zero interchanges of kind service_area (8
-  // interchange, 9 toll_plaza, 3 pedestrian_overpass) — this must degrade
+  // interchange, 9 toll_plaza, 3 bridge) — this must degrade
   // to the empty state, not throw or silently render an empty list.
   await expect(page.locator('.db-empty-inline')).toHaveText(t('en', 'noFacilities'));
   expect(await page.locator('.db-facility-list').count()).toBe(0);

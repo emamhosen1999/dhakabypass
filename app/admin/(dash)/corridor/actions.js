@@ -16,7 +16,7 @@ const ADMIN = '/admin/corridor';
 const ACTION = 'edit_blocks';
 
 const STATUSES = ['open', 'construction', 'planned'];
-const KINDS = ['interchange', 'toll_plaza', 'service_area', 'u_loop', 'pedestrian_overpass'];
+const KINDS = ['interchange', 'toll_plaza', 'service_area', 'u_loop', 'pedestrian_overpass', 'bridge'];
 const SEVERITIES = ['info', 'warning', 'closure'];
 
 function localeMap(formData, prefix) {
@@ -125,7 +125,20 @@ export async function saveTollRateAction(formData) {
       amount_bdt: Number(formData.get('amount_bdt')),
       effective_from: String(formData.get('effective_from') || ''),
     });
-  } catch (err) { friendly(err, 'Could not save the toll rate. Please try again.'); }
+  } catch (err) {
+    // toll_rates has UNIQUE KEY uq_class_effective (vehicle_class, effective_from).
+    // The admin's own help text tells operators to schedule a change by adding a
+    // new row for the same class with a future effective date -- doing that on a
+    // date that already has a row for that class is the most likely mistake on
+    // this screen, and it is a PERMANENT failure: the generic "please try again"
+    // fallback tells the operator to retry something that will fail forever.
+    // Give it a specific, actionable message instead, same as
+    // app/admin/(dash)/pages-v2/actions.js does for its own ER_DUP_ENTRY case.
+    if (err?.code === 'ER_DUP_ENTRY') {
+      throw new Error('A rate for that vehicle class already exists on that date.');
+    }
+    friendly(err, 'Could not save the toll rate. Please try again.');
+  }
   revalidateCorridor();
   revalidatePath(`${ADMIN}/tolls`);
 }

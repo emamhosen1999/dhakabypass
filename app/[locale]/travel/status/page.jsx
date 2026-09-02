@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { isLocale } from '../../../../lib/i18n/locales';
 import { t } from '../../../../lib/i18n/ui';
 import {
-  getCorridorSummaryCached, getInterchangesCached, getIllustrativeCached,
+  getCorridorSummaryCached, getInterchangesCached, getIllustrativeCached, getPublishedLengthKmCached,
 } from '../../../../lib/corridor/cache';
 import { buildStripModel } from '../../../../lib/corridor/strip';
 import CorridorStrip from '../../../../components/corridor/CorridorStrip';
@@ -30,11 +30,13 @@ export default async function StatusPage({ params }) {
   let summary = EMPTY_SUMMARY;
   let interchanges = [];
   let illustrative = true;
+  let publishedLengthKm = null;
   try {
-    [summary, interchanges, illustrative] = await Promise.all([
+    [summary, interchanges, illustrative, publishedLengthKm] = await Promise.all([
       getCorridorSummaryCached(),
       getInterchangesCached(),
       getIllustrativeCached(),
+      getPublishedLengthKmCached(),
     ]);
   } catch {
     // A dead query must not produce a stack trace in a browser — this is a
@@ -53,7 +55,7 @@ export default async function StatusPage({ params }) {
       {illustrative ? <IllustrativeNotice locale={locale} /> : null}
 
       <section className="db-block">
-        <ProgressBar summary={summary} locale={locale} />
+        <ProgressBar summary={summary} locale={locale} publishedLengthKm={publishedLengthKm} />
       </section>
 
       <section className="db-block">

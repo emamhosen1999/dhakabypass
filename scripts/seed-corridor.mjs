@@ -27,11 +27,15 @@ const db = await mysql.createConnection({
   database: DB_NAME,
 });
 
-// This label predates the real geometry and is kept only as the toll rows'
-// `section` value, which is explicitly out of scope for this task (the
-// mapping of these rates to specific interchanges is still unresolved —
-// see the OPEN QUESTION below). Do not rename it here.
-const OPEN_SECTION_LABEL = 'Kodda – Purbachal';
+// INTERIM label pending the client's ruling on what these rates actually
+// cover. The previous label, "Kodda – Purbachal", was wrong on both halves:
+// K0+000 is Naojor, not Kodda (Kodda appears nowhere in the corridor data),
+// and Purbachal Toll Plaza (K24+522) sits 3.3 km beyond the end of the open
+// section (K21+218) — a driver paying these rates cannot reach it. This
+// label is defensible entirely from data already held: Vogra Toll Plaza is
+// the real K3+218 plaza, and K21+218 is the client-confirmed end of the
+// 18 km open section. Replace once the client rules on what the rates cover.
+const OPEN_SECTION_LABEL = 'Vogra – K21+218 (open section)';
 
 // Corridor length: the road-network model measures 47,611 m end to end
 // (WP8/Madanpur). The gazette, ADB and press all use the official design
@@ -50,12 +54,10 @@ const SEGMENTS = [
   // enough to call the figure self-consistent, so K21+218 is used here.
   //
   // NOTE: Purbachal Toll Plaza (K24+522, see TOLL PLAZAS below) sits 3.3 km
-  // BEYOND the end of this open section. The toll rows below still carry
-  // section = "Kodda – Purbachal", a label invented before this geometry
-  // arrived. If the road only opens to K21+218, a driver cannot actually
-  // reach the Purbachal plaza on the open section, so that label may
-  // misstate what these rates cover. Left alone per task scope — resolving
-  // it is a follow-up.
+  // BEYOND the end of this open section — a driver paying the toll rows
+  // below cannot actually reach it on the open section. That is why the
+  // toll rows' section label (OPEN_SECTION_LABEL above) names Vogra and
+  // K21+218, not Purbachal — see the comment on that constant.
   { from_m: 3218,  to_m: 21218, status: 'open',         labels: { en: OPEN_SECTION_LABEL }, opened_on: '2025-08-24' },
   { from_m: 21218, to_m: 47611, status: 'construction', labels: { en: 'Purbachal – Madanpur' } },
 ];
@@ -105,14 +107,10 @@ const INTERCHANGES = [
   { chainage_m: 36554, names: { en: 'Toll Plaza (K36)', bn: 'টোল প্লাজা (কে৩৬)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.772146,  lng: 90.571652 },
   { chainage_m: 45965, names: { en: 'Toll Plaza (K46)', bn: 'টোল প্লাজা (কে৪৬)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.703585,  lng: 90.555454 },
 
-  // -- Bridges: no 'bridge' kind exists in the schema; 'pedestrian_overpass'
-  // is the closest existing enum value. This task must not alter the
-  // schema (per spec), so bridges are seeded under that kind as a known
-  // mislabel — a later migration should add a proper 'bridge' kind and
-  // correct these three rows.
-  { chainage_m: 14584, names: { en: 'Nagda Bridge', bn: 'নাগদা সেতু' },       kind: 'pedestrian_overpass', status: 'open', connects_to: '', lat: 23.9172678, lng: 90.4687529 },
-  { chainage_m: 16795, names: { en: 'Ulukhola Bridge', bn: 'উলুখোলা সেতু' }, kind: 'pedestrian_overpass', status: 'open', connects_to: '', lat: 23.8996764, lng: 90.4811561 },
-  { chainage_m: 27403, names: { en: 'Kanchan Bridge', bn: 'কাঞ্চন সেতু' },   kind: 'pedestrian_overpass', status: 'construction', connects_to: '', lat: 23.8362275, lng: 90.5457149 },
+  // -- Bridges: kind 'bridge' -----------------------------------------------
+  { chainage_m: 14584, names: { en: 'Nagda Bridge', bn: 'নাগদা সেতু' },       kind: 'bridge', status: 'open', connects_to: '', lat: 23.9172678, lng: 90.4687529 },
+  { chainage_m: 16795, names: { en: 'Ulukhola Bridge', bn: 'উলুখোলা সেতু' }, kind: 'bridge', status: 'open', connects_to: '', lat: 23.8996764, lng: 90.4811561 },
+  { chainage_m: 27403, names: { en: 'Kanchan Bridge', bn: 'কাঞ্চন সেতু' },   kind: 'bridge', status: 'construction', connects_to: '', lat: 23.8362275, lng: 90.5457149 },
 ];
 
 // Officially introduced rates for the opened 18 km section (Boss, citing The
@@ -121,8 +119,10 @@ const INTERCHANGES = [
 // strictly prohibited on this expressway, so there is no rate row for them
 // — see corridor.prohibited_vehicles below. Do not add a zero-rate or "N/A"
 // row for a banned class; the absence of a row IS the statement that the
-// class has no rate. Toll rates and their `section` label are explicitly
-// out of scope for this task — left exactly as previously seeded.
+// class has no rate. The rate amounts themselves are the client's real,
+// confirmed figures. The `section` label (OPEN_SECTION_LABEL above) is an
+// interim placeholder pending the client's ruling on exactly what these
+// rates cover — see the comment on that constant.
 const TOLLS = [
   { vehicle_class: 'car',           class_labels: { en: 'Sedan / Private Car', bn: 'প্রাইভেট কার', zh: '小轿车' },                                          class_order: 1, amount_bdt: 150, effective_from: '2025-08-24' },
   { vehicle_class: 'pickup',        class_labels: { en: 'Pickup, Jeep, Wrecker, Crane (3 tons)', bn: 'পিকআপ, জিপ, রেকার, ক্রেন (৩ টন)', zh: '皮卡、吉普、清障车、起重车（3 吨）' },     class_order: 2, amount_bdt: 180, effective_from: '2025-08-24' },

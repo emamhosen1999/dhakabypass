@@ -6,6 +6,7 @@ import { resolveTranslation } from '../../lib/content/resolve.js';
 import BlockRenderer from '../../components/blocks/BlockRenderer.jsx';
 import {
   getCorridorSummaryCached, getInterchangesCached, getTollRatesCached, getIllustrativeCached,
+  getPublishedLengthKmCached,
 } from '../../lib/corridor/cache';
 import { buildStripModel } from '../../lib/corridor/strip';
 import { formatTaka } from '../../lib/corridor/tolls';
@@ -67,9 +68,11 @@ export default async function LocaleHome({ params }) {
   let interchanges = [];
   let rates = [];
   let illustrative = true;
+  let publishedLengthKm = null;
   try {
-    [summary, interchanges, rates, illustrative] = await Promise.all([
+    [summary, interchanges, rates, illustrative, publishedLengthKm] = await Promise.all([
       getCorridorSummaryCached(), getInterchangesCached(), getTollRatesCached(), getIllustrativeCached(),
+      getPublishedLengthKmCached(),
     ]);
   } catch {
     // A dead query must not produce a stack trace in a browser — this is the
@@ -85,7 +88,7 @@ export default async function LocaleHome({ params }) {
         <section className="db-block">
           <h2 className="db-h2">{t(locale, 'homeCorridorHeading')}</h2>
           {illustrative ? <IllustrativeNotice locale={locale} /> : null}
-          <ProgressBar summary={summary} locale={locale} />
+          <ProgressBar summary={summary} locale={locale} publishedLengthKm={publishedLengthKm} />
           <CorridorStrip model={model} locale={locale} />
           <InterchangeTable interchanges={model.markers.slice(0, 5)} locale={locale} />
           <p className="db-actions">
