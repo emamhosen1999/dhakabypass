@@ -435,3 +435,13 @@
 .db-partner-role{margin:0;color:var(--db-ink-2);font-size:.93rem;
   display:flex;justify-content:space-between;gap:10px;}
 .db-partner-share{font-variant-numeric:tabular-nums;color:var(--db-ink);font-weight:600;}
+
+/* ---- Toll preview -------------------------------------------------------- */
+.db-tollpreview{display:grid;gap:2px;margin:20px 0 0;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));}
+.db-tollpreview-item{background:var(--db-surface);padding:16px 18px;
+  display:flex;flex-direction:column;gap:6px;}
+.db-tollpreview-class{font-family:var(--db-font-display);font-size:.74rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--db-ink-3);}
+.db-tollpreview-amount{margin:0;font-family:var(--db-font-display);font-weight:700;
+  font-size:1.9rem;line-height:1;font-variant-numeric:tabular-nums;}
