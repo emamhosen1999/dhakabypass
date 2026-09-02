@@ -2107,7 +2107,7 @@ git commit -m "feat(corridor): add the schematic strip, interchange table and pr
 
 Renders **only the most severe** advisory, not a stack. A bar that grows to five rows stops being read; the rest live on `/travel/status`.
 
-`role="status"` for info, `role="alert"` for warning and closure — an alert interrupts a screen reader, which is right for a closure and wrong for a notice.
+`role="status"` with `aria-live="polite"` for EVERY severity. The bar is standing context rendered on every page, not an event: with `role="alert"` a persistent closure would interrupt a screen-reader user assertively on every client-side navigation, re-announcing what they already heard. Severity is carried by the visible text label and the colour instead.
 
 - [ ] **Step 1: Write the component**
 
@@ -2138,7 +2138,8 @@ export default async function AdvisoryBar({ locale }) {
   return (
     <div
       className={`db-advisory db-advisory-${top.severity}`}
-      role={top.severity === 'info' ? 'status' : 'alert'}
+      role="status"
+      aria-live="polite"
     >
       <div className="db-advisory-inner">
         <span className="db-advisory-tag">{t(locale, SEVERITY_KEY[top.severity] || 'sevInfo')}</span>
