@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
-import { isLocale, DEFAULT_LOCALE } from '../../../../lib/i18n/locales';
+import { isLocale } from '../../../../lib/i18n/locales';
 import { t } from '../../../../lib/i18n/ui';
 import { getTollRatesCached, getIllustrativeCached } from '../../../../lib/corridor/cache';
-import { formatTaka } from '../../../../lib/corridor/tolls';
+import { formatTaka, classLabel } from '../../../../lib/corridor/tolls';
 import { getProhibitedVehicles } from '../../../../lib/settings';
 import IllustrativeNotice from '../../../../components/corridor/IllustrativeNotice';
 
@@ -10,14 +10,6 @@ export async function generateMetadata({ params }) {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   return { title: t(locale, 'travelToll'), description: t(locale, 'travelTollIntro') };
-}
-
-/** Own-property read with English fallback — class_labels is data. */
-function classLabel(row, locale) {
-  const labels = row.class_labels || {};
-  if (Object.hasOwn(labels, locale) && labels[locale]) return labels[locale];
-  if (Object.hasOwn(labels, DEFAULT_LOCALE) && labels[DEFAULT_LOCALE]) return labels[DEFAULT_LOCALE];
-  return row.vehicle_class;
 }
 
 export default async function TollPage({ params }) {

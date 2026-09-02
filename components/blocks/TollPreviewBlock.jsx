@@ -1,25 +1,11 @@
 import Link from 'next/link';
 import { getTollRatesCached } from '../../lib/corridor/cache';
-import { formatTaka } from '../../lib/corridor/tolls';
+import { formatTaka, classLabel } from '../../lib/corridor/tolls';
 import { pickRates } from '../../lib/blocks/tollPreview.js';
-import { DEFAULT_LOCALE } from '../../lib/i18n/locales';
 
-/**
- * Own-property read with English fallback.
- *
- * The vehicle class name is DATA, not UI chrome: each toll_rates row carries
- * its own class_labels JSON, keyed by locale. There is no vehicle_* key in
- * lib/i18n/ui.js and there must not be one — a second naming scheme would let
- * the home page disagree with /travel/toll the moment an operator adds a class.
- * This mirrors classLabel() in app/[locale]/travel/toll/page.jsx exactly.
- */
-function classLabel(row, locale) {
-  const labels = row.class_labels || {};
-  if (Object.hasOwn(labels, locale) && labels[locale]) return labels[locale];
-  if (Object.hasOwn(labels, DEFAULT_LOCALE) && labels[DEFAULT_LOCALE]) return labels[DEFAULT_LOCALE];
-  return row.vehicle_class;
-}
-
+// classLabel is shared with app/[locale]/travel/toll/page.jsx on purpose. The
+// vehicle name is per-row data, not a UI string, and two copies of its fallback
+// chain would eventually show a different name for the same rate on two pages.
 export default async function TollPreviewBlock({ data, locale }) {
   let rates = [];
   try { rates = await getTollRatesCached(); } catch { rates = []; }
