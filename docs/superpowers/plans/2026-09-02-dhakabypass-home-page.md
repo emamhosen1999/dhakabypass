@@ -388,26 +388,39 @@ import { imageSize } from '../lib/media/probe.js';
  * why an image is or is not available.
  */
 const AUDITED = {
-  '/bg-hero.webp': {
-    alt: 'The expressway seen from the air, curving between wetland and villages with traffic on the open carriageway',
-    credit: 'DBEDC — verified project aerial',
-  },
-  '/bypass-ex.webp': {
-    alt: 'A gantry over the carriageway reading “Welcome to Dhaka Bypass Expressway”, with the toll plaza and trucks beyond',
-    credit: 'DBEDC — verified, shows the road itself',
-  },
-  '/semi.webp': {
-    alt: 'Concrete being poured onto a reinforced bridge deck, with completed viaduct spans behind',
-    credit: 'DBEDC — verified construction record',
-  },
-  '/cp.webp': {
-    alt: 'Workers fixing reinforcement along a bridge parapet on the alignment',
-    credit: 'DBEDC — verified construction record',
-  },
-  '/logo.webp': {
-    alt: 'Dhaka Bypass Expressway Development Company logo',
-    credit: 'DBEDC — raster only, vector original still needed',
-  },
+  // --- Road and construction -------------------------------------------
+  '/bg-hero.webp': { alt: 'The expressway seen from the air, curving between wetland and villages with traffic on the open carriageway', credit: 'DBEDC' },
+  '/bypass-ex.webp': { alt: 'A gantry over the carriageway reading “Welcome to Dhaka Bypass Expressway”, with the toll plaza and trucks beyond', credit: 'DBEDC' },
+  '/photo/20.webp': { alt: 'Aerial view along the finished expressway, traffic running on both carriageways', credit: 'DBEDC' },
+  '/photo/21.webp': { alt: 'Aerial view of a bridge under construction crossing open water', credit: 'DBEDC' },
+  '/photo/22.webp': { alt: 'Aerial view of the completed viaduct crossing a river, with traffic running', credit: 'DBEDC' },
+  '/photo/23.webp': { alt: 'Aerial view along the viaduct deck toward the horizon', credit: 'DBEDC' },
+  '/photo/18.webp': { alt: 'A paver laying asphalt at dusk, lit by the low sun', credit: 'DBEDC' },
+  '/photo/17.webp': { alt: 'A roller compacting fresh asphalt between concrete retaining walls', credit: 'DBEDC' },
+  '/photo/16.webp': { alt: 'Newly finished asphalt with people walking on the new surface', credit: 'DBEDC' },
+  '/photo/14.webp': { alt: 'A roller working new pavement beside a concrete retaining wall', credit: 'DBEDC' },
+  '/photo/19.webp': { alt: 'Freshly laid asphalt running through a cutting', credit: 'DBEDC' },
+  '/photo/10.webp': { alt: 'A roller compacting the subgrade ahead of surfacing', credit: 'DBEDC' },
+  '/photo/13.webp': { alt: 'A worker spreading fill at the edge of the live carriageway', credit: 'DBEDC' },
+  '/photo/11.webp': { alt: 'Steel reinforcement laid in a drainage channel, with workers in protective equipment', credit: 'DBEDC' },
+  '/photo/12.webp': { alt: 'Waterproofing being applied to a bridge deck', credit: 'DBEDC' },
+  '/photo/7.webp': { alt: 'Formwork and reinforcement around a pier under construction', credit: 'DBEDC' },
+  '/photo/8.webp': { alt: 'Concrete blocks laid as slope protection on an embankment', credit: 'DBEDC' },
+  '/photo/9.webp': { alt: 'A survey team working at the roadside during construction', credit: 'DBEDC' },
+  '/photo/15.webp': { alt: 'Materials testing on the compacted subbase', credit: 'DBEDC' },
+  '/photo/25.webp': { alt: 'A site meeting beside a completed structure', credit: 'DBEDC' },
+  '/cp.webp': { alt: 'Workers fixing reinforcement along a bridge parapet on the alignment', credit: 'DBEDC' },
+  '/semi.webp': { alt: 'Concrete being poured onto a reinforced bridge deck, with completed viaduct spans behind', credit: 'DBEDC' },
+  // --- Identity ---------------------------------------------------------
+  '/logo.webp': { alt: 'Dhaka Bypass Expressway Development Company logo', credit: 'DBEDC — raster only, vector original still needed' },
+  '/route.webp': { alt: 'Diagram of the corridor from Vogra in the north to Madanpur in the south', credit: 'DBEDC — own artwork, confirm before reuse' },
+  // --- People. Consent confirmed by the Boss on 2026-09-03. -------------
+  // Cleared for an About or Community page. NOT seeded on the home page:
+  // this is a road operator's front door, not a corporate album.
+  '/photo/1.webp': { alt: 'A handover ceremony at the Public Private Partnership Authority', credit: 'DBEDC — consent confirmed 2026-09-03' },
+  '/photo/24.webp': { alt: 'Project staff and local residents handling materials during a community visit', credit: 'DBEDC — consent confirmed 2026-09-03' },
+  '/DSC02357.webp': { alt: 'Bangladeshi and Chinese project staff at a ceremony beneath both national flags', credit: 'DBEDC — consent confirmed 2026-09-03' },
+  '/IMG_6282.webp': { alt: 'A plaque being presented at a school handover', credit: 'DBEDC — consent confirmed 2026-09-03' },
 };
 
 /**
@@ -419,7 +432,12 @@ const REJECTED = {
   '/hma.webp': 'Generic stock pavement-layer diagram. Not DBEDC content.',
   '/road.webp': 'Stock aerial of a motorway in temperate farmland. Not this road.',
   '/eco-eff.webp': 'Google Maps screenshot, "Map data (c)2015 Google" visible. Licensing and eleven years stale.',
-  '/friends.webp': 'Identifiable people. Blocked pending consent confirmation.',
+  '/friends.webp': 'Generic China-Bangladesh flag graphic. Stock artwork of unknown provenance.',
+  '/map.webp': 'Google satellite screenshot with annotations. Same licensing problem as eco-eff.',
+  '/photo/2.webp': 'Newspaper infographic headlined "DHAKA BYPASS PROJECT IN A JAM". Third-party AND hostile press.',
+  '/photo/3.webp': 'Internal right-of-way acquisition annotations. Working document, not public content.',
+  '/photo/5.webp': 'Internal alignment and utility overlay. Working document, not public content.',
+  '/photo/6.webp': 'Engineering drawing. Working document, not public content.',
 };
 
 const db = await mysql.createConnection({
@@ -1705,9 +1723,10 @@ const BLOCKS = [
   {
     type: 'media-prose',
     data: {
-      // eco-eff.webp was the obvious pick and is disqualified: it is a Google
-      // Maps screenshot with a visible 2015 copyright line.
-      image: '/cp.webp',
+      // eco-eff.webp was the obvious pick and is disqualified: it is a Google Maps
+      // screenshot with a visible 2015 copyright line. A finished-road frame is
+      // the right subject here anyway: this section is about the road in use.
+      image: '/photo/16.webp',
       side: 'left',
       heading: 'What the open section changes now',
       body:
@@ -1720,21 +1739,35 @@ const BLOCKS = [
         + 'total investment, jobs created, bridges and underpasses built, the length of the concession — '
         + 'have not been reconfirmed since the road opened. They are not republished here until DBEDC '
         + 'has verified them.</p>',
-      caption: 'Reinforcement work on the alignment.',
+      caption: 'The finished wearing course on the open section.',
       linkLabel: 'The corridor today',
       linkHref: '/en/travel/status',
     },
   },
-  // NO figure-grid BLOCK IS SEEDED.
-  //
-  // The audit left four usable photographs in the whole inherited library
-  // (bg-hero, bypass-ex, semi, cp) and three of them are already carrying a
-  // section above. A photo grid built by repeating images the reader has just
-  // scrolled past looks like padding, which is worse than an absent section.
-  //
-  // The block type is built, registered and tested; it is ready the moment
-  // DBEDC supplies photographs. Task 13's guide names this as the reason the
-  // Boss's originals are the highest-value thing they can send.
+  {
+    // The four aerials are the strongest images DBEDC holds and none of them
+    // appear anywhere else on the page. Road subjects only: the CSR library is
+    // cleared for use but belongs on an About page, not on a road operator's
+    // front door.
+    //
+    // No link. There is no localised gallery route yet, and pointing a Bangla
+    // reader at the legacy English /gallery is worse than offering nothing.
+    type: 'figure-grid',
+    data: {
+      heading: 'The corridor',
+      intro: 'The alignment during construction and since opening.',
+      items: [
+        { image: '/photo/22.webp', caption: 'The viaduct crossing the river.' },
+        { image: '/photo/20.webp', caption: 'Traffic on the open section.' },
+        { image: '/photo/21.webp', caption: 'Bridge construction over open water.' },
+        { image: '/photo/18.webp', caption: 'Surfacing at dusk.' },
+        { image: '/photo/17.webp', caption: 'Compacting the wearing course.' },
+        { image: '/photo/23.webp', caption: 'Looking south along the deck.' },
+      ],
+      linkLabel: '',
+      linkHref: '',
+    },
+  },
   {
     type: 'partner-row',
     data: {
@@ -1819,7 +1852,7 @@ Run `grep -n -- "--db-build" app/design-tokens.css | head` first and use whateve
 - [ ] **Step 3: Run the seed twice**
 
 Run: `node scripts/seed-home-v2.mjs && node scripts/seed-home-v2.mjs`
-Expected: `seeded 8 home blocks (en)` both times, no duplicate-key error, and afterwards exactly 8 rows:
+Expected: `seeded 9 home blocks (en)` both times, no duplicate-key error, and afterwards exactly 9 rows:
 
 Run:
 ```bash
@@ -1830,11 +1863,11 @@ const db=await mysql.createConnection({host:process.env.DB_HOST,port:Number(proc
 const [r]=await db.execute(\"SELECT COUNT(*) n FROM blocks b JOIN pages p ON p.id=b.page_id WHERE p.slug='home'\");
 console.log(r); await db.end();"
 ```
-Expected: `n: 8`.
+Expected: `n: 9`.
 
 - [ ] **Step 4: Look at the page**
 
-Start the dev server, load `http://localhost:3000/en`, and confirm by eye: the hero image renders, the corridor summary sits directly beneath it, all eight sections appear in order, and no section is empty. Report anything that renders blank.
+Start the dev server, load `http://localhost:3000/en`, and confirm by eye: the hero image renders, the corridor summary sits directly beneath it, all nine sections appear in order, and no section is empty. Report anything that renders blank.
 
 - [ ] **Step 5: Commit**
 
