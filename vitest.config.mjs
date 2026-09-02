@@ -6,8 +6,18 @@ dotenv.config({ path: '.env.local' });
 process.env.DB_NAME_TEST = process.env.DB_NAME_TEST || 'dhakabypass_test';
 
 export default defineConfig({
+  esbuild: {
+    // This project has no tsconfig.json, jsconfig.json or @vitejs/plugin-react,
+    // so esbuild defaults to the CLASSIC JSX runtime and emits bare
+    // React.createElement(...) calls with nothing bringing React into scope —
+    // every JSX test dies on "React is not defined". Next compiles the app's
+    // JSX with the automatic runtime already; this makes the test transform
+    // agree with it, rather than making every component import React purely to
+    // satisfy the test runner.
+    jsx: 'automatic',
+  },
   test: {
-    include: ['tests/unit/**/*.test.js', 'tests/db/**/*.test.js'],
+    include: ['tests/unit/**/*.test.{js,jsx}', 'tests/db/**/*.test.js'],
     environment: 'node',
     globals: false,
     testTimeout: 15000,

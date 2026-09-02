@@ -359,3 +359,16 @@
   text-transform:uppercase;padding:12px 20px;border-radius:2px;text-decoration:none;display:inline-block;}
 .db-btn-primary{background:var(--db-accent-bright);color:#0B1620;}
 .db-btn-secondary{border:1px solid var(--db-rule-2);color:var(--db-ink);}
+
+/* ---- Images -------------------------------------------------------------
+   The legacy library tops out at 1449px wide and the hero is 686px. Images
+   are therefore always allowed to fill their box and are cropped with
+   object-fit rather than letterboxed — a soft crop reads as a photograph,
+   a letterboxed one reads as a mistake. */
+.db-figure{margin:0;position:relative;overflow:hidden;background:var(--db-surface-2);}
+.db-figure img{display:block;width:100%;height:100%;object-fit:cover;}
+.db-figure figcaption{font-size:.86rem;color:var(--db-ink-3);padding-top:8px;line-height:1.5;}
+.db-ratio-wide{aspect-ratio:16/9;}
+.db-ratio-photo{aspect-ratio:4/3;}
+.db-ratio-hero{aspect-ratio:21/9;}
+@media (max-width:700px){ .db-ratio-hero{aspect-ratio:4/3;} }
