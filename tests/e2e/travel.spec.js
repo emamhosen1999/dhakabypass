@@ -9,7 +9,7 @@
 //   - segments: 0-3218 construction, 3218-21218 open (18000 m exactly),
 //     21218-47611 construction
 //   - 9 toll classes, class_order ascending == amount ascending, 150..740
-//     BDT, every row's section is 'Vogra – K21+218 (open section)'
+//     BDT, every row's section is 'Vogra – Purbachal'
 //   - prohibited vehicles: motorcycles, three-wheelers (rendered on /toll
 //     and /rules)
 //   - corridor.illustrative = true, so IllustrativeNotice renders everywhere
@@ -32,7 +32,7 @@ const PAGE_TITLE_KEY = {
   '/travel/rules': 'travelRules',
 };
 // Exact string from scripts/seed-corridor.mjs's OPEN_SECTION_LABEL.
-const TOLL_SECTION = 'Vogra – K21+218 (open section)';
+const TOLL_SECTION = 'Vogra – Purbachal';
 const PROHIBITED_EN = ['Motorcycles', 'Three-wheelers (CNG and auto-rickshaw)'];
 
 for (const locale of LOCALES) {

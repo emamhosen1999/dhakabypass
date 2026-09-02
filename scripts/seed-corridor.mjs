@@ -27,15 +27,20 @@ const db = await mysql.createConnection({
   database: DB_NAME,
 });
 
-// INTERIM label pending the client's ruling on what these rates actually
-// cover. The previous label, "Kodda – Purbachal", was wrong on both halves:
-// K0+000 is Naojor, not Kodda (Kodda appears nowhere in the corridor data),
-// and Purbachal Toll Plaza (K24+522) sits 3.3 km beyond the end of the open
-// section (K21+218) — a driver paying these rates cannot reach it. This
-// label is defensible entirely from data already held: Vogra Toll Plaza is
-// the real K3+218 plaza, and K21+218 is the client-confirmed end of the
-// 18 km open section. Replace once the client rules on what the rates cover.
-const OPEN_SECTION_LABEL = 'Vogra – K21+218 (open section)';
+// SETTLED by the client: the tolled stretch is named "Vogra – Purbachal" —
+// the operator's own name for it, not a route description. An earlier
+// version of this label was "Kodda – Purbachal", which was simply wrong
+// (Kodda appears nowhere in the corridor data; K0+000 is Naojor). This one
+// is the client's confirmed name, but it still needs a caveat: Purbachal
+// Toll Plaza sits at K24+522, which is 3.3 km beyond the end of the
+// currently open section (K21+218) — so the name describes the tolled
+// corridor as a whole, not the extent a driver can currently traverse. The
+// client was shown that exact discrepancy directly ("its vogra to
+// purbachal") and confirmed the naming anyway, with the open extent
+// separately re-confirmed as K3+218 (Vogra TP1) to K21+218 ("k3 vogra toll
+// plaza 1 to the next 18km"). Do not "fix" this gap again without checking
+// history first — it was raised and settled, not missed.
+const OPEN_SECTION_LABEL = 'Vogra – Purbachal';
 
 // Corridor length: the road-network model measures 47,611 m end to end
 // (WP8/Madanpur). The gazette, ADB and press all use the official design
@@ -53,11 +58,11 @@ const SEGMENTS = [
   // segment lands at K21+301 — 83 m from the Boss's K21+218, which is close
   // enough to call the figure self-consistent, so K21+218 is used here.
   //
-  // NOTE: Purbachal Toll Plaza (K24+522, see TOLL PLAZAS below) sits 3.3 km
-  // BEYOND the end of this open section — a driver paying the toll rows
-  // below cannot actually reach it on the open section. That is why the
-  // toll rows' section label (OPEN_SECTION_LABEL above) names Vogra and
-  // K21+218, not Purbachal — see the comment on that constant.
+  // Purbachal Toll Plaza (K24+522, see TOLL PLAZAS below) sits 3.3 km BEYOND
+  // the end of this open section — the toll rows' section label
+  // ("Vogra – Purbachal", OPEN_SECTION_LABEL above) names the tolled
+  // corridor as a whole, not this open extent. See the comment on that
+  // constant: the client confirmed the naming with that gap in view.
   { from_m: 3218,  to_m: 21218, status: 'open',         labels: { en: OPEN_SECTION_LABEL }, opened_on: '2025-08-24' },
   { from_m: 21218, to_m: 47611, status: 'construction', labels: { en: 'Purbachal – Madanpur' } },
 ];
@@ -120,9 +125,9 @@ const INTERCHANGES = [
 // — see corridor.prohibited_vehicles below. Do not add a zero-rate or "N/A"
 // row for a banned class; the absence of a row IS the statement that the
 // class has no rate. The rate amounts themselves are the client's real,
-// confirmed figures. The `section` label (OPEN_SECTION_LABEL above) is an
-// interim placeholder pending the client's ruling on exactly what these
-// rates cover — see the comment on that constant.
+// confirmed figures. The `section` label (OPEN_SECTION_LABEL above) is the
+// client's confirmed name for the tolled corridor — see the comment on
+// that constant for the caveat that goes with it.
 const TOLLS = [
   { vehicle_class: 'car',           class_labels: { en: 'Sedan / Private Car', bn: 'প্রাইভেট কার', zh: '小轿车' },                                          class_order: 1, amount_bdt: 150, effective_from: '2025-08-24' },
   { vehicle_class: 'pickup',        class_labels: { en: 'Pickup, Jeep, Wrecker, Crane (3 tons)', bn: 'পিকআপ, জিপ, রেকার, ক্রেন (৩ টন)', zh: '皮卡、吉普、清障车、起重车（3 吨）' },     class_order: 2, amount_bdt: 180, effective_from: '2025-08-24' },
