@@ -70,3 +70,87 @@ describe('buildStripModel', () => {
     expect(m.markers[0].leftPct).toBeLessThanOrEqual(100);
   });
 });
+
+describe('marker row assignment', () => {
+  // The real corridor: 20 markers, four of them between K11+365 and K13+403.
+  const CHAINAGES = [
+    0, 2314, 3218, 3706, 7554, 11365, 12090, 13184, 13403, 14584,
+    16795, 24522, 26799, 27403, 34353, 34973, 36554, 41371, 45965, 47611,
+  ];
+  const model = () => buildStripModel({
+    segments: [{ id: 1, from_m: 0, to_m: 47611, status: 'open', labels: {} }],
+    interchanges: CHAINAGES.map((c, i) => ({
+      id: i, chainage_m: c, names: { en: `Marker ${i}` }, kind: 'interchange', status: 'open',
+    })),
+  });
+
+  it('never puts two markers on one row closer than the minimum gap', () => {
+    // This is the whole point. Index parity (the previous approach) put
+    // K11+365 and K13+184 on the same row ~45px apart with labels twice
+    // that wide, and they printed on top of each other on the home page.
+    const byRow = new Map();
+    for (const m of model().markers) {
+      if (!byRow.has(m.row)) byRow.set(m.row, []);
+      byRow.get(m.row).push(m.leftPct);
+    }
+    for (const [, positions] of byRow) {
+      const sorted = [...positions].sort((a, b) => a - b);
+      for (let i = 1; i < sorted.length; i += 1) {
+        expect(sorted[i] - sorted[i - 1]).toBeGreaterThanOrEqual(7);
+      }
+    }
+  });
+
+  it('reports a row count that covers every marker', () => {
+    const m = model();
+    expect(m.rowCount).toBeGreaterThanOrEqual(1);
+    for (const marker of m.markers) {
+      expect(marker.row).toBeLessThan(m.rowCount);
+      expect(Number.isInteger(marker.row)).toBe(true);
+      expect(marker.row).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('uses a single row when markers are far apart', () => {
+    const m = buildStripModel({
+      segments: [{ id: 1, from_m: 0, to_m: 40000, status: 'open', labels: {} }],
+      interchanges: [0, 20000, 40000].map((c, i) => ({
+        id: i, chainage_m: c, names: { en: `M${i}` }, kind: 'interchange', status: 'open',
+      })),
+    });
+    expect(m.rowCount).toBe(1);
+    expect(m.markers.every((x) => x.row === 0)).toBe(true);
+  });
+
+  it('adds rows rather than overlapping when markers are tightly clustered', () => {
+    // Five markers inside 1% of the corridor cannot share a row at any
+    // sane label width. Growing downward is correct; overlapping is not.
+    const m = buildStripModel({
+      segments: [{ id: 1, from_m: 0, to_m: 100000, status: 'open', labels: {} }],
+      interchanges: [100, 200, 300, 400, 500].map((c, i) => ({
+        id: i, chainage_m: c, names: { en: `M${i}` }, kind: 'interchange', status: 'open',
+      })),
+    });
+    expect(m.rowCount).toBe(5);
+  });
+
+  it('honours a caller-supplied minimum gap', () => {
+    const wide = buildStripModel({
+      segments: [{ id: 1, from_m: 0, to_m: 47611, status: 'open', labels: {} }],
+      interchanges: CHAINAGES.map((c, i) => ({
+        id: i, chainage_m: c, names: { en: `M${i}` }, kind: 'interchange', status: 'open',
+      })),
+      minGapPct: 20,
+    });
+    expect(wide.rowCount).toBeGreaterThan(model().rowCount);
+  });
+
+  it('places a marker with an unusable position rather than dropping it', () => {
+    const m = buildStripModel({
+      segments: [{ id: 1, from_m: 0, to_m: 1000, status: 'open', labels: {} }],
+      interchanges: [{ id: 1, chainage_m: 500, names: { en: 'ok' }, kind: 'interchange', status: 'open' }],
+    });
+    expect(m.markers).toHaveLength(1);
+    expect(m.markers[0].row).toBe(0);
+  });
+});
