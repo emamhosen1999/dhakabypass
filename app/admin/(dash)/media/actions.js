@@ -7,6 +7,10 @@ import { query, withTransaction } from '../../../../lib/db';
 import { saveUpload, ALLOWED_MIME_TYPES } from '../../../../lib/media';
 import { imageSize } from '../../../../lib/media/probe';
 import { swapMediaPath } from '../../../../lib/media/references';
+// friendly() is the browser-facing error allowlist; see lib/errors.js before
+// touching it. It lives in an ordinary module because a 'use server' file may
+// export async functions only.
+import { validationError, friendly } from '../../../../lib/errors';
 
 const ADMIN = '/admin/media';
 
@@ -22,25 +26,6 @@ const ACTION = 'edit_blocks';
  * lib/media.js's MIME map — this only narrows which MIME types get that far.
  */
 const REPLACEABLE_MIME_TYPES = ALLOWED_MIME_TYPES.filter((m) => m !== 'image/svg+xml');
-
-function validationError(message) {
-  const err = new Error(message);
-  err.code = 'VALIDATION';
-  return err;
-}
-
-/**
- * Allowlist, not a denylist — the same sanitiser as
- * app/admin/(dash)/corridor/actions.js and for the same reason. Only errors we
- * raised ourselves and marked `.code = 'VALIDATION'` reach the browser
- * unchanged. Everything else — a driver error, a misconfiguration message
- * naming DB_HOST, an internal TypeError — becomes the caller's generic
- * fallback. A failure mode added later defaults to hidden, not to leaking.
- */
-function friendly(err, fallback) {
-  if (err?.code === 'VALIDATION') throw err;
-  throw new Error(fallback);
-}
 
 /** LIKE treats % and _ as wildcards. A media path should contain neither, but
  *  the prefilter below must not silently widen if one ever does. */

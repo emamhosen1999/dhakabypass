@@ -3,7 +3,11 @@
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { revalidateCorridor } from '../../../../lib/revalidate';
-import { parseChainageField } from '../../../../lib/corridor/form';
+import { parseChainageField, localeMap } from '../../../../lib/corridor/form';
+// friendly() is the browser-facing error allowlist; see lib/errors.js before
+// touching it. It lives in an ordinary module because a 'use server' file may
+// export async functions only.
+import { friendly } from '../../../../lib/errors';
 import { saveSegment, deleteSegment, listSegments } from '../../../../lib/corridor/segments';
 import { saveInterchange, deleteInterchange, listInterchanges } from '../../../../lib/corridor/interchanges';
 import { saveTollRate, deleteTollRate, listAllTollRates } from '../../../../lib/corridor/tolls';
@@ -18,29 +22,6 @@ const ACTION = 'edit_blocks';
 const STATUSES = ['open', 'construction', 'planned'];
 const KINDS = ['interchange', 'toll_plaza', 'service_area', 'u_loop', 'pedestrian_overpass', 'bridge'];
 const SEVERITIES = ['info', 'warning', 'closure'];
-
-function localeMap(formData, prefix) {
-  const out = {};
-  for (const locale of ['en', 'bn', 'zh']) {
-    const v = String(formData.get(`${prefix}.${locale}`) ?? '').trim();
-    if (v) out[locale] = v;
-  }
-  return out;
-}
-
-/**
- * Allowlist, not a denylist: only errors WE recognise as safe -- our own
- * validation from lib/corridor/* and lib/corridor/form.js, each marked with
- * `.code = 'VALIDATION'` by their own `validationError()` helper -- are
- * shown to the browser unchanged. Everything else (a raw driver error such
- * as ER_DUP_ENTRY, a misconfiguration message naming DB_HOST/DB_NAME/DB_USER,
- * or an internal TypeError) becomes the caller's generic fallback instead. A
- * new failure mode added later defaults to hidden, not to leaking.
- */
-function friendly(err, fallback) {
-  if (err?.code === 'VALIDATION') throw err;
-  throw new Error(fallback);
-}
 
 export async function listCorridorAction() {
   await assertCan(ACTION);
