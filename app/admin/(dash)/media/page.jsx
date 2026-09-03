@@ -1,6 +1,7 @@
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { listMedia } from '../../../../lib/media/repo';
 import { replaceMediaAction } from './actions';
+import GuideNotice from './GuideNotice';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,6 +81,8 @@ export default async function MediaLibrary() {
           page that uses it — there is nothing else to edit afterwards.
         </p>
       </header>
+
+      <GuideNotice />
 
       <section className="space-y-2">
         <h2 className="text-lg font-bold">
