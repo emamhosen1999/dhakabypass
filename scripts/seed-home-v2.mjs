@@ -196,16 +196,45 @@ const BLOCKS = [
  *   - `linkHref`, `primaryHref`, `secondaryHref` — authored without a locale
  *     prefix, so localeHref() turns 'travel/toll' into '/bn/travel/toll' at
  *     render time. Copying them through unchanged is the correct thing to do.
- *   - Place names (Dhaka, Gazipur, Narayanganj, Vogra, Mirer Bazar,
- *     Chattogram, Sylhet, Mymensingh, Tangail, Jamuna). DBEDC has not supplied
- *     official Bangla or Chinese spellings for the corridor's locations, and
- *     inventing them is worse than leaving them legible. Applied uniformly so
- *     the page does not spell one city two ways.
- *   - The road's published name and the concession company's legal name, for
- *     the same reason: components/chrome/SiteHeaderV2.jsx and SiteFooterV2.jsx
- *     already render both in Latin on every locale.
+ *   - Corridor facility names: Vogra, Mirer Bazar, Purbachal, Naojor,
+ *     Madanpur, Joydebpur. See the script rule below.
+ *   - The road's published name and the concession company's legal name:
+ *     components/chrome/SiteHeaderV2.jsx and SiteFooterV2.jsx already render
+ *     both in Latin on every locale, and the page must not disagree with its
+ *     own masthead.
  *   - Highway numbers N1–N4, and the toll amounts, which come from toll_rates
  *     and are already localised there (class_labels carries bn and zh).
+ *
+ * ---------------------------------------------------------------------------
+ * SCRIPT RULE FOR PLACE NAMES — read this before "fixing" anything below.
+ * Settled with the client on 2026-09-03. It cuts BOTH ways, so please do not
+ * make it uniform in either direction.
+ *
+ *   NATIVE SCRIPT in bn and zh. Well-known cities and districts that already
+ *   have a standard, widely-used native spelling. A Bangla or Chinese reader
+ *   expects to see these in their own script, and there is a single accepted
+ *   form to use:
+ *     Dhaka       ঢাকা        达卡
+ *     Chattogram  চট্টগ্রাম     吉大港
+ *     Sylhet      সিলেট       锡尔赫特
+ *     Mymensingh  ময়মনসিংহ    迈门辛
+ *     Tangail     টাঙ্গাইল      丹盖尔
+ *     Jamuna      যমুনা        贾木纳
+ *     Gazipur     গাজীপুর      加济普尔
+ *     Narayanganj নারায়ণগঞ্জ   纳拉扬甘杰
+ *
+ *   LATIN in every locale. Corridor facility names — Vogra, Mirer Bazar,
+ *   Purbachal, Naojor, Madanpur, Joydebpur. DBEDC has NOT supplied official
+ *   Bangla or Chinese spellings for its own interchanges and toll plazas, so
+ *   anything we wrote would be our invention presented as signage. A driver
+ *   looking for the gantry needs the string that is on the gantry. Where a
+ *   Bangla record already carried a native form for one of these before this
+ *   rule was written, it was left exactly as it stood rather than churned;
+ *   the whole set gets settled at once when DBEDC supplies the official list.
+ *
+ *   LATIN in every locale. Highway designations N1, N2, N3, N4 — these are
+ *   signage, not words. Chainage (K3+218) likewise.
+ * ---------------------------------------------------------------------------
  *
  * Bengali digits are used in the Bangla records, matching the hand-written
  * Bangla already in lib/i18n/ui.js. Chinese uses Arabic numerals, as Chinese
@@ -237,9 +266,9 @@ const TRANSLATIONS = {
       side: 'right',
       heading: 'শহরের ভেতর দিয়ে নয়, শহরকে ঘিরে',
       body:
-        '<p>Dhaka Bypass রাজধানীর পূর্ব প্রান্ত ধরে উত্তরে Gazipur থেকে দক্ষিণে Narayanganj পর্যন্ত '
+        '<p>Dhaka Bypass রাজধানীর পূর্ব প্রান্ত ধরে উত্তরে গাজীপুর থেকে দক্ষিণে নারায়ণগঞ্জ পর্যন্ত '
         + '৪৮ কিলোমিটার বিস্তৃত। উত্তরের শিল্পাঞ্চল ও দক্ষিণের বন্দরগুলির মধ্যে চলাচলকারী পণ্যবাহী '
-        + 'যানবাহনকে যাতে Dhaka পার হয়ে যেতে না হয়, সে জন্যই এই সড়ক।</p>'
+        + 'যানবাহনকে যাতে ঢাকা পার হয়ে যেতে না হয়, সে জন্যই এই সড়ক।</p>'
         + '<p>এটি নিয়ন্ত্রিত-প্রবেশ সড়ক: যানবাহন কেবল নির্মিত ইন্টারচেঞ্জ দিয়েই ওঠে ও নামে, আর প্রতিটি '
         + 'ক্রসিং আলাদা স্তরে করা। এখানেই এটি সংযুক্ত জাতীয় মহাসড়কগুলির থেকে আলাদা, এবং এ কারণেই '
         + 'শহরের ভেতর দিয়ে যে যাত্রায় দুই ঘণ্টা লাগে, সম্পূর্ণ করিডোর খুলে গেলে তা তার সামান্য সময়েই '
@@ -252,10 +281,10 @@ const TRANSLATIONS = {
       heading: 'কীসের সঙ্গে সংযোগ',
       intro: 'করিডোর বরাবর চারটি জাতীয় মহাসড়ক এসে মিলেছে।',
       items: [
-        { meta: 'উত্তর প্রান্ত', title: 'N3', body: 'Joydebpur-এ Dhaka–Mymensingh মহাসড়ক, উত্তর দিকে।' },
-        { meta: 'উত্তর', title: 'N4', body: 'Tangail ও Jamuna সেতু করিডোর, উত্তর-পশ্চিম দিকে।' },
-        { meta: 'করিডোরের মাঝামাঝি', title: 'N2', body: 'Dhaka–Sylhet মহাসড়ক, উত্তর-পূর্ব দিকে।' },
-        { meta: 'দক্ষিণ প্রান্ত', title: 'N1', body: 'Madanpur-এ Dhaka–Chattogram মহাসড়ক, দক্ষিণের বন্দরের দিকে।' },
+        { meta: 'উত্তর প্রান্ত', title: 'N3', body: 'Joydebpur-এ ঢাকা–ময়মনসিংহ মহাসড়ক, উত্তর দিকে।' },
+        { meta: 'উত্তর', title: 'N4', body: 'টাঙ্গাইল ও যমুনা সেতু করিডোর, উত্তর-পশ্চিম দিকে।' },
+        { meta: 'করিডোরের মাঝামাঝি', title: 'N2', body: 'ঢাকা–সিলেট মহাসড়ক, উত্তর-পূর্ব দিকে।' },
+        { meta: 'দক্ষিণ প্রান্ত', title: 'N1', body: 'Madanpur-এ ঢাকা–চট্টগ্রাম মহাসড়ক, দক্ষিণের বন্দরের দিকে।' },
       ],
     },
     {
@@ -271,7 +300,7 @@ const TRANSLATIONS = {
       side: 'left',
       heading: 'খোলা অংশ এখন কী বদলাচ্ছে',
       body:
-        '<p>আগে যে যানবাহনকে Gazipur-এর ভেতর দিয়ে যানজটে দাঁড়িয়ে থাকতে হতো, তা এখন টোল দিয়ে খোলা '
+        '<p>আগে যে যানবাহনকে গাজীপুরের ভেতর দিয়ে যানজটে দাঁড়িয়ে থাকতে হতো, তা এখন টোল দিয়ে খোলা '
         + 'অংশ ব্যবহার করতে পারে। পণ্যপরিবহন সংস্থার কাছে এর হিসাব কিলোমিটার সাশ্রয়ে নয় — দাঁড়িয়ে '
         + 'থাকা অবস্থায় পুড়ে যাওয়া জ্বালানি আর চালকের কর্মঘণ্টায়।</p>'
         + '<p>করিডোরটি নির্মিত ও পরিচালিত হচ্ছে একটি সরকারি–বেসরকারি অংশীদারত্বের অধীনে, যার আওতায় '
@@ -343,8 +372,8 @@ const TRANSLATIONS = {
       side: 'right',
       heading: '绕开城市，而不是穿城而过',
       body:
-        '<p>Dhaka Bypass 沿首都东缘延伸48公里，北起 Gazipur，南至 Narayanganj。'
-        + '修建它，是为了让往返于北部工业带与南部港口之间的货运车辆不必穿越 Dhaka。</p>'
+        '<p>Dhaka Bypass 沿首都东缘延伸48公里，北起加济普尔，南至纳拉扬甘杰。'
+        + '修建它，是为了让往返于北部工业带与南部港口之间的货运车辆不必穿越达卡。</p>'
         + '<p>本路实行出入控制：车辆只能在已建成的互通立交上下，所有交叉均为立体交叉。'
         + '这正是它与所衔接的各条国道的区别所在，也是全线通车之后，原本穿城需要两小时的行程'
         + '有望大幅缩短的原因。</p>',
@@ -356,10 +385,10 @@ const TRANSLATIONS = {
       heading: '衔接哪些道路',
       intro: '沿线共有四条国道与本走廊相交。',
       items: [
-        { meta: '北端', title: 'N3', body: '在 Joydebpur 衔接 Dhaka–Mymensingh 国道，通往北方。' },
-        { meta: '北段', title: 'N4', body: 'Tangail 与 Jamuna 大桥走廊，通往西北方向。' },
-        { meta: '走廊中段', title: 'N2', body: 'Dhaka–Sylhet 国道，通往东北方向。' },
-        { meta: '南端', title: 'N1', body: '在 Madanpur 衔接 Dhaka–Chattogram 国道，通往南部港口。' },
+        { meta: '北端', title: 'N3', body: '在 Joydebpur 衔接达卡–迈门辛国道，通往北方。' },
+        { meta: '北段', title: 'N4', body: '丹盖尔与贾木纳大桥走廊，通往西北方向。' },
+        { meta: '走廊中段', title: 'N2', body: '达卡–锡尔赫特国道，通往东北方向。' },
+        { meta: '南端', title: 'N1', body: '在 Madanpur 衔接达卡–吉大港国道，通往南部港口。' },
       ],
     },
     {
@@ -375,7 +404,7 @@ const TRANSLATIONS = {
       side: 'left',
       heading: '已通车路段带来的改变',
       body:
-        '<p>过去必须在 Gazipur 排队通行的车辆，如今可以改走收费路段。对货运企业来说，'
+        '<p>过去必须在加济普尔排队通行的车辆，如今可以改走收费路段。对货运企业来说，'
         + '这笔账不是省下多少公里，而是怠速中烧掉的燃油和司机的工时。</p>'
         + '<p>本走廊在政府与社会资本合作（PPP）模式下建设和运营，涵盖设计、施工、融资、'
         + '运营与养护。通行费是其资金来源。</p>'
