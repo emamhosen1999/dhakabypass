@@ -247,7 +247,7 @@ const TRANSLATIONS = {
       eyebrow: 'Dhaka Bypass Expressway',
       headline: 'আঠারো কিলোমিটার খোলা, টোল আদায় চালু',
       standfirst:
-        'বাইপাসের প্রথম অংশ আজ ভোগড়া ও মীরের বাজার-এর মধ্যে যান চলাচল বহন করছে। '
+        'বাইপাসের প্রথম অংশ আজ Vogra ও Mirer Bazar-এর মধ্যে যান চলাচল বহন করছে। '
         + '৪৮ কিলোমিটার করিডোরের বাকি অংশ এখনও নির্মাণাধীন।',
       primaryLabel: 'টোল হার',
       primaryHref: 'travel/toll',

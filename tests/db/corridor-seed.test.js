@@ -122,7 +122,26 @@ describe('seeded corridor geometry (real client data)', () => {
     const vogra = rows.find((r) => r.chainage_m === 3218 && r.kind === 'toll_plaza');
     expect(vogra).toBeTruthy();
     expect(vogra.names.en).toBe('Vogra Toll Plaza (RHS)');
-    expect(vogra.names.bn).toContain('ভোগড়া');
+  });
+
+  it('carries no invented Bangla for corridor facility names', async () => {
+    // Client decision 2026-09-03. These rows held Bengali transliterations we
+    // wrote ourselves; nobody at DBEDC had seen them. Publishing an invented
+    // spelling of the operator's own facilities is worse than showing the Latin
+    // name a driver reads off the gantry.
+    //
+    // This asserts the ABSENCE of a bn key, so re-adding one without the
+    // official list fails here rather than reaching a page. When DBEDC supplies
+    // the spellings, delete this test in the same commit that adds them.
+    const I = await import('../../lib/corridor/interchanges.js');
+    const rows = await I.listInterchanges();
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(Object.hasOwn(row.names, 'bn')).toBe(false);
+      // Falling back to English is what makes Latin render on /bn at all.
+      expect(I.localeName(row, 'bn')).toBe(row.names.en);
+      expect(I.localeName(row, 'bn')).not.toBe('');
+    }
   });
 
   it('places Purbachal Toll Plaza at K24+522, not the old K21+900 interchange', async () => {

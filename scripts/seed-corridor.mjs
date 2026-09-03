@@ -79,24 +79,41 @@ const SEGMENTS = [
 // along the S->2 bearing purely to force the total to exactly 48.000 km. It
 // is an arithmetic artefact, not a real place, so the true WP "S" (Naojor)
 // coordinate below is used instead.
+// PLACE NAMES: Latin only, deliberately.
+//
+// These rows carried Bengali transliterations until 2026-09-03. They were OURS,
+// not DBEDC's -- nobody at the operator had ever seen them. Publishing an
+// invented spelling of a toll operator's own facilities is the kind of error
+// that gets noticed and quoted, and it is worse than showing the Latin name.
+//
+// Latin is also the right answer for wayfinding: a driver reads "Vogra Toll
+// Plaza" on the gantry, and the page should say the same string.
+//
+// localeText() falls back to `en` when a locale key is absent, so /bn and /zh
+// render these names in Latin with no further code. The moment DBEDC supplies
+// official Bangla spellings, add `bn:` back here and they appear everywhere at
+// once -- the strip, the table, and the home page -- because every surface
+// reads this one place.
+//
+// Client decision of 2026-09-03: docs/source-data/2026-09-03-client-decisions.md
 const INTERCHANGES = [
   // -- Waypoints: kind 'interchange' --------------------------------------
-  { chainage_m: 0,     names: { en: 'Naojor (corridor start)', bn: 'নাওজোড়' },        kind: 'interchange', status: 'construction', connects_to: '', lat: 23.986737, lng: 90.362246 },
-  { chainage_m: 2314,  names: { en: 'Waypoint 2', bn: 'ওয়েপয়েন্ট ২' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.977568, lng: 90.380874 },
-  { chainage_m: 7554,  names: { en: 'Waypoint 3', bn: 'ওয়েপয়েন্ট ৩' },                kind: 'interchange', status: 'open',         connects_to: '', lat: 23.949671, lng: 90.414551 },
-  { chainage_m: 12090, names: { en: 'Waypoint 4', bn: 'ওয়েপয়েন্ট ৪' },                kind: 'interchange', status: 'open',         connects_to: '', lat: 23.930211, lng: 90.452655 },
-  { chainage_m: 26799, names: { en: 'Waypoint 5', bn: 'ওয়েপয়েন্ট ৫' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.834773, lng: 90.540481 },
-  { chainage_m: 34973, names: { en: 'Waypoint 6', bn: 'ওয়েপয়েন্ট ৬' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.785562, lng: 90.568720 },
-  { chainage_m: 41371, names: { en: 'Waypoint 7', bn: 'ওয়েপয়েন্ট ৭' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.731516, lng: 90.587646 },
-  { chainage_m: 47611, names: { en: 'Madanpur (corridor end)', bn: 'মদনপুর' },        kind: 'interchange', status: 'construction', connects_to: '', lat: 23.690500, lng: 90.546722 },
+  { chainage_m: 0,     names: { en: 'Naojor (corridor start)' },        kind: 'interchange', status: 'construction', connects_to: '', lat: 23.986737, lng: 90.362246 },
+  { chainage_m: 2314,  names: { en: 'Waypoint 2' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.977568, lng: 90.380874 },
+  { chainage_m: 7554,  names: { en: 'Waypoint 3' },                kind: 'interchange', status: 'open',         connects_to: '', lat: 23.949671, lng: 90.414551 },
+  { chainage_m: 12090, names: { en: 'Waypoint 4' },                kind: 'interchange', status: 'open',         connects_to: '', lat: 23.930211, lng: 90.452655 },
+  { chainage_m: 26799, names: { en: 'Waypoint 5' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.834773, lng: 90.540481 },
+  { chainage_m: 34973, names: { en: 'Waypoint 6' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.785562, lng: 90.568720 },
+  { chainage_m: 41371, names: { en: 'Waypoint 7' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.731516, lng: 90.587646 },
+  { chainage_m: 47611, names: { en: 'Madanpur (corridor end)' },        kind: 'interchange', status: 'construction', connects_to: '', lat: 23.690500, lng: 90.546722 },
 
   // -- Toll plazas: kind 'toll_plaza' -------------------------------------
-  { chainage_m: 3218,  names: { en: 'Vogra Toll Plaza (RHS)', bn: 'ভোগড়া টোল প্লাজা (আরএইচএস)' }, kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9753672, lng: 90.3892800 },
-  { chainage_m: 3706,  names: { en: 'Vogra Toll Plaza (LHS)', bn: 'ভোগড়া টোল প্লাজা (এলএইচএস)' }, kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9743656, lng: 90.3920315 },
-  { chainage_m: 11365, names: { en: 'Mirer Bazar (A)', bn: 'মীরের বাজার (এ)' },                    kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9350313, lng: 90.4459478 },
-  { chainage_m: 13184, names: { en: 'Mirer Bazar (RHS)', bn: 'মীরের বাজার (আরএইচএস)' },            kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9235064, lng: 90.4598731 },
-  { chainage_m: 13403, names: { en: 'Mirer Bazar (LHS)', bn: 'মীরের বাজার (এলএইচএস)' },            kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9230806, lng: 90.4613011 },
-  { chainage_m: 24522, names: { en: 'Purbachal Toll Plaza', bn: 'পূর্বাচল টোল প্লাজা' },           kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.8517101, lng: 90.5247815 },
+  { chainage_m: 3218,  names: { en: 'Vogra Toll Plaza (RHS)' }, kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9753672, lng: 90.3892800 },
+  { chainage_m: 3706,  names: { en: 'Vogra Toll Plaza (LHS)' }, kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9743656, lng: 90.3920315 },
+  { chainage_m: 11365, names: { en: 'Mirer Bazar (A)' },                    kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9350313, lng: 90.4459478 },
+  { chainage_m: 13184, names: { en: 'Mirer Bazar (RHS)' },            kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9235064, lng: 90.4598731 },
+  { chainage_m: 13403, names: { en: 'Mirer Bazar (LHS)' },            kind: 'toll_plaza', status: 'open',         connects_to: '', lat: 23.9230806, lng: 90.4613011 },
+  { chainage_m: 24522, names: { en: 'Purbachal Toll Plaza' },           kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.8517101, lng: 90.5247815 },
 
   // TP-07/08/09 below (K34+353, K36+554, K45+965) are EXTRAPOLATED, not
   // well-projected like the six toll plazas above (those landed within
@@ -108,14 +125,14 @@ const INTERCHANGES = [
   // seeded as ordinary toll_plaza rows below — that is a presentation call,
   // not new certainty about the positions. Correcting any one of them once
   // field GPS lands is a one-row change here.
-  { chainage_m: 34353, names: { en: 'Toll Plaza (K34)', bn: 'টোল প্লাজা (কে৩৪)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.791205,  lng: 90.569644 },
-  { chainage_m: 36554, names: { en: 'Toll Plaza (K36)', bn: 'টোল প্লাজা (কে৩৬)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.772146,  lng: 90.571652 },
-  { chainage_m: 45965, names: { en: 'Toll Plaza (K46)', bn: 'টোল প্লাজা (কে৪৬)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.703585,  lng: 90.555454 },
+  { chainage_m: 34353, names: { en: 'Toll Plaza (K34)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.791205,  lng: 90.569644 },
+  { chainage_m: 36554, names: { en: 'Toll Plaza (K36)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.772146,  lng: 90.571652 },
+  { chainage_m: 45965, names: { en: 'Toll Plaza (K46)' },                 kind: 'toll_plaza', status: 'construction', connects_to: '', lat: 23.703585,  lng: 90.555454 },
 
   // -- Bridges: kind 'bridge' -----------------------------------------------
-  { chainage_m: 14584, names: { en: 'Nagda Bridge', bn: 'নাগদা সেতু' },       kind: 'bridge', status: 'open', connects_to: '', lat: 23.9172678, lng: 90.4687529 },
-  { chainage_m: 16795, names: { en: 'Ulukhola Bridge', bn: 'উলুখোলা সেতু' }, kind: 'bridge', status: 'open', connects_to: '', lat: 23.8996764, lng: 90.4811561 },
-  { chainage_m: 27403, names: { en: 'Kanchan Bridge', bn: 'কাঞ্চন সেতু' },   kind: 'bridge', status: 'construction', connects_to: '', lat: 23.8362275, lng: 90.5457149 },
+  { chainage_m: 14584, names: { en: 'Nagda Bridge' },       kind: 'bridge', status: 'open', connects_to: '', lat: 23.9172678, lng: 90.4687529 },
+  { chainage_m: 16795, names: { en: 'Ulukhola Bridge' }, kind: 'bridge', status: 'open', connects_to: '', lat: 23.8996764, lng: 90.4811561 },
+  { chainage_m: 27403, names: { en: 'Kanchan Bridge' },   kind: 'bridge', status: 'construction', connects_to: '', lat: 23.8362275, lng: 90.5457149 },
 ];
 
 // Officially introduced rates for the opened 18 km section (Boss, citing The
