@@ -3,8 +3,11 @@
  *
  * origin='legacy' marks the images inherited from the old site. They are real
  * DBEDC photographs but they are low-resolution web derivatives, so every one
- * is a placeholder awaiting an original. The admin media screen sorts on this
- * column, and docs/admin/replacing-images.md explains it to the operator.
+ * is a placeholder awaiting an original. The admin media screen SPLITS on this
+ * column — legacy rows fill its "Placeholders" section and everything else its
+ * "Uploaded images" section — and docs/admin/replacing-images.md explains it
+ * to the operator. Replacing a file through that screen flips the row to
+ * origin='upload', which is how an image leaves the placeholder list.
  *
  * Safe to re-run: each ALTER is guarded by an information_schema check.
  */

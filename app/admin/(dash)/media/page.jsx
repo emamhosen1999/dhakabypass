@@ -8,9 +8,14 @@ export const dynamic = 'force-dynamic';
 /**
  * Below this, a photograph used full-width or as the home banner is being
  * stretched past its own detail and reads as soft on any ordinary desktop
- * display. Every single image inherited from the old site is under it — the
- * largest is 1449px and the home banner is 686px — so the flag is not an
- * exception report, it is the current state of the whole library.
+ * display. Every single image in the library is under it — the largest
+ * registered image is /route.webp at 1108px and the home banner is 686px —
+ * so the flag is not an exception report, it is the current state of the
+ * whole library.
+ *
+ * The 1449px map.webp is NOT the largest: scripts/import-legacy-media.mjs's
+ * audit rejects it (a Google satellite screenshot), so it is never
+ * registered as a media row and never appears on this screen at all.
  */
 const SOFT_WIDTH = 1600;
 
