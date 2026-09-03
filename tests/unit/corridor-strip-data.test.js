@@ -154,3 +154,68 @@ describe('marker row assignment', () => {
     expect(m.markers[0].row).toBe(0);
   });
 });
+
+describe('marker row assignment keeps same-row labels apart', () => {
+  // The real corridor: 20 markers over 47,611 m, with four clustered between
+  // K11+365 and K13+403. That cluster is what broke the original approach of
+  // alternating rows by index parity — alternating still put two of them on the
+  // same row about 45px apart, under labels twice that wide.
+  const CHAINAGES = [
+    0, 2314, 3218, 3706, 7554, 11365, 12090, 13184, 13403, 14584,
+    16795, 24522, 26799, 27403, 34353, 34973, 36554, 41371, 45965, 47611,
+  ];
+  const segments = [{ id: 1, from_m: 0, to_m: 47611, status: 'construction', labels: {} }];
+  const interchanges = CHAINAGES.map((c, i) => ({
+    id: i + 1, chainage_m: c, names: { en: `Point ${i}` }, kind: 'interchange', status: 'open',
+  }));
+
+  function sameRowGapsAreSafe(model, minGapPct) {
+    const rows = new Map();
+    for (const m of model.markers) {
+      if (!rows.has(m.row)) rows.set(m.row, []);
+      rows.get(m.row).push(m.leftPct);
+    }
+    for (const [, positions] of rows) {
+      const sorted = [...positions].sort((a, b) => a - b);
+      for (let i = 1; i < sorted.length; i += 1) {
+        if (sorted[i] - sorted[i - 1] < minGapPct) return false;
+      }
+    }
+    return true;
+  }
+
+  it('never places two markers on one row closer than the gap', () => {
+    const model = buildStripModel({ segments, interchanges, locale: 'en' });
+    expect(sameRowGapsAreSafe(model, 15)).toBe(true);
+  });
+
+  it('holds for any gap a caller passes', () => {
+    for (const gap of [5, 8, 15, 25, 40]) {
+      const model = buildStripModel({ segments, interchanges, locale: 'en', minGapPct: gap });
+      expect(sameRowGapsAreSafe(model, gap)).toBe(true);
+    }
+  });
+
+  it('needs more rows as the required gap grows, never fewer', () => {
+    let previous = 0;
+    for (const gap of [5, 8, 15, 25, 40]) {
+      const { rowCount } = buildStripModel({ segments, interchanges, locale: 'en', minGapPct: gap });
+      expect(rowCount).toBeGreaterThanOrEqual(previous);
+      previous = rowCount;
+    }
+  });
+
+  it('reports a rowCount that actually covers every marker', () => {
+    // The CSS sizes the strip's height from rowCount. If it under-reported by
+    // even one, the last row would render outside the padded box.
+    const model = buildStripModel({ segments, interchanges, locale: 'en' });
+    const highest = Math.max(...model.markers.map((m) => m.row));
+    expect(model.rowCount).toBe(highest + 1);
+    expect(model.markers.every((m) => m.row < model.rowCount)).toBe(true);
+  });
+
+  it('puts the first marker on the top row so the strip is never blank at the top', () => {
+    const model = buildStripModel({ segments, interchanges, locale: 'en' });
+    expect(model.markers[0].row).toBe(0);
+  });
+});
