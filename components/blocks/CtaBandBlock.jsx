@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import { localeHref } from '../../lib/blocks/href.js';
 
-export default function CtaBandBlock({ data }) {
+export default function CtaBandBlock({ data, locale }) {
   return (
     <section className="db-block db-ctaband">
       <div className="db-ctaband-text">
@@ -9,10 +10,10 @@ export default function CtaBandBlock({ data }) {
       </div>
       <p className="db-actions">
         {data.primaryLabel && data.primaryHref ? (
-          <Link href={data.primaryHref} className="db-btn db-btn-primary">{data.primaryLabel}</Link>
+          <Link href={localeHref(data.primaryHref, locale)} className="db-btn db-btn-primary">{data.primaryLabel}</Link>
         ) : null}
         {data.secondaryLabel && data.secondaryHref ? (
-          <Link href={data.secondaryHref} className="db-btn db-btn-ondark">{data.secondaryLabel}</Link>
+          <Link href={localeHref(data.secondaryHref, locale)} className="db-btn db-btn-ondark">{data.secondaryLabel}</Link>
         ) : null}
       </p>
     </section>

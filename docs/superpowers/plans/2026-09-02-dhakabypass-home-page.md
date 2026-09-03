@@ -23,6 +23,7 @@
 - Copy rule: the road is **open and tolling on 18 km**. Present tense. No "upon completion", no "will transform", no completion date that has passed. Facts carried over from the old site are **provisional** until the Boss confirms them and must render inside the existing `IllustrativeNotice` scope or carry their own provisional marker.
 - Legacy images are **low resolution** (hero aerial is 686×386). Every one is a placeholder; none may be upscaled or presented as final art.
 - **Photographs of identifiable people may not be published on the new site until DBEDC confirms it holds consent.** Several inherited images — `/friends.webp` and much of `/photo/` — show recognisable faces, including children, in CSR settings. They were on the old site, which is not evidence of consent. Until the Boss confirms, only images whose subject is the *road* may be seeded. This is a hard gate, not a preference.
+- **Authored hrefs never carry a locale prefix.** `lib/blocks/href.js` exports `localeHref(href, locale)`, and every link-emitting renderer uses it. The authoring rule: **no leading slash = a page on this site, localised** (`travel/toll` becomes `/bn/travel/toll`); **leading slash = used literally, untouched** (`/contact` stays `/contact`, the escape hatch for routes that are not localised yet); schemes, `//`, `#` and `?` are never touched. Seed content must use the no-slash form for every localised destination.
 - **Every link rendered inside `/[locale]/` must stay inside it.** A link to `/gallery` or `/contact` from `/bn` drops a Bangla reader onto the legacy English site. Until a localised destination exists, either point at a localised route that does exist or omit the link. Never seed a bare legacy path into localised content.
 - All new CSS uses existing tokens from `app/design-tokens.css`. Define a token before referencing it.
 - Tests: `npx vitest run` must stay green. Test files live under `tests/unit/` or `tests/db/` — the vitest `include` globs match nowhere else, so a test written outside them silently never runs. `vitest.config.mjs` has `fileParallelism: false`; that line is load-bearing and must not change. Task 3 widens the `include` glob to admit `.jsx` and adds a top-level `esbuild: { jsx: 'automatic' }` key; no other edit to that file is authorised.
@@ -774,8 +775,8 @@ describe('hero block', () => {
     const r = validateBlockData('hero', {
       image: '/bg-hero.webp', eyebrow: 'Dhaka Bypass Expressway',
       headline: 'Eighteen kilometres open', standfirst: 'Vogra to K21, tolled.',
-      primaryLabel: 'Toll rates', primaryHref: '/en/travel/toll',
-      secondaryLabel: "What's open", secondaryHref: '/en/travel/status',
+      primaryLabel: 'Toll rates', primaryHref: 'travel/toll',
+      secondaryLabel: "What's open", secondaryHref: 'travel/status',
     });
     expect(r).toEqual({ ok: true, errors: [] });
   });
@@ -952,7 +953,7 @@ describe('media-prose block', () => {
   it('accepts a full record', () => {
     const r = validateBlockData('media-prose', {
       image: '/bypass-ex.webp', side: 'right', heading: 'What this road does',
-      body: '<p>Real prose.</p>', linkLabel: 'The route', linkHref: '/en/travel/route',
+      body: '<p>Real prose.</p>', linkLabel: 'The route', linkHref: 'travel/route',
       caption: 'The open carriageway near Mirer Bazar.',
     });
     expect(r.ok).toBe(true);
@@ -1284,7 +1285,7 @@ describe('cta-band block', () => {
     expect(validateBlockData('cta-band', { heading: '' }).ok).toBe(false);
     expect(validateBlockData('cta-band', {
       heading: 'Report a problem on the road', body: 'Call the control room.',
-      primaryLabel: 'Contact', primaryHref: '/en/contact',
+      primaryLabel: 'Contact', primaryHref: 'contact',
       secondaryLabel: '', secondaryHref: '',
     }).ok).toBe(true);
   });
@@ -1746,9 +1747,9 @@ const BLOCKS = [
         'The first section of the bypass carries traffic between Vogra and Mirer Bazar today. '
         + 'The rest of the 48-kilometre corridor is still under construction.',
       primaryLabel: 'Toll rates',
-      primaryHref: '/en/travel/toll',
+      primaryHref: 'travel/toll',
       secondaryLabel: 'What is open',
-      secondaryHref: '/en/travel/status',
+      secondaryHref: 'travel/status',
     },
   },
   {
@@ -1758,7 +1759,7 @@ const BLOCKS = [
       intro: 'Rates in force on the open section. Motorcycles and three-wheelers may not use the expressway.',
       classes: ['car', 'microbus', 'large_bus', 'heavy_truck'],
       linkLabel: 'All nine vehicle classes',
-      linkHref: '/en/travel/toll',
+      linkHref: 'travel/toll',
     },
   },
   {
@@ -1777,7 +1778,7 @@ const BLOCKS = [
         + 'of that once the full corridor opens.</p>',
       caption: 'The completed carriageway on the open section.',
       linkLabel: 'Where to join and leave',
-      linkHref: '/en/travel/route',
+      linkHref: 'travel/route',
     },
   },
   {
@@ -1829,7 +1830,7 @@ const BLOCKS = [
         + 'has verified them.</p>',
       caption: 'The finished wearing course on the open section.',
       linkLabel: 'The corridor today',
-      linkHref: '/en/travel/status',
+      linkHref: 'travel/status',
     },
   },
   {
@@ -1871,12 +1872,21 @@ const BLOCKS = [
   {
     type: 'cta-band',
     data: {
-      heading: 'Something wrong on the road?',
-      body: 'Breakdowns, obstructions, damage to the carriageway — tell the operator.',
-      primaryLabel: 'Contact DBEDC',
-      primaryHref: '/contact',
-      secondaryLabel: 'Rules of the road',
-      secondaryHref: '/en/travel/rules',
+      // NOT a "report a problem" call to action, which is what a road operator's
+      // front page should close on. There is no localised contact route yet and
+      // DBEDC has not supplied an emergency hotline, so that CTA would either
+      // send a Bangla reader to the legacy English page or publish a number we
+      // do not have. Closing on what the site can actually deliver today is the
+      // honest version; the operator swaps this block in the admin the moment
+      // the hotline and a localised contact page exist.
+      heading: 'Before you drive it',
+      body:
+        'Motorcycles and three-wheelers are prohibited. Know the limits and the '
+        + 'closures before you set off.',
+      primaryLabel: 'Rules of the road',
+      primaryHref: 'travel/rules',
+      secondaryLabel: 'What is open today',
+      secondaryHref: 'travel/status',
     },
   },
 ];
@@ -1979,7 +1989,7 @@ Translation rule: translate the **meaning**, not the words. Place names stay in 
 
 - [ ] **Step 1: Add the translations**
 
-Add to `scripts/seed-home-v2.mjs`, immediately before the seeding loop, a parallel structure keyed by block index. Write real Bangla and Chinese for every string; do not leave any as English placeholder text. Vehicle-class names, headings, standfirsts, captions, button labels and card bodies all translate. The `image`, `side`, `classes`, `linkHref`, `primaryHref` and `secondaryHref` values do **not** translate and must be copied through unchanged.
+Add to `scripts/seed-home-v2.mjs`, immediately before the seeding loop, a parallel structure keyed by block index. Write real Bangla and Chinese for every string; do not leave any as English placeholder text. Vehicle-class names, headings, standfirsts, captions, button labels and card bodies all translate. The `image`, `side` and `classes` values do **not** translate and must be copied through unchanged. Neither do `linkHref`, `primaryHref` or `secondaryHref` — but that is now safe, because they are authored WITHOUT a locale prefix and `localeHref()` resolves them per locale at render time. Copying `travel/toll` into the Bangla record is correct and produces `/bn/travel/toll`.
 
 Then extend the loop so each block writes its `en`, `bn` and `zh` rows:
 

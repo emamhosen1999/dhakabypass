@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { localeHref } from '../../lib/blocks/href.js';
 import { getTollRatesCached } from '../../lib/corridor/cache';
 import { formatTaka, classLabel } from '../../lib/corridor/tolls';
 import { pickRates } from '../../lib/blocks/tollPreview.js';
@@ -26,7 +27,7 @@ export default async function TollPreviewBlock({ data, locale }) {
       </dl>
       {data.linkLabel && data.linkHref ? (
         <p className="db-actions">
-          <Link href={data.linkHref} className="db-btn db-btn-primary">{data.linkLabel}</Link>
+          <Link href={localeHref(data.linkHref, locale)} className="db-btn db-btn-primary">{data.linkLabel}</Link>
         </p>
       ) : null}
     </section>

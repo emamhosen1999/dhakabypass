@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { localeHref } from '../../lib/blocks/href.js';
 import SiteImage from '../SiteImage.jsx';
 import { getMediaByPath } from '../../lib/media/repo.js';
 
@@ -19,7 +20,7 @@ export default async function MediaProseBlock({ data, locale }) {
         ) : null}
         {data.linkLabel && data.linkHref ? (
           <p className="db-actions">
-            <Link href={data.linkHref} className="db-btn db-btn-secondary">{data.linkLabel}</Link>
+            <Link href={localeHref(data.linkHref, locale)} className="db-btn db-btn-secondary">{data.linkLabel}</Link>
           </p>
         ) : null}
       </div>

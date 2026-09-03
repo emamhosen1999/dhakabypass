@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { localeHref } from '../../lib/blocks/href.js';
 import SiteImage from '../SiteImage.jsx';
 import { getMediaByPath } from '../../lib/media/repo.js';
 
@@ -27,10 +28,10 @@ export default async function HeroBlock({ data, locale }) {
         {(data.primaryLabel && data.primaryHref) || (data.secondaryLabel && data.secondaryHref) ? (
           <p className="db-actions">
             {data.primaryLabel && data.primaryHref ? (
-              <Link href={data.primaryHref} className="db-btn db-btn-primary">{data.primaryLabel}</Link>
+              <Link href={localeHref(data.primaryHref, locale)} className="db-btn db-btn-primary">{data.primaryLabel}</Link>
             ) : null}
             {data.secondaryLabel && data.secondaryHref ? (
-              <Link href={data.secondaryHref} className="db-btn db-btn-ondark">{data.secondaryLabel}</Link>
+              <Link href={localeHref(data.secondaryHref, locale)} className="db-btn db-btn-ondark">{data.secondaryLabel}</Link>
             ) : null}
           </p>
         ) : null}
