@@ -70,11 +70,20 @@ const BLOCKS = [
     data: {
       heading: 'What it connects',
       intro: 'Four national highways meet the corridor along its length.',
+      // Ordered along the corridor, north to south, because the meta label
+      // states WHERE on the corridor each highway is met. The first draft of
+      // this block had N1 at the north end and N4 at the south -- exactly
+      // inverted. N1 is the Dhaka-Chattogram highway and meets this corridor
+      // at Madanpur, the SOUTHERN terminus; N3 is Dhaka-Mymensingh and meets
+      // it at Joydebpur, the NORTHERN one. interchanges.connects_to is empty
+      // for every row, so nothing in the database settles this -- if DBEDC
+      // corrects any junction, fix it here and fill connects_to at the same
+      // time so the data can settle it next time.
       items: [
-        { meta: 'North', title: 'N1', body: 'The Dhaka–Chattogram highway, toward the southern ports.' },
-        { meta: 'North', title: 'N2', body: 'The Dhaka–Sylhet highway, toward the north-east.' },
-        { meta: 'Centre', title: 'N3', body: 'The Dhaka–Mymensingh highway, toward the north.' },
-        { meta: 'South', title: 'N4', body: 'The Tangail and Jamuna bridge corridor, toward the north-west.' },
+        { meta: 'North end', title: 'N3', body: 'The Dhaka–Mymensingh highway at Joydebpur, toward the north.' },
+        { meta: 'North', title: 'N4', body: 'The Tangail and Jamuna bridge corridor, toward the north-west.' },
+        { meta: 'Mid-corridor', title: 'N2', body: 'The Dhaka–Sylhet highway, toward the north-east.' },
+        { meta: 'South end', title: 'N1', body: 'The Dhaka–Chattogram highway at Madanpur, toward the southern ports.' },
       ],
     },
   },
@@ -209,7 +218,7 @@ const TRANSLATIONS = {
       eyebrow: 'Dhaka Bypass Expressway',
       headline: 'আঠারো কিলোমিটার খোলা, টোল আদায় চালু',
       standfirst:
-        'বাইপাসের প্রথম অংশ আজ Vogra ও Mirer Bazar-এর মধ্যে যান চলাচল বহন করছে। '
+        'বাইপাসের প্রথম অংশ আজ ভোগড়া ও মীরের বাজার-এর মধ্যে যান চলাচল বহন করছে। '
         + '৪৮ কিলোমিটার করিডোরের বাকি অংশ এখনও নির্মাণাধীন।',
       primaryLabel: 'টোল হার',
       primaryHref: 'travel/toll',
@@ -243,10 +252,10 @@ const TRANSLATIONS = {
       heading: 'কীসের সঙ্গে সংযোগ',
       intro: 'করিডোর বরাবর চারটি জাতীয় মহাসড়ক এসে মিলেছে।',
       items: [
-        { meta: 'উত্তর', title: 'N1', body: 'Dhaka–Chattogram মহাসড়ক, দক্ষিণের বন্দরের দিকে।' },
-        { meta: 'উত্তর', title: 'N2', body: 'Dhaka–Sylhet মহাসড়ক, উত্তর-পূর্ব দিকে।' },
-        { meta: 'মধ্যভাগ', title: 'N3', body: 'Dhaka–Mymensingh মহাসড়ক, উত্তর দিকে।' },
-        { meta: 'দক্ষিণ', title: 'N4', body: 'Tangail ও Jamuna সেতু করিডোর, উত্তর-পশ্চিম দিকে।' },
+        { meta: 'উত্তর প্রান্ত', title: 'N3', body: 'Joydebpur-এ Dhaka–Mymensingh মহাসড়ক, উত্তর দিকে।' },
+        { meta: 'উত্তর', title: 'N4', body: 'Tangail ও Jamuna সেতু করিডোর, উত্তর-পশ্চিম দিকে।' },
+        { meta: 'করিডোরের মাঝামাঝি', title: 'N2', body: 'Dhaka–Sylhet মহাসড়ক, উত্তর-পূর্ব দিকে।' },
+        { meta: 'দক্ষিণ প্রান্ত', title: 'N1', body: 'Madanpur-এ Dhaka–Chattogram মহাসড়ক, দক্ষিণের বন্দরের দিকে।' },
       ],
     },
     {
@@ -347,10 +356,10 @@ const TRANSLATIONS = {
       heading: '衔接哪些道路',
       intro: '沿线共有四条国道与本走廊相交。',
       items: [
-        { meta: '北段', title: 'N1', body: 'Dhaka–Chattogram 国道，通往南部港口。' },
-        { meta: '北段', title: 'N2', body: 'Dhaka–Sylhet 国道，通往东北方向。' },
-        { meta: '中段', title: 'N3', body: 'Dhaka–Mymensingh 国道，通往北方。' },
-        { meta: '南段', title: 'N4', body: 'Tangail 与 Jamuna 大桥走廊，通往西北方向。' },
+        { meta: '北端', title: 'N3', body: '在 Joydebpur 衔接 Dhaka–Mymensingh 国道，通往北方。' },
+        { meta: '北段', title: 'N4', body: 'Tangail 与 Jamuna 大桥走廊，通往西北方向。' },
+        { meta: '走廊中段', title: 'N2', body: 'Dhaka–Sylhet 国道，通往东北方向。' },
+        { meta: '南端', title: 'N1', body: '在 Madanpur 衔接 Dhaka–Chattogram 国道，通往南部港口。' },
       ],
     },
     {
