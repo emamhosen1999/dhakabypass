@@ -445,3 +445,9 @@
   text-transform:uppercase;color:var(--db-ink-3);}
 .db-tollpreview-amount{margin:0;font-family:var(--db-font-display);font-weight:700;
   font-size:1.9rem;line-height:1;font-variant-numeric:tabular-nums;}
+
+/* ---- Provisional figures inside prose ------------------------------------
+   Numbers inherited from the old site are unverified. Where a paragraph has
+   to say so, this marks it as a caveat rather than as body copy. */
+.db-provisional-inline{border-left:3px solid var(--db-build);padding-left:14px;
+  color:var(--db-ink-2);font-size:.93rem;}
