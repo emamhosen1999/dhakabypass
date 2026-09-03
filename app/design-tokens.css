@@ -19,13 +19,23 @@
   --db-surface-2:#DCE3E8;
   --db-ink:#0B1620;
   --db-ink-2:#3D525F;
-  --db-ink-3:#687E8C;
+  /* Muted text. Measured, not chosen: the previous #687E8C cleared only
+     3.27:1 on --db-surface-2, 3.54:1 on --db-ground and 4.24:1 on
+     --db-surface, so every caption, table header, stat label, footer line
+     and chainage on the site failed 4.5:1. #4F616D measures 4.96 / 5.37 /
+     6.44 against those three grounds and still sits a clear step lighter
+     than --db-ink-2. */
+  --db-ink-3:#4F616D;
   --db-rule:#C2CCD3;
   --db-rule-2:#9FADB7;
   --db-accent:#8A5A00;
   --db-accent-bright:#FFB000;
   --db-open:#0F6B42;
-  --db-build:#9E3E05;
+  /* Darkened from #9E3E05: .db-tag-build lays a hatch over --db-build-wash,
+     and the hatched pixels measured rgb(231,200,178), against which the old
+     value gave 4.23:1. #8F3804 measures 4.86:1 on the hatch and 6.01:1 on
+     the flat wash. */
+  --db-build:#8F3804;
   --db-alert:#93231A;
 
   /* Signage plates keep their signage CHARACTER in both themes — a dark
@@ -71,7 +81,10 @@
     --db-surface-2:#162835;
     --db-ink:#E6EDF1;
     --db-ink-2:#A6B8C4;
-    --db-ink-3:#758997;
+    /* Lightened from #758997, which cleared only 4.16:1 on --db-surface-2
+       and on the dark --db-plate-bg. #8A9CA8 measures 5.33 / 5.97 / 6.55
+       against --db-surface-2, --db-surface and --db-ground. */
+    --db-ink-3:#8A9CA8;
     --db-rule:#1E3140;
     --db-rule-2:#2F4759;
     --db-accent:#FFB000;
@@ -92,7 +105,7 @@
   --db-surface-2:#162835;
   --db-ink:#E6EDF1;
   --db-ink-2:#A6B8C4;
-  --db-ink-3:#758997;
+  --db-ink-3:#8A9CA8;
   --db-rule:#1E3140;
   --db-rule-2:#2F4759;
   --db-accent:#FFB000;
@@ -142,7 +155,16 @@
 .db-root h1,.db-root h2,.db-root h3,.db-root .db-display{
   font-family:var(--db-font-display);font-weight:700;line-height:1.06;text-wrap:balance;
 }
-.db-root :focus-visible{outline:3px solid var(--db-accent-bright);outline-offset:2px;}
+/* Two-tone focus ring, because no single colour can serve both grounds this
+   site puts controls on. Measured: the amber ring alone scores 10.14:1 against
+   the dark plate but only 1.53:1 against --db-ground in light mode, so every
+   in-body button failed 1.4.11's 3:1. The box-shadow paints --db-ink from the
+   border box out to 7px and the outline paints amber over 2-5px of that, so
+   the ring reads dark / amber / dark: on a light ground the outer --db-ink
+   band carries the contrast (15:1), on the dark plate the amber does (10:1),
+   and in dark mode --db-ink is the light one and carries it again. */
+.db-root :focus-visible{outline:3px solid var(--db-accent-bright);outline-offset:2px;
+  box-shadow:0 0 0 7px var(--db-ink);}
 
 .db-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--db-font-display);
   font-weight:700;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:2px;}
@@ -175,11 +197,21 @@
   }
 }
 
-.db-theme-toggle{display:inline-flex;flex:none;border:1px solid var(--db-rule);border-radius:3px;overflow:hidden;}
+/* No overflow:hidden here. It clipped the focus ring of the first and last
+   button to nothing — tabbing to LIGHT or SYSTEM in dark mode changed zero
+   pixels, measured — which is a keyboard user losing their place entirely.
+   The rounded ends are kept by rounding the end buttons instead of clipping
+   the group. */
+.db-theme-toggle{display:inline-flex;flex:none;border:1px solid var(--db-rule);border-radius:3px;}
+/* --db-ink-3 sits on the page ground everywhere else, but this control lives
+   on the dark header plate in BOTH themes, where it measured 4.31:1 (light)
+   and 4.16:1 (dark). Plate foreground at .72 measures 8.75 and 7.63 and keeps
+   the muted weight the control was drawn with. */
 .db-theme-btn{white-space:nowrap;font-family:var(--db-font-display);font-size:.74rem;letter-spacing:.1em;
-  text-transform:uppercase;padding:6px 10px;background:transparent;color:var(--db-ink-3);
+  text-transform:uppercase;padding:6px 10px;background:transparent;color:rgba(237,242,245,.72);
   border:0;border-right:1px solid var(--db-rule);cursor:pointer;}
-.db-theme-btn:last-child{border-right:0;}
+.db-theme-btn:first-child{border-top-left-radius:2px;border-bottom-left-radius:2px;}
+.db-theme-btn:last-child{border-right:0;border-top-right-radius:2px;border-bottom-right-radius:2px;}
 .db-theme-btn[aria-pressed="true"]{background:var(--db-accent-bright);color:#0B1620;}
 
 .db-header{background:var(--db-plate-bg);color:var(--db-plate-fg);}
@@ -370,7 +402,10 @@
 .db-btn{font-family:var(--db-font-display);font-weight:700;font-size:.88rem;letter-spacing:.09em;
   text-transform:uppercase;padding:12px 20px;border-radius:2px;text-decoration:none;display:inline-block;}
 .db-btn-primary{background:var(--db-accent-bright);color:#0B1620;}
-.db-btn-secondary{border:1px solid var(--db-rule-2);color:var(--db-ink);}
+/* The border is this button's only boundary, so it is a 1.4.11 surface, not
+   decoration. --db-rule-2 measured 1.92:1 against --db-ground in both themes;
+   --db-ink-3 measures 5.37 (light) and 6.55 (dark) on the same ground. */
+.db-btn-secondary{border:1px solid var(--db-ink-3);color:var(--db-ink);}
 
 /* ---- Images -------------------------------------------------------------
    The legacy library tops out at 1449px wide and the hero is 686px. Images
@@ -379,7 +414,14 @@
    a letterboxed one reads as a mistake. */
 .db-figure{margin:0;position:relative;overflow:hidden;background:var(--db-surface-2);}
 .db-figure img{display:block;width:100%;height:100%;object-fit:cover;}
-.db-figure figcaption{font-size:.86rem;color:var(--db-ink-3);padding-top:8px;line-height:1.5;}
+/* Both wrappers, because only one of them is an ANCESTOR of its caption.
+   FigureGridBlock and MediaProseBlock put the caption beside the .db-figure
+   box, not inside it, so `.db-figure figcaption` alone missed every photo-grid
+   caption: those six rendered at the inherited 16px full --db-ink while the
+   two image-and-text captions rendered at 13.76px muted. Measured, not
+   eyeballed. */
+.db-figure figcaption,.db-figure-item figcaption{font-size:.86rem;color:var(--db-ink-3);
+  padding-top:8px;line-height:1.5;}
 .db-ratio-wide{aspect-ratio:16/9;}
 .db-ratio-photo{aspect-ratio:4/3;}
 .db-ratio-hero{aspect-ratio:21/9;}
@@ -391,16 +433,33 @@
   display:flex;align-items:flex-end;min-height:clamp(320px,46vw,560px);}
 .db-hero-bg{position:absolute;inset:0;z-index:-2;}
 .db-hero-bg img{width:100%;height:100%;object-fit:cover;}
+/* Scrim stops set from measurement, not taste. The hero is bottom-aligned, so
+   its text band runs from 6.8% to 93.2% of the hero height (measured at 360,
+   390, 700, 1024 and 1440px), and the photograph under it is sky: the pixels
+   behind the headline resolved to rgb(242,241,244) once the old scrim was
+   divided out. The old ramp (.92 / .62 at 46% / .28) left only .34 alpha where
+   the eyebrow sits, which measured 2.11:1 — a fail by a factor of two. These
+   stops hold .74 or more across the whole text band, which clears 4.5:1 for
+   the small text and 3:1 for the headline even against a PURE WHITE pixel, so
+   the guarantee survives whatever photograph an operator swaps in later. The
+   top 12% carries no text at any width and is allowed to lighten to .6 so the
+   picture still reads as a picture. */
 .db-hero::after{content:"";position:absolute;inset:0;z-index:-1;
-  background:linear-gradient(to top,rgba(6,14,20,.92) 0%,rgba(6,14,20,.62) 46%,rgba(6,14,20,.28) 100%);}
+  background:linear-gradient(to top,rgba(6,14,20,.95) 0%,rgba(6,14,20,.9) 52%,
+    rgba(6,14,20,.84) 88%,rgba(6,14,20,.6) 100%);}
 .db-hero-inner{padding:clamp(22px,4vw,46px);max-width:44rem;}
+/* Opaque, not .72/.84 alpha. Text over a photograph pays for its transparency
+   twice — the scrim already dims the ground, and the alpha then dims the text
+   against it. Dropping the alpha buys about 2.5x the contrast for no visual
+   change the reader would call a loss: the eyebrow is still set apart by size,
+   weight, uppercase and .2em tracking. */
 .db-hero-eyebrow{font-family:var(--db-font-display);font-weight:600;text-transform:uppercase;
-  letter-spacing:.2em;font-size:.74rem;color:rgba(237,242,245,.72);margin:0;}
+  letter-spacing:.2em;font-size:.74rem;color:var(--db-plate-fg);margin:0;}
 .db-hero-title{font-family:var(--db-font-display);font-weight:700;text-transform:uppercase;
   line-height:1.02;text-wrap:balance;margin:12px 0 0;
   font-size:clamp(2rem,1rem + 4.4vw,3.6rem);}
 .db-hero-standfirst{margin:14px 0 0;font-size:clamp(1rem,.94rem + .3vw,1.14rem);
-  color:rgba(237,242,245,.84);max-width:46ch;}
+  color:var(--db-plate-fg);max-width:46ch;}
 .db-hero .db-actions{margin-top:22px;}
 .db-btn-ondark{background:transparent;color:var(--db-plate-fg);
   border:1px solid rgba(237,242,245,.5);}

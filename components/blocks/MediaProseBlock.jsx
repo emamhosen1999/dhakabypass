@@ -24,8 +24,14 @@ export default async function MediaProseBlock({ data, locale }) {
           </p>
         ) : null}
       </div>
+      {/* db-figure-item, not db-figure: the inner div is the image box and
+          already carries db-figure. Putting it on the figure element as well
+          painted --db-surface-2 behind the caption, which is the darkest
+          light-mode ground on the page and the one this caption's ink cleared
+          by the smallest margin. It also left this block's caption styled
+          differently from FigureGridBlock's, which wraps with db-figure-item. */}
       {media ? (
-        <figure className="db-figure db-mediaprose-figure">
+        <figure className="db-figure-item db-mediaprose-figure">
           <div className="db-figure db-ratio-photo">
             <SiteImage media={media} locale={locale} sizes="(max-width: 860px) 100vw, 46vw" />
           </div>
