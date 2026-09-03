@@ -463,15 +463,58 @@ if (pageRows.length) {
   pageId = ins.insertId;
 }
 
-// page_translations is keyed on (page_id, locale) and has no surrogate id, so
-// the upsert is the whole read-modify-write. The plan's SELECT id / UPDATE ...
-// WHERE id = ? pair cannot work against this schema.
-await db.execute(
-  `INSERT INTO page_translations (page_id, locale, title, status)
-   VALUES (?, 'en', ?, 'published')
-   ON DUPLICATE KEY UPDATE title = VALUES(title), status = VALUES(status)`,
-  [pageId, 'Dhaka Bypass Expressway'],
-);
+/**
+ * The browser tab and the search result, per locale.
+ *
+ * app/[locale]/page.jsx's generateMetadata reads page.translations, runs them
+ * through resolveTranslation(), and uses `seo_title || title` for the title and
+ * `seo_description` for the description. resolveTranslation only accepts a row
+ * whose status is 'published', and falls back to en otherwise — so until these
+ * bn and zh rows existed, /bn and /zh served an English tab title and no
+ * description at all.
+ *
+ * seo_title is left empty on purpose: `seo_title || title` already falls
+ * through to `title`, and one field to edit in the admin is better than two
+ * that must be kept in agreement.
+ *
+ * The road's name stays Latin in all three, per the script rule above.
+ *
+ * page_translations is keyed on (page_id, locale) and has NO surrogate id, so
+ * the upsert is the whole read-modify-write. The plan's SELECT id / UPDATE ...
+ * WHERE id = ? pair cannot work against this schema — it fails with
+ * ER_BAD_FIELD_ERROR.
+ */
+const PAGE_META = {
+  en: {
+    title: 'Dhaka Bypass Expressway',
+    description:
+      'The Dhaka Bypass Expressway is open and tolling on 18 kilometres between Vogra and '
+      + 'Mirer Bazar — toll rates, the route, and what is open today.',
+  },
+  bn: {
+    title: 'Dhaka Bypass Expressway — টোল, রুট ও যান চলাচলের তথ্য',
+    description:
+      'Dhaka Bypass Expressway-এর ভোগড়া থেকে মীরের বাজার পর্যন্ত ১৮ কিলোমিটার খোলা ও টোল আদায় '
+      + 'চালু — টোল হার, রুট এবং আজ কী খোলা আছে, সবই এক জায়গায়।',
+  },
+  zh: {
+    title: 'Dhaka Bypass Expressway — 通行费、路线与通行信息',
+    description:
+      'Dhaka Bypass Expressway 目前在 Vogra 至 Mirer Bazar 之间的18公里路段通车并收费——'
+      + '通行费标准、路线走向以及今日通行状况，均可在此查询。',
+  },
+};
+
+for (const [locale, meta] of Object.entries(PAGE_META)) {
+  await db.execute(
+    `INSERT INTO page_translations (page_id, locale, title, seo_description, status)
+     VALUES (?, ?, ?, ?, 'published')
+     ON DUPLICATE KEY UPDATE
+       title = VALUES(title), seo_description = VALUES(seo_description),
+       status = VALUES(status)`,
+    [pageId, locale, meta.title, meta.description],
+  );
+}
 
 for (const [i, block] of BLOCKS.entries()) {
   const [ins] = await db.execute(
@@ -488,6 +531,7 @@ for (const [i, block] of BLOCKS.entries()) {
   }
 }
 
+console.log(`seeded page titles + meta for ${Object.keys(PAGE_META).join(', ')}`);
 console.log(`seeded ${BLOCKS.length} home blocks (en)`);
 for (const locale of ['bn', 'zh']) {
   console.log(`  + ${TRANSLATIONS[locale].filter(Boolean).length} ${locale} translations`);
