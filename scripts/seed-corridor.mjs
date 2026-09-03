@@ -201,10 +201,18 @@ try {
   // by the gazette, ADB and the press. Kept SEPARATE from the measured
   // 47,611 m the segments/interchanges above are chainage-relative to,
   // because the pavement physically ends short of the nominal start — see
-  // the SEGMENTS comment above. Positions must stay accurate against the
-  // measured value, so this setting is not wired into any page yet; that is
-  // a follow-up once it's decided where/how to show "48 km (official)" next
-  // to the measured figure without contradicting the map.
+  // the SEGMENTS comment above.
+  //
+  // This setting IS live. lib/settings.js getPublishedLengthKm() reads it,
+  // lib/corridor/cache.js wraps that as getPublishedLengthKmCached(), and
+  // both the home page (app/[locale]/page.jsx) and /travel/status pass the
+  // result into <ProgressBar publishedLengthKm={...}>, where it is the
+  // DENOMINATOR of the "x km / 48 km" note. Only the denominator: the
+  // percentage and the open-length numerator still come from the measured
+  // segment extent, so individual positions stay accurate against the model
+  // while the headline figure the client publishes is the one on screen.
+  // Changing this value therefore changes what two live pages say — it is
+  // not an inert record of the gazette figure.
   await db.execute(
     `INSERT INTO site_settings (setting_key, value) VALUES (?, ?)
      ON DUPLICATE KEY UPDATE value = VALUES(value)`,
