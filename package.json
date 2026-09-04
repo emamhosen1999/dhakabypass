@@ -15,7 +15,13 @@
     "db:setup:v3": "node scripts/db-setup-v3.mjs",
     "db:migrate:users": "node scripts/migrate-users.mjs",
     "db:seed:home": "node scripts/seed-home-v2.mjs",
-    "db:seed:corridor": "node scripts/seed-corridor.mjs"
+    "db:seed:corridor": "node scripts/seed-corridor.mjs",
+    "db:setup:v4": "node scripts/db-setup-v4.mjs",
+    "db:setup:v5": "node scripts/db-setup-v5.mjs",
+    "db:setup:v6": "node scripts/db-setup-v6.mjs",
+    "db:migrate": "npm run db:setup && npm run db:setup:v2 && npm run db:setup:v3 && npm run db:setup:v4 && npm run db:setup:v5 && npm run db:setup:v6",
+    "db:seed:all": "npm run db:seed:corridor && npm run db:seed:home",
+    "setup": "bash scripts/setup-env.sh"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
@@ -28,7 +34,7 @@
     "react-dom": "^19.2.7"
   },
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=22.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

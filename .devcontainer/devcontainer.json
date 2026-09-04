@@ -1,0 +1,25 @@
+{
+  "name": "dhakabypass",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "remoteEnv": {
+    "DB_HOST": "127.0.0.1",
+    "DB_PORT": "3306",
+    "DB_USER": "root",
+    "DB_PASSWORD": "",
+    "DB_NAME": "dhakabypass",
+    "DB_NAME_TEST": "dhakabypass_test"
+  },
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "dhakabypass", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "bradlc.vscode-tailwindcss"]
+    }
+  }
+}
