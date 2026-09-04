@@ -58,8 +58,8 @@ const BLOCKS = [
         + 'industrial belt and the southern ports does not have to cross Dhaka to get there.</p>'
         + '<p>It is access-controlled: traffic joins and leaves only at built interchanges, and every '
         + 'crossing is grade-separated. That is what separates it from the national highways it connects '
-        + 'to, and it is why a journey that takes two hours through the city is meant to take a fraction '
-        + 'of that once the full corridor opens.</p>',
+        + 'to, and it is why a journey that today crosses the city is meant to bypass it entirely once '
+        + 'the full corridor opens.</p>',
       caption: 'The completed carriageway on the open section.',
       linkLabel: 'Where to join and leave',
       linkHref: 'travel/route',
@@ -375,8 +375,8 @@ const TRANSLATIONS = {
         '<p>Dhaka Bypass 沿首都东缘延伸48公里，北起加济普尔，南至纳拉扬甘杰。'
         + '修建它，是为了让往返于北部工业带与南部港口之间的货运车辆不必穿越达卡。</p>'
         + '<p>本路实行出入控制：车辆只能在已建成的互通立交上下，所有交叉均为立体交叉。'
-        + '这正是它与所衔接的各条国道的区别所在，也是全线通车之后，原本穿城需要两小时的行程'
-        + '有望大幅缩短的原因。</p>',
+        + '这正是它与所衔接的各条国道的区别所在，也是全线通车之后，原本需要穿城的行程'
+        + '得以绕城而过的原因。</p>',
       caption: '已通车路段建成的行车道。',
       linkLabel: '上下路的位置',
       linkHref: 'travel/route',
