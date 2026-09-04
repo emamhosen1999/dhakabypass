@@ -295,6 +295,17 @@
 .db-marker{position:absolute;transform:translateX(-50%);
   top:calc(6px + (var(--row, 0) * var(--db-strip-row)));
   display:flex;flex-direction:column;align-items:center;width:84px;text-align:center;}
+/* Leader line from the rail down to the pin. Without it a staggered marker is
+   an orphaned dot: on the lower rows there is nothing tying a label to the
+   point on the corridor it describes, and the eye has to guess from horizontal
+   position alone. Height is the marker's own offset, so each row draws exactly
+   as far as it sits -- row 0 gets a 6px stub, the bottom row reaches the whole
+   way back. It is decorative, inside an aria-hidden diagram, so it needs no
+   describing; the interchange table carries this relationship as real data. */
+.db-marker::before{content:"";position:absolute;left:50%;width:1px;
+  transform:translateX(-50%);background:var(--db-rule-2);
+  height:calc(6px + (var(--row, 0) * var(--db-strip-row)));
+  top:calc(0px - (6px + (var(--row, 0) * var(--db-strip-row))));}
 /* Row comes from the model, which assigns it by MEASURED POSITION rather than
    by index parity. Parity was the old approach and it failed on real data:
    this corridor has four markers between K11+365 and K13+403, so alternating

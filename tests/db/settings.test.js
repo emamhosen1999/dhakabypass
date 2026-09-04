@@ -8,6 +8,10 @@ let S;
 beforeAll(async () => {
   execFileSync('node', ['scripts/db-setup-v2.mjs', `--database=${DB}`], { stdio: 'inherit' });
   execFileSync('node', ['scripts/db-setup-v3.mjs', `--database=${DB}`], { stdio: 'inherit' });
+  // v5 adds the 'waypoint' kind. seed-corridor.mjs writes rows using it, so
+  // omitting this migration makes the seed fail with a truncated-column error
+  // and the whole file reports as SKIPPED rather than failed.
+  execFileSync('node', ['scripts/db-setup-v5.mjs', `--database=${DB}`], { stdio: 'inherit' });
   S = await import('../../lib/settings.js');
 });
 

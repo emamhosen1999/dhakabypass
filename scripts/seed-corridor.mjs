@@ -97,14 +97,24 @@ const SEGMENTS = [
 //
 // Client decision of 2026-09-03: docs/source-data/2026-09-03-client-decisions.md
 const INTERCHANGES = [
-  // -- Waypoints: kind 'interchange' --------------------------------------
+  // -- Corridor termini and survey waypoints -------------------------------
+  //
+  // kind 'waypoint' means a SURVEY point from the client's coordinate list, not
+  // a place. "Waypoint 2".."Waypoint 7" are how the corridor's geometry was
+  // reconstructed; a driver cannot join or leave the road at one and the name
+  // tells them nothing. They keep their coordinates because the corridor map
+  // needs the polyline, and they are excluded from every driver-facing surface
+  // by kind rather than by matching the name -- so the day DBEDC supplies a
+  // real name for one, it does not silently start appearing on the site.
+  //
+  // Naojor and Madanpur are the actual corridor ends and stay 'interchange'.
   { chainage_m: 0,     names: { en: 'Naojor (corridor start)' },        kind: 'interchange', status: 'construction', connects_to: '', lat: 23.986737, lng: 90.362246 },
-  { chainage_m: 2314,  names: { en: 'Waypoint 2' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.977568, lng: 90.380874 },
-  { chainage_m: 7554,  names: { en: 'Waypoint 3' },                kind: 'interchange', status: 'open',         connects_to: '', lat: 23.949671, lng: 90.414551 },
-  { chainage_m: 12090, names: { en: 'Waypoint 4' },                kind: 'interchange', status: 'open',         connects_to: '', lat: 23.930211, lng: 90.452655 },
-  { chainage_m: 26799, names: { en: 'Waypoint 5' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.834773, lng: 90.540481 },
-  { chainage_m: 34973, names: { en: 'Waypoint 6' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.785562, lng: 90.568720 },
-  { chainage_m: 41371, names: { en: 'Waypoint 7' },                kind: 'interchange', status: 'construction', connects_to: '', lat: 23.731516, lng: 90.587646 },
+  { chainage_m: 2314,  names: { en: 'Waypoint 2' },                kind: 'waypoint'   , status: 'construction', connects_to: '', lat: 23.977568, lng: 90.380874 },
+  { chainage_m: 7554,  names: { en: 'Waypoint 3' },                kind: 'waypoint'   , status: 'open',         connects_to: '', lat: 23.949671, lng: 90.414551 },
+  { chainage_m: 12090, names: { en: 'Waypoint 4' },                kind: 'waypoint'   , status: 'open',         connects_to: '', lat: 23.930211, lng: 90.452655 },
+  { chainage_m: 26799, names: { en: 'Waypoint 5' },                kind: 'waypoint'   , status: 'construction', connects_to: '', lat: 23.834773, lng: 90.540481 },
+  { chainage_m: 34973, names: { en: 'Waypoint 6' },                kind: 'waypoint'   , status: 'construction', connects_to: '', lat: 23.785562, lng: 90.568720 },
+  { chainage_m: 41371, names: { en: 'Waypoint 7' },                kind: 'waypoint'   , status: 'construction', connects_to: '', lat: 23.731516, lng: 90.587646 },
   { chainage_m: 47611, names: { en: 'Madanpur (corridor end)' },        kind: 'interchange', status: 'construction', connects_to: '', lat: 23.690500, lng: 90.546722 },
 
   // -- Toll plazas: kind 'toll_plaza' -------------------------------------
