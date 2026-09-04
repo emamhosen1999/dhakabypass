@@ -1,6 +1,6 @@
 // tests/unit/corridor-strip-data.test.js
 import { describe, it, expect } from 'vitest';
-import { buildStripModel } from '../../lib/corridor/strip.js';
+import { buildStripModel, DEFAULT_MIN_GAP_PCT } from '../../lib/corridor/strip.js';
 
 const SEGMENTS = [
   { id: 1, from_m: 0, to_m: 3900, status: 'construction', labels: {} },
@@ -88,6 +88,11 @@ describe('marker row assignment', () => {
     // This is the whole point. Index parity (the previous approach) put
     // K11+365 and K13+184 on the same row ~45px apart with labels twice
     // that wide, and they printed on top of each other on the home page.
+    //
+    // Asserted against the exported constant, never a literal: this used to
+    // assert >= 7, and 7 is the precise value named in lib/corridor/strip.js
+    // as the broken one that caused those collisions. Lowering the constant
+    // back to 7 left this test green.
     const byRow = new Map();
     for (const m of model().markers) {
       if (!byRow.has(m.row)) byRow.set(m.row, []);
@@ -96,9 +101,16 @@ describe('marker row assignment', () => {
     for (const [, positions] of byRow) {
       const sorted = [...positions].sort((a, b) => a - b);
       for (let i = 1; i < sorted.length; i += 1) {
-        expect(sorted[i] - sorted[i - 1]).toBeGreaterThanOrEqual(7);
+        expect(sorted[i] - sorted[i - 1]).toBeGreaterThanOrEqual(DEFAULT_MIN_GAP_PCT);
       }
     }
+  });
+
+  it('keeps the default gap wide enough for a label at the narrowest visible width', () => {
+    // 84px label inside a 572px marker area at the 700px breakpoint below
+    // which the strip is hidden entirely = 14.7%. Anything under that is the
+    // bug this constant was raised to fix.
+    expect(DEFAULT_MIN_GAP_PCT).toBeGreaterThanOrEqual(14.7);
   });
 
   it('reports a row count that covers every marker', () => {
@@ -146,12 +158,26 @@ describe('marker row assignment', () => {
   });
 
   it('places a marker with an unusable position rather than dropping it', () => {
+    // An ABSENT chainage_m is the real case: positionPercent() computes
+    // (undefined - from_m) / length_m, so leftPct comes back NaN. That is what
+    // the Number.isFinite guard in assignRows exists for. (This test used to
+    // pass chainage_m: 500 into a 0-1000 extent — a perfectly usable 50% that
+    // never reached the guard at all, so deleting the guard left it green.)
+    //
+    // A second, well-separated marker is what makes the guard observable: with
+    // it, the NaN marker occupies row 0 at position 0 and the good marker fits
+    // beside it. Without it, NaN poisons that row's right edge, every later
+    // comparison is false, and the good marker is pushed onto a row of its own.
     const m = buildStripModel({
       segments: [{ id: 1, from_m: 0, to_m: 1000, status: 'open', labels: {} }],
-      interchanges: [{ id: 1, chainage_m: 500, names: { en: 'ok' }, kind: 'interchange', status: 'open' }],
+      interchanges: [
+        { id: 1, names: { en: 'no chainage' }, kind: 'interchange', status: 'open' },
+        { id: 2, chainage_m: 900, names: { en: 'ok' }, kind: 'interchange', status: 'open' },
+      ],
     });
-    expect(m.markers).toHaveLength(1);
-    expect(m.markers[0].row).toBe(0);
+    expect(m.markers).toHaveLength(2);
+    expect(m.markers.map((x) => x.row)).toEqual([0, 0]);
+    expect(m.rowCount).toBe(1);
   });
 });
 
