@@ -74,8 +74,14 @@ function die(message, fix) {
   process.exit(1);
 }
 
-const git = (...a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8' }).trim();
-const inTree = (...a) => execFileSync('git', a, { cwd: WORKTREE, encoding: 'utf8', stdio: 'pipe' });
+// stdio is spelled out because execFileSync lets a child's stderr through to
+// the parent by default: probing for a branch that does not exist yet would
+// print "fatal: couldn't find remote ref" into a deploy log, which reads like a
+// failure in the middle of an operation that is going fine.
+const git = (...a) =>
+  execFileSync('git', a, { cwd: ROOT, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+const inTree = (...a) =>
+  execFileSync('git', a, { cwd: WORKTREE, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
 const tryGit = (...a) => {
   try { return { ok: true, out: git(...a) }; } catch (e) { return { ok: false, out: String(e.message || e) }; }
 };
