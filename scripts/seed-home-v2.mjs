@@ -28,7 +28,7 @@ const BLOCKS = [
       eyebrow: 'Dhaka Bypass Expressway',
       headline: 'Eighteen kilometres open, and tolling',
       standfirst:
-        'The first section of the bypass carries traffic between Vogra and Mirer Bazar today. '
+        'The first section of the bypass carries traffic between Vogra and Purbachal today. '
         + 'The rest of the 48-kilometre corridor is still under construction.',
       primaryLabel: 'Toll rates',
       primaryHref: 'travel/toll',
@@ -156,7 +156,7 @@ const BLOCKS = [
       heading: 'Who builds and runs it',
       intro: 'The Dhaka Bypass Expressway Development Company holds the concession.',
       items: [
-        { name: 'SRBG', role: 'Sichuan Road & Bridge Group, lead partner', share: '60%' },
+        { name: 'SRBG', role: 'Sichuan Road & Bridge Group, lead partner', share: '' },
         { name: 'SEL', role: 'Shamim Enterprise Ltd', share: '' },
         { name: 'UDC', role: 'UDC Construction Ltd', share: '' },
       ],
@@ -247,7 +247,7 @@ const TRANSLATIONS = {
       eyebrow: 'Dhaka Bypass Expressway',
       headline: 'আঠারো কিলোমিটার খোলা, টোল আদায় চালু',
       standfirst:
-        'বাইপাসের প্রথম অংশ আজ Vogra ও Mirer Bazar-এর মধ্যে যান চলাচল বহন করছে। '
+        'বাইপাসের প্রথম অংশ আজ Vogra ও Purbachal-এর মধ্যে যান চলাচল বহন করছে। '
         + '৪৮ কিলোমিটার করিডোরের বাকি অংশ এখনও নির্মাণাধীন।',
       primaryLabel: 'টোল হার',
       primaryHref: 'travel/toll',
@@ -331,7 +331,7 @@ const TRANSLATIONS = {
       heading: 'কারা নির্মাণ ও পরিচালনা করে',
       intro: 'কনসেশনের দায়িত্বে রয়েছে Dhaka Bypass Expressway Development Company।',
       items: [
-        { name: 'SRBG', role: 'Sichuan Road & Bridge Group, প্রধান অংশীদার', share: '৬০%' },
+        { name: 'SRBG', role: 'Sichuan Road & Bridge Group, প্রধান অংশীদার', share: '' },
         { name: 'SEL', role: 'Shamim Enterprise Ltd', share: '' },
         { name: 'UDC', role: 'UDC Construction Ltd', share: '' },
       ],
@@ -353,7 +353,7 @@ const TRANSLATIONS = {
       eyebrow: 'Dhaka Bypass Expressway',
       headline: '18公里已通车并开始收费',
       standfirst:
-        '快速路首段目前在 Vogra 至 Mirer Bazar 之间承担通行。'
+        '快速路首段目前在 Vogra 至 Purbachal 之间承担通行。'
         + '全长48公里走廊的其余路段仍在建设中。',
       primaryLabel: '通行费标准',
       primaryHref: 'travel/toll',
@@ -433,7 +433,7 @@ const TRANSLATIONS = {
       heading: '建设与运营方',
       intro: '特许经营权由 Dhaka Bypass Expressway Development Company 持有。',
       items: [
-        { name: 'SRBG', role: '四川路桥集团，牵头方', share: '60%' },
+        { name: 'SRBG', role: '四川路桥集团，牵头方', share: '' },
         { name: 'SEL', role: 'Shamim Enterprise Ltd', share: '' },
         { name: 'UDC', role: 'UDC Construction Ltd', share: '' },
       ],
@@ -489,18 +489,18 @@ const PAGE_META = {
     title: 'Dhaka Bypass Expressway',
     description:
       'The Dhaka Bypass Expressway is open and tolling on 18 kilometres between Vogra and '
-      + 'Mirer Bazar — toll rates, the route, and what is open today.',
+      + 'Purbachal — toll rates, the route, and what is open today.',
   },
   bn: {
     title: 'Dhaka Bypass Expressway — টোল, রুট ও যান চলাচলের তথ্য',
     description:
-      'Dhaka Bypass Expressway-এর ভোগড়া থেকে মীরের বাজার পর্যন্ত ১৮ কিলোমিটার খোলা ও টোল আদায় '
+      'Dhaka Bypass Expressway-এর Vogra থেকে Purbachal পর্যন্ত ১৮ কিলোমিটার খোলা ও টোল আদায় '
       + 'চালু — টোল হার, রুট এবং আজ কী খোলা আছে, সবই এক জায়গায়।',
   },
   zh: {
     title: 'Dhaka Bypass Expressway — 通行费、路线与通行信息',
     description:
-      'Dhaka Bypass Expressway 目前在 Vogra 至 Mirer Bazar 之间的18公里路段通车并收费——'
+      'Dhaka Bypass Expressway 目前在 Vogra 至 Purbachal 之间的18公里路段通车并收费——'
       + '通行费标准、路线走向以及今日通行状况，均可在此查询。',
   },
 };
