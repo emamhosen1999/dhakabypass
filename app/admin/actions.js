@@ -1,17 +1,30 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { auth } from '../../auth';
+import { assertCan } from '../../lib/auth/assert-can';
 import { saveContent, getContent } from '../../lib/content';
 import { query, dbEnabled } from '../../lib/db';
 
-/** Every action re-checks the session — never trust the client. */
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.isAdmin) throw new Error('Not authorised');
-  return session;
+/**
+ * Every action re-checks the session AND the caller's role.
+ *
+ * This used to check `isAdmin` alone, which made the whole legacy admin
+ * invisible to the role model: `isAdmin` only means the address is on
+ * ADMIN_EMAILS, and PERMISSIONS in lib/auth/roles.js is what separates an
+ * editor from a translator. A translator could therefore publish news to the
+ * public site, delete gallery images, and read and delete every row of
+ * contact_messages -- which holds submitted personal data.
+ *
+ * Worse, someone on ADMIN_EMAILS with no `users` row has role `undefined`;
+ * can() fails closed on that in the new admin, while this tree handed them
+ * full content control.
+ *
+ * The permission is per action, not one blanket grant, because these are not
+ * equivalent privileges: deleting a member of the public's message is not the
+ * same act as saving a page section.
+ */
+async function requireAdmin(action) {
+  return assertCan(action);
 }
 
 function revalidateSite() {
@@ -21,7 +34,7 @@ function revalidateSite() {
 
 /** Save a whole content section (object of field -> value). */
 export async function saveSectionAction(sectionKey, formData) {
-  await requireAdmin();
+  await requireAdmin('manage_pages'); // editing site content
 
   const current = (await getContent(sectionKey)) || {};
   const updated = structuredClone(current);
@@ -40,8 +53,15 @@ export async function saveSectionAction(sectionKey, formData) {
  * Sets a value at a dotted/bracketed path, e.g. "stats.0.value" or "paragraphs.2".
  * Numeric segments index arrays. Keeps the original type where sensible.
  */
+// A form field name becomes an object path here, and the field names come
+// from the request. Without this guard a field called `__proto__.x` walks to
+// Object.prototype and assigns to it -- process-wide until Passenger restarts,
+// and invisible in the saved JSON because no own property is ever created.
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 function setByPath(obj, pathStr, value) {
   const parts = pathStr.split('.');
+  if (parts.some((k) => UNSAFE_KEYS.has(k))) return;
   let node = obj;
   for (let i = 0; i < parts.length - 1; i++) {
     const k = parts[i];
@@ -53,7 +73,7 @@ function setByPath(obj, pathStr, value) {
 
 /** Gallery: add / update caption / reorder / delete. */
 export async function saveGalleryAction(formData) {
-  await requireAdmin();
+  await requireAdmin('manage_media'); // gallery images are media
   if (!dbEnabled()) throw new Error('Database is not configured');
 
   const ids = formData.getAll('id');
@@ -71,7 +91,7 @@ export async function saveGalleryAction(formData) {
 }
 
 export async function deleteGalleryImageAction(formData) {
-  await requireAdmin();
+  await requireAdmin('manage_media'); // gallery images are media
   if (!dbEnabled()) throw new Error('Database is not configured');
   const id = Number(formData.get('id'));
   if (Number.isFinite(id)) {
@@ -80,58 +100,25 @@ export async function deleteGalleryImageAction(formData) {
   revalidateSite();
 }
 
-const ALLOWED_IMAGE = new Set(['.webp', '.jpg', '.jpeg', '.png', '.gif', '.svg', '.avif']);
-
-/** Uploads an image to /public/uploads and returns its public path. */
-export async function uploadImageAction(formData) {
-  await requireAdmin();
-
-  const file = formData.get('file');
-  if (!file || typeof file === 'string' || file.size === 0) {
-    return { ok: false, error: 'No file selected' };
-  }
-  if (file.size > 8 * 1024 * 1024) {
-    return { ok: false, error: 'File is larger than 8MB' };
-  }
-
-  const ext = path.extname(file.name || '').toLowerCase();
-  if (!ALLOWED_IMAGE.has(ext)) {
-    return { ok: false, error: `Unsupported file type: ${ext || 'unknown'}` };
-  }
-
-  // sanitise: never trust the client filename
-  const base = path
-    .basename(file.name || 'image', ext)
-    .toLowerCase()
-    .replace(/[^a-z0-9-_]/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 60) || 'image';
-  const filename = `${base}-${Date.now()}${ext}`;
-
-  const dir = path.join(process.cwd(), 'public', 'uploads');
-  await fs.mkdir(dir, { recursive: true });
-  const buf = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(path.join(dir, filename), buf);
-
-  const publicPath = `/uploads/${filename}`;
-
-  // If this upload targets the gallery, register it.
-  if (formData.get('target') === 'gallery' && dbEnabled()) {
-    const rows = await query('SELECT COALESCE(MAX(sort_order), 0) + 1 AS next FROM gallery_images');
-    await query('INSERT INTO gallery_images (file, caption, sort_order) VALUES (?, ?, ?)', [
-      publicPath,
-      String(formData.get('caption') || ''),
-      rows?.[0]?.next ?? 0,
-    ]);
-  }
-
-  revalidateSite();
-  return { ok: true, path: publicPath };
-}
+/**
+ * The legacy `uploadImageAction` used to live here. It took the stored file
+ * extension straight from the client-supplied `file.name`, never looked at
+ * `file.type`, allowed `.svg`, and wrote into `public/` — where Next's static
+ * handler serves the bytes with none of the protections
+ * app/uploads/[...path]/route.js applies (extension-derived Content-Type,
+ * nosniff, a sandbox CSP, and Content-Disposition: attachment for SVG). An
+ * uploaded SVG carrying a <script> therefore executed on the admin's own
+ * origin and could drive every server action as that admin.
+ *
+ * Uploads now go through lib/media.js's saveUpload(), which derives the
+ * extension from a validated MIME type and writes outside public/ — see
+ * app/admin/api/upload/route.js, the single entry point all three admin
+ * uploaders (FieldInput, GalleryManager, NewsForm) now use.
+ */
 
 /** Contact messages (from the public contact form). */
 export async function deleteMessageAction(formData) {
-  await requireAdmin();
+  await requireAdmin('manage_users'); // contact_messages holds personal data; keep it to admins
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
   if (Number.isFinite(id)) {
@@ -142,7 +129,7 @@ export async function deleteMessageAction(formData) {
 }
 
 export async function toggleMessageReadAction(formData) {
-  await requireAdmin();
+  await requireAdmin('manage_users'); // same table, same data
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
   const isRead = formData.get('read') === 'true';
@@ -213,7 +200,7 @@ export async function subscribeNewsletterAction(formData) {
 
 /** News / Latest Updates CRUD */
 export async function saveNewsAction(formData) {
-  await requireAdmin();
+  await requireAdmin('publish'); // news goes straight to the public site
   if (!dbEnabled()) throw new Error('Database is not configured');
 
   const id = Number(formData.get('id'));
@@ -267,7 +254,7 @@ export async function saveNewsAction(formData) {
 }
 
 export async function deleteNewsAction(formData) {
-  await requireAdmin();
+  await requireAdmin('publish'); // unpublishing is publishing
   if (!dbEnabled()) throw new Error('Database is not configured');
 
   const id = Number(formData.get('id'));

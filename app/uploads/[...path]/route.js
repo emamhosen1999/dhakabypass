@@ -12,11 +12,12 @@ export const runtime = 'nodejs';
  * these files, so this route is what maps `/uploads/<name>` onto disk.
  *
  * Next always serves `public/` first, ahead of any route match. The legacy
- * uploader (app/admin/actions.js -> uploadImageAction, used by
- * app/admin/api/upload/route.js) still writes into public/uploads/, and
- * those files keep being served as plain static assets, completely
- * unaffected by this route — this handler only ever runs for a request
- * that public/ didn't already answer.
+ * uploader that used to write into public/uploads/ is gone — every admin
+ * upload now goes through app/admin/api/upload/route.js -> saveUpload(), so
+ * new files land in MEDIA_ROOT and are served here. Files written to
+ * public/uploads/ BEFORE that change are still served as plain static
+ * assets, completely unaffected by this route: this handler only ever runs
+ * for a request that public/ didn't already answer.
  */
 
 // Content-Type is decided ONLY from this allowlist, keyed on the file

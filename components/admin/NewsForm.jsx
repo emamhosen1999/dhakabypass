@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { saveNewsAction, uploadImageAction } from '../../app/admin/actions';
+import { saveNewsAction } from '../../app/admin/actions';
 
 export default function NewsForm({ post }) {
   const router = useRouter();
@@ -21,7 +21,10 @@ export default function NewsForm({ post }) {
     const fd = new FormData();
     fd.append('file', file);
     try {
-      const res = await uploadImageAction(fd);
+      // Same endpoint as FieldInput and GalleryManager — see
+      // app/admin/api/upload/route.js. It validates the MIME type and lets
+      // lib/media.js decide the stored filename and extension.
+      const res = await (await fetch('/admin/api/upload', { method: 'POST', body: fd })).json();
       if (res?.ok && res.path) {
         setImageUrl(res.path);
         setStatus({ type: 'success', message: 'Image uploaded successfully.' });
