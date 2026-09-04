@@ -6,7 +6,7 @@ import { revalidatePage } from '../../../../lib/revalidate';
 import { query, withTransaction } from '../../../../lib/db';
 import { saveUpload, ALLOWED_MIME_TYPES } from '../../../../lib/media';
 import { imageSize } from '../../../../lib/media/probe';
-import { swapMediaPath } from '../../../../lib/media/references';
+import { applyMediaReplacement } from '../../../../lib/media/replace';
 // friendly() is the browser-facing error allowlist; see lib/errors.js before
 // touching it. It lives in an ordinary module because a 'use server' file may
 // export async functions only.
@@ -27,20 +27,19 @@ const ACTION = 'edit_blocks';
  */
 const REPLACEABLE_MIME_TYPES = ALLOWED_MIME_TYPES.filter((m) => m !== 'image/svg+xml');
 
-/** LIKE treats % and _ as wildcards. A media path should contain neither, but
- *  the prefilter below must not silently widen if one ever does. */
-function likeEscape(value) {
-  return String(value).replace(/[\\%_]/g, (c) => `\\${c}`);
-}
-
 /**
  * Replaces the file behind an existing media row.
  *
- * The row keeps its id, its alt text and its focal point; only the file, its
- * dimensions and its origin change. Because blocks reference an image by PATH
- * rather than by id (see lib/media/references.js), every stored reference to
- * the old path is repointed in the same transaction — otherwise the picture
- * would simply vanish from the pages that used it.
+ * The row keeps its id; the file, its dimensions, its origin, its alt text and
+ * its focal point all change. Because blocks reference an image by PATH rather
+ * than by id (see lib/media/references.js), every stored reference to the old
+ * path is repointed in the same transaction — otherwise the picture would
+ * simply vanish from the pages that used it.
+ *
+ * The alt text and focal point are RESET rather than carried over: they
+ * describe the bytes, not the row. lib/media/replace.js explains why at
+ * length, and holds everything this does to rows so it can be tested against a
+ * real database without an authenticated session.
  */
 export async function replaceMediaAction(formData) {
   await assertCan(ACTION);
@@ -74,60 +73,18 @@ export async function replaceMediaAction(formData) {
     // file, not the row: the whole point is to keep the EXISTING row's id.
     const saved = await saveUpload({ buffer, filename: file.name, mime: file.type });
 
-    slugs = await withTransaction(async (q) => {
-      // media.path is UNIQUE, so saveUpload's surplus row has to release the
-      // new path before the target row can take it. If anything below fails,
-      // the rollback restores that row and the upload simply stays an ordinary
-      // one — the bytes on disk are never orphaned by a failed replacement.
-      await q('DELETE FROM media WHERE id = ?', [saved.id]);
-
-      const res = await q(
-        `UPDATE media SET path = ?, width = ?, height = ?, bytes = ?, mime = ?, origin = 'upload'
-          WHERE id = ?`,
-        [saved.path, size.width, size.height, buffer.length, size.mime, id],
-      );
-      if (!res || res.affectedRows === 0) throw validationError('That image no longer exists.');
-
-      const touched = new Set();
-
-      // LIKE is only a prefilter to keep the scan small; swapMediaPath decides
-      // what actually matches, by whole-string equality.
-      const blocks = await q(
-        `SELECT bt.block_id, bt.locale, bt.data, p.slug
-           FROM block_translations bt
-           JOIN blocks b ON b.id = bt.block_id
-           JOIN pages  p ON p.id = b.page_id
-          WHERE bt.data LIKE CONCAT('%', ?, '%') ESCAPE '\\\\'`,
-        [likeEscape(target.path)],
-      );
-      for (const row of blocks || []) {
-        let data;
-        try {
-          data = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
-        } catch {
-          continue; // A hand-edited row that no longer parses is left alone.
-        }
-        const { data: next, changed } = swapMediaPath(data, target.path, saved.path);
-        if (!changed) continue;
-        await q(
-          'UPDATE block_translations SET data = ? WHERE block_id = ? AND locale = ?',
-          [JSON.stringify(next), row.block_id, row.locale],
-        );
-        if (row.slug) touched.add(row.slug);
-      }
-
-      // Social preview images are stored as a plain column, not inside JSON.
-      const og = await q(
-        `SELECT p.slug FROM page_translations pt
-           JOIN pages p ON p.id = pt.page_id
-          WHERE pt.og_image = ?`,
-        [target.path],
-      );
-      for (const row of og || []) if (row.slug) touched.add(row.slug);
-      await q('UPDATE page_translations SET og_image = ? WHERE og_image = ?', [saved.path, target.path]);
-
-      return [...touched];
-    });
+    slugs = await withTransaction((q) =>
+      applyMediaReplacement(q, {
+        id,
+        oldPath: target.path,
+        newPath: saved.path,
+        width: size.width,
+        height: size.height,
+        bytes: buffer.length,
+        mime: size.mime,
+        surplusId: saved.id,
+        notFound: () => validationError('That image no longer exists.'),
+      }));
   } catch (err) {
     friendly(err, 'The image could not be replaced. Please try again.');
   }

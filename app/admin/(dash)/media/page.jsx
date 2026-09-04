@@ -1,5 +1,5 @@
 import { assertCan } from '../../../../lib/auth/assert-can';
-import { listMedia } from '../../../../lib/media/repo';
+import { listMedia, mediaAlt } from '../../../../lib/media/repo';
 import { replaceMediaAction } from './actions';
 import GuideNotice from './GuideNotice';
 
@@ -21,6 +21,12 @@ const SOFT_WIDTH = 1600;
 
 function Row({ row }) {
   const soft = row.width > 0 && row.width < SOFT_WIDTH;
+  // Replacing a picture resets its description, because the old sentence
+  // describes a photograph that is no longer there (see lib/media/replace.js).
+  // An empty alt is therefore its own review flag, and it is shown as one:
+  // resetting silently would leave a screen-reader user hearing nothing where
+  // they used to hear something, with no sign of it on this screen.
+  const described = Boolean(mediaAlt(row, 'en'));
   return (
     <li className="border-b py-4 grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-start">
       <img
@@ -43,6 +49,17 @@ function Row({ row }) {
             </span>
           ) : null}
         </p>
+        {described ? (
+          <p className="text-sm text-gray-600">{mediaAlt(row, 'en')}</p>
+        ) : (
+          <p className="text-sm text-amber-900">
+            <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold">
+              No description
+            </span>{' '}
+            Nobody using a screen reader is told what this picture shows. Send us one
+            sentence describing what is in the frame.
+          </p>
+        )}
         {row.credit ? <p className="text-sm text-gray-500">{row.credit}</p> : null}
         {soft ? (
           <p className="text-sm text-gray-500">
