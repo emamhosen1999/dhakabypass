@@ -90,6 +90,12 @@ which it is doing anyway.
   build time — measured, not assumed. A staging artifact promoted to production
   would publish staging canonicals. The app refuses to start when the two
   disagree; do not work around it, rebuild.
+- **The analytics settings are baked at build time too**, for the same reason and
+  in the same files. `ANALYTICS_PROVIDER` and its companions must be set for the
+  build, not just for the running app, and changing them means rebuilding. Leave
+  them unset on staging so staging traffic never reaches the production numbers.
+  Choosing `ga4` also switches on a consent banner, because Google Analytics sets
+  cookies; the cookieless providers do not need one.
 - **Back up the database before any SQL import.** phpMyAdmin → Export → Quick →
   SQL. It is the only database rollback that exists.
 
@@ -156,6 +162,8 @@ Then add the environment variables in the same screen:
 | `ADMIN_EMAILS` | comma-separated addresses | nobody can sign in |
 | `MEDIA_ROOT` | *optional* — see below | uploads land in `var/uploads` |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | optional | Google button hidden |
+| `ANALYTICS_PROVIDER` | *leave unset on staging* | nothing measured — correct for staging |
+| `ANALYTICS_SITE_ID` / `ANALYTICS_SCRIPT_URL` | with a provider | preflight warns; nothing rendered |
 
 Do **not** set `PORT` or `HOSTNAME`. Passenger supplies both, and the generated
 server reads them correctly.

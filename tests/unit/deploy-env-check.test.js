@@ -21,6 +21,7 @@ import {
   normalizeOrigin,
 } from '../../lib/deploy/env-check.js';
 import { siteOrigin } from '../../lib/seo/site.js';
+import { analyticsConfig } from '../../lib/analytics/config.js';
 
 /** A complete, correct production environment — the baseline each case breaks. */
 const GOOD = {
@@ -217,6 +218,62 @@ describe('admin configuration — warnings, deliberately', () => {
     const r = run({ ADMIN_EMAILS: '' });
     expect(r.problems).toEqual([]);
     expect(keys(r.warnings)).toContain('ADMIN_EMAILS');
+  });
+});
+
+describe('analytics', () => {
+  // Warnings, not refusals: a misconfigured analytics tag is a reporting gap,
+  // not a broken site, and refusing to serve the public site over it would be
+  // the wrong trade.
+  it('says nothing when analytics is off', () => {
+    expect(run({ ANALYTICS_PROVIDER: 'none' }).warnings.map((w) => w.key))
+      .not.toContain('ANALYTICS_PROVIDER');
+    expect(run().warnings).toEqual([]);
+  });
+
+  it('warns when a provider is named without a site id', () => {
+    const r = run({ ANALYTICS_PROVIDER: 'ga4' });
+    expect(r.problems).toEqual([]);
+    expect(keys(r.warnings)).toContain('ANALYTICS_SITE_ID');
+  });
+
+  it('warns when a self-hosted provider has no script URL', () => {
+    const r = run({ ANALYTICS_PROVIDER: 'plausible', ANALYTICS_SITE_ID: 'x' });
+    expect(keys(r.warnings)).toContain('ANALYTICS_SCRIPT_URL');
+  });
+
+  it('warns on an unrecognised provider', () => {
+    const r = run({ ANALYTICS_PROVIDER: 'matomo', ANALYTICS_SITE_ID: 'x' });
+    expect(keys(r.warnings)).toContain('ANALYTICS_PROVIDER');
+  });
+
+  it('is silent on a complete configuration', () => {
+    const r = run({
+      ANALYTICS_PROVIDER: 'plausible',
+      ANALYTICS_SITE_ID: 'dhakabypass.com',
+      ANALYTICS_SCRIPT_URL: 'https://analytics.example.org/js/script.js',
+    });
+    expect(r.warnings).toEqual([]);
+  });
+
+  it('agrees with lib/analytics/config.js about what is enabled', () => {
+    // env-check.js duplicates the rules because it is copied into the artifact
+    // where lib/ does not exist. This pins the copies together: a change to one
+    // that is not mirrored in the other fails here rather than drifting.
+    const cases = [
+      {},
+      { ANALYTICS_PROVIDER: 'none' },
+      { ANALYTICS_PROVIDER: 'ga4' },
+      { ANALYTICS_PROVIDER: 'ga4', ANALYTICS_SITE_ID: 'G-X' },
+      { ANALYTICS_PROVIDER: 'plausible', ANALYTICS_SITE_ID: 'x' },
+      { ANALYTICS_PROVIDER: 'plausible', ANALYTICS_SITE_ID: 'x', ANALYTICS_SCRIPT_URL: 'https://a/b.js' },
+      { ANALYTICS_PROVIDER: 'matomo', ANALYTICS_SITE_ID: 'x' },
+    ];
+    for (const over of cases) {
+      const warned = run(over).warnings.some((w) => w.key.startsWith('ANALYTICS'));
+      const broken = analyticsConfig({ ...over }).problems.length > 0;
+      expect(warned, JSON.stringify(over)).toBe(broken);
+    }
   });
 });
 

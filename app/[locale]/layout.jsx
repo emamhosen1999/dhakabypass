@@ -4,6 +4,7 @@ import ThemeScript from '../../components/chrome/ThemeScript.jsx';
 import SiteHeaderV2 from '../../components/chrome/SiteHeaderV2.jsx';
 import SiteFooterV2 from '../../components/chrome/SiteFooterV2.jsx';
 import AdvisoryBar from '../../components/corridor/AdvisoryBar.jsx';
+import Analytics from '../../components/chrome/Analytics.jsx';
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -28,6 +29,10 @@ export default async function LocaleLayout({ children, params }) {
       <SiteHeaderV2 locale={locale} />
       <main id="main">{children}</main>
       <SiteFooterV2 locale={locale} />
+      {/* Renders nothing unless ANALYTICS_PROVIDER is configured. Only the
+          localised tree is measured: the admin is staff behind auth, and the
+          legacy tree is not touched. */}
+      <Analytics locale={locale} />
     </div>
   );
 }

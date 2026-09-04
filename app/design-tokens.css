@@ -671,3 +671,21 @@
 .db-gallery-img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;}
 .db-gallery-caption{margin:8px 0 0;font-size:.88rem;color:var(--db-ink-2);line-height:1.45;}
 .db-gallery-credit{margin:4px 0 0;font-size:.76rem;color:var(--db-ink-3);}
+
+/* ---- cookie consent -------------------------------------------------------
+   Rendered only when the configured analytics provider actually sets cookies.
+   Fixed to the bottom rather than centred over the page: a modal that blocks
+   the content until answered is how people learn to click Accept without
+   reading, and the site is fully usable whichever they choose. */
+.db-consent{position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:var(--db-surface);border-top:1px solid var(--db-rule);
+  box-shadow:0 -2px 12px rgb(0 0 0 / .12);}
+.db-consent-inner{max-width:var(--db-shell);margin:0 auto;
+  padding:14px clamp(12px,3vw,20px);
+  display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between;}
+.db-consent-text{margin:0;max-width:56ch;color:var(--db-ink-2);font-size:.9rem;line-height:1.5;}
+.db-consent-actions{display:flex;gap:10px;flex-wrap:wrap;}
+/* Decline carries the same weight and the same tap target as Accept. A banner
+   where refusing is harder than agreeing is not consent. */
+.db-btn-quiet{background:transparent;color:var(--db-ink);border-color:var(--db-rule-2);}
+.db-btn-quiet:hover{background:var(--db-surface-2);}

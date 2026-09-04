@@ -100,3 +100,39 @@ export async function replaceMediaAction(formData) {
   revalidateMedia();
   revalidatePath(ADMIN);
 }
+
+/**
+ * Show or hide one image in the public gallery.
+ *
+ * `media.in_gallery` defaults to 0, so a picture uploaded for a page block never
+ * reaches the public gallery until someone says it should (see
+ * scripts/db-setup-v8.mjs). Without this action that flag would be frozen at
+ * whatever the migration set, and the gallery could never be curated.
+ *
+ * Guarded by the same `edit_blocks` capability as the rest of this screen:
+ * deciding what the public sees is an editorial act, not an administrative one.
+ */
+export async function setGalleryVisibilityAction(formData) {
+  await assertCan(ACTION);
+
+  const id = Number(formData.get('id'));
+  if (!Number.isInteger(id) || id <= 0) {
+    validationError('That image no longer exists.');
+  }
+  // The form submits the value it wants, not a toggle. A toggle read from the
+  // page's own state double-fires when a request is retried or a button is
+  // double-clicked, and lands on the opposite of what the editor chose.
+  const show = String(formData.get('show')) === '1' ? 1 : 0;
+
+  try {
+    const result = await query('UPDATE media SET in_gallery = ? WHERE id = ?', [show, id]);
+    if (result && result.affectedRows === 0) {
+      validationError('That image no longer exists.');
+    }
+  } catch (err) {
+    friendly(err, 'The gallery could not be updated. Please try again.');
+  }
+
+  revalidateMedia();
+  revalidatePath(ADMIN);
+}

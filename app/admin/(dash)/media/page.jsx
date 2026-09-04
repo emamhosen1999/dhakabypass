@@ -1,6 +1,6 @@
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { listMedia, mediaAlt } from '../../../../lib/media/repo';
-import { replaceMediaAction } from './actions';
+import { replaceMediaAction, setGalleryVisibilityAction } from './actions';
 import GuideNotice from './GuideNotice';
 
 export const dynamic = 'force-dynamic';
@@ -68,6 +68,28 @@ function Row({ row }) {
         ) : null}
       </div>
 
+      <div className="flex flex-col gap-2 sm:items-end">
+        {/* Whether this picture is on the public gallery page. The flag defaults
+            to off for every new upload, so a diagram or a logo attached to a
+            page block never reaches the gallery by accident — this is where an
+            editor opts one in. The button submits the value it wants rather
+            than toggling, so a double-click or a retried request cannot land on
+            the opposite of what was chosen. */}
+        <form action={setGalleryVisibilityAction} className="flex items-center gap-2">
+          <input type="hidden" name="id" value={row.id} />
+          <input type="hidden" name="show" value={row.inGallery ? '0' : '1'} />
+          <span
+            className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${
+              row.inGallery ? 'bg-green-100 text-green-900' : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {row.inGallery ? 'In the gallery' : 'Not in the gallery'}
+          </span>
+          <button type="submit" className="px-3 py-1.5 rounded border text-sm">
+            {row.inGallery ? 'Remove from gallery' : 'Add to gallery'}
+          </button>
+        </form>
+
       <form action={replaceMediaAction} className="flex flex-wrap items-center gap-2 sm:justify-end">
         <input type="hidden" name="id" value={row.id} />
         <input
@@ -81,6 +103,7 @@ function Row({ row }) {
           Replace
         </button>
       </form>
+      </div>
     </li>
   );
 }
