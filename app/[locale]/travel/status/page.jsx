@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { isLocale } from '../../../../lib/i18n/locales';
 import { t } from '../../../../lib/i18n/ui';
+import { alternatesFor } from '../../../../lib/seo/alternates.js';
 import {
   getCorridorSummaryCached, getInterchangesCached, getIllustrativeCached, getPublishedLengthKmCached,
 } from '../../../../lib/corridor/cache';
@@ -13,7 +14,11 @@ import IllustrativeNotice from '../../../../components/corridor/IllustrativeNoti
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: t(locale, 'travelStatus'), description: t(locale, 'travelStatusIntro') };
+  return {
+    title: t(locale, 'travelStatus'),
+    description: t(locale, 'travelStatusIntro'),
+    alternates: alternatesFor('/travel/status', locale),
+  };
 }
 
 // Safe defaults for a dead database: an empty corridor renders 0% progress

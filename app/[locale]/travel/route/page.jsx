@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { isLocale } from '../../../../lib/i18n/locales';
 import { t } from '../../../../lib/i18n/ui';
+import { alternatesFor } from '../../../../lib/seo/alternates.js';
 import {
   getCorridorSummaryCached, getInterchangesCached, getIllustrativeCached,
 } from '../../../../lib/corridor/cache';
@@ -12,7 +13,11 @@ import IllustrativeNotice from '../../../../components/corridor/IllustrativeNoti
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: t(locale, 'travelRoute'), description: t(locale, 'travelRouteIntro') };
+  return {
+    title: t(locale, 'travelRoute'),
+    description: t(locale, 'travelRouteIntro'),
+    alternates: alternatesFor('/travel/route', locale),
+  };
 }
 
 // Safe defaults for a dead database, matching the status/toll pages: an empty

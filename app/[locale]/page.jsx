@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { isLocale } from '../../lib/i18n/locales.js';
 import { getPageBySlugCached, getPageBlocksCached } from '../../lib/content/cache.js';
 import { resolveTranslation } from '../../lib/content/resolve.js';
+import { alternatesFor } from '../../lib/seo/alternates.js';
 import BlockRenderer from '../../components/blocks/BlockRenderer.jsx';
 import {
   getCorridorSummaryCached, getInterchangesCached, getTollRatesCached, getIllustrativeCached,
@@ -35,13 +36,29 @@ async function load(params) {
 // a page that isn't published.
 export async function generateMetadata({ params }) {
   const loaded = await load(params);
-  if (!loaded?.page || loaded.page.status !== 'published') return {};
+  // An unsupported locale segment is a 404 — no alternates for a URL that
+  // does not resolve.
+  if (!loaded) return {};
+
+  // hreflang is a statement about which URLs EXIST, not about what they say.
+  // Unlike the title and description below it does not depend on the page
+  // being published: this route returns 200 in all three locales either way
+  // (an unpublished home renders the "nothing created yet" message rather
+  // than 404ing — see the component). And it does not depend on a locale
+  // having its own translation either: a missing bn row falls back to English
+  // and /bn still renders. So the alternates are declared unconditionally
+  // from here on, and the metadata that IS content-dependent is layered on.
+  const alternates = alternatesFor('/', loaded.locale);
+  if (loaded.page?.status !== 'published') return { alternates };
+
   const rows = loaded.page.translations.map((tr) => ({
     locale: tr.locale, status: tr.status,
     data: { title: tr.seo_title || tr.title, description: tr.seo_description },
   }));
   const resolved = resolveTranslation(rows, loaded.locale);
-  return resolved ? { title: resolved.data.title, description: resolved.data.description } : {};
+  return resolved
+    ? { title: resolved.data.title, description: resolved.data.description, alternates }
+    : { alternates };
 }
 
 export default async function LocaleHome({ params }) {

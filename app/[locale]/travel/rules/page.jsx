@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { isLocale } from '../../../../lib/i18n/locales';
 import { t } from '../../../../lib/i18n/ui';
+import { alternatesFor } from '../../../../lib/seo/alternates.js';
 import { getPageBySlugCached, getPageBlocksCached } from '../../../../lib/content/cache';
 import { getIllustrativeCached } from '../../../../lib/corridor/cache';
 import { getProhibitedVehicles } from '../../../../lib/settings';
@@ -12,7 +13,11 @@ const SLUG = 'travel/rules';
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: t(locale, 'travelRules'), description: t(locale, 'travelRulesIntro') };
+  return {
+    title: t(locale, 'travelRules'),
+    description: t(locale, 'travelRulesIntro'),
+    alternates: alternatesFor('/travel/rules', locale),
+  };
 }
 
 /**
