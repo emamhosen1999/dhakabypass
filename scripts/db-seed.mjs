@@ -41,8 +41,15 @@ const db = await mysql.createConnection({
 const defaults = { ...read('content/seed.json'), ...read('content/pages.json') };
 let n = 0;
 for (const [key, data] of Object.entries(defaults)) {
+  // No CAST(? AS JSON) here. MariaDB has no JSON type — `JSON` in a CREATE
+  // TABLE is an alias for LONGTEXT with a validity constraint, and
+  // `CAST(x AS JSON)` is a parse error on it. This script therefore ran fine on
+  // a developer machine using MySQL and would have failed on the FIRST deploy:
+  // the production host is MariaDB 11.4. Passing the JSON string straight
+  // through is correct on both — MySQL casts it implicitly into a real JSON
+  // column, MariaDB stores the text.
   await db.execute(
-    `INSERT INTO content (section_key, data) VALUES (?, CAST(? AS JSON))
+    `INSERT INTO content (section_key, data) VALUES (?, ?)
      ON DUPLICATE KEY UPDATE data = VALUES(data)`,
     [key, JSON.stringify(data)]
   );

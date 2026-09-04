@@ -1,5 +1,14 @@
 # Dhaka Bypass Reinnovation — P0+P1: Foundations & Design System — Implementation Plan
 
+> **Note on the deploy contract, added 2026-09-04.** Where this document says the
+> build artifacts are committed and the server does `git pull` only, the shape was
+> right but the detail was not: `.next/` was gitignored and `output: 'standalone'`
+> leaves `public/` and `.next/static` outside the standalone directory, so there
+> was never a complete artifact to commit. That is now fixed, and the deploy is
+> described in full — including what supersedes the sentences below — in
+> **`docs/deployment/2026-09-04-deploy-runbook.md`**, which is the single source of
+> truth. Read it before acting on any deployment statement in this file.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the trilingual, block-rendered, themed foundation of the new dhakabypass.com — locale routing, a block content model with English fallback, a role-aware admin that can create pages and edit blocks, a media pipeline, and the corridor/wayfinding design system — without touching the currently-live site.

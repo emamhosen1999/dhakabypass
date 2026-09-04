@@ -1,5 +1,14 @@
 # Dhaka Bypass Expressway — Reinnovation — Design
 
+> **Note on the deploy contract, added 2026-09-04.** Where this document says the
+> build artifacts are committed and the server does `git pull` only, the shape was
+> right but the detail was not: `.next/` was gitignored and `output: 'standalone'`
+> leaves `public/` and `.next/static` outside the standalone directory, so there
+> was never a complete artifact to commit. That is now fixed, and the deploy is
+> described in full — including what supersedes the sentences below — in
+> **`docs/deployment/2026-09-04-deploy-runbook.md`**, which is the single source of
+> truth. Read it before acting on any deployment statement in this file.
+
 **Date:** 2026-08-31
 **Status:** Approved (design), pending spec review
 **Supersedes:** `2026-07-13-dhakabypass-dynamic-rebuild-design.md` (the dynamic rebuild whose

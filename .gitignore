@@ -13,6 +13,11 @@ public/uploads/
 # on purpose, served by app/uploads/[...path]/route.js instead
 var/uploads/
 
+# release tarballs written by scripts/package-standalone.mjs --tar
+var/dist/
+# git worktree used by scripts/release-to-branch.mjs
+var/release-worktree/
+
 # local scratch / screenshots
 .playwright-mcp/
 *.log
