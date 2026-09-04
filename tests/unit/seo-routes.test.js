@@ -60,11 +60,22 @@ describe('STATIC_LOCALISED_PATHS', () => {
     }
   });
 
-  it('contains no legacy route', () => {
-    // The old site's paths live under app/(site)/ and must never be listed.
+  it('lists only paths that become localised URLs, never legacy ones', () => {
+    // This used to assert that no entry EQUALLED a legacy path. That held only
+    // while the two trees had no name in common. `/contact` now exists in both:
+    // `app/(site)/contact` is the legacy page and `app/[locale]/contact` is the
+    // localised one, and they are different pages that happen to share a name.
+    //
+    // The invariant was never really about the string — it is that nothing in
+    // this list can produce an UNPREFIXED legacy URL. localisedPath() is what
+    // guarantees that, so that is what is tested.
     const legacy = ['/project', '/project/overview', '/gallery', '/contact', '/stakeholders',
       '/economic-impact', '/latest-updates', '/routes-facilities', '/chinese-contribution'];
-    for (const p of legacy) expect(STATIC_LOCALISED_PATHS).not.toContain(p);
+    for (const p of STATIC_LOCALISED_PATHS) {
+      for (const locale of ['en', 'bn', 'zh']) {
+        expect(legacy).not.toContain(localisedPath(p, locale));
+      }
+    }
   });
 });
 

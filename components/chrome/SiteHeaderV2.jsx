@@ -3,10 +3,30 @@ import LocaleSwitch from './LocaleSwitch.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { t } from '../../lib/i18n/ui.js';
 
+/**
+ * The primary navigation.
+ *
+ * This is deliberately NOT the old site's shape. That site is organised around
+ * `project`, `economic-impact`, `stakeholders` and `chinese-contribution` — a
+ * brochure about the project's promoters, published at the address a driver
+ * reaches for when they want to know what a truck costs to take through Gazipur.
+ *
+ * What operators of comparable roads lead with is journey planning, road safety,
+ * sustainability and governance; PLUS Malaysia, the closest comparable, is
+ * organised in exactly those terms. `/impact` is gone rather than renamed: an
+ * economic-impact page is an argument for the road's existence, and every figure
+ * that would fill one is in the unverified pile.
+ *
+ * Six items is the most this header carries before the desktop row wraps. The
+ * statutory pages — disclosures, procurement, grievances, governance — are one
+ * click deeper, from the footer and from About, because a road user needs them
+ * rarely and needs the toll rate constantly.
+ */
 const NAV = [
   { key: 'navTravel', href: '/travel' },
+  { key: 'navSafety', href: '/safety' },
   { key: 'navProject', href: '/project' },
-  { key: 'navImpact', href: '/impact' },
+  { key: 'navSustainability', href: '/sustainability' },
   { key: 'navAbout', href: '/about' },
   { key: 'navNews', href: '/news' },
 ];

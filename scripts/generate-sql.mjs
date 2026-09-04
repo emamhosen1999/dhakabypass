@@ -131,6 +131,7 @@ const chain = [
   ['db-seed.mjs', 'legacy content rows'],
   ['seed-corridor.mjs', 'corridor data'],
   ['seed-home-v2.mjs', 'home page blocks, 3 locales'],
+  ['seed-institutional.mjs', 'about, governance, project, safety, sustainability,\n    procurement, disclosures, land acquisition, tariff, grievances'],
   ['import-legacy-media.mjs', 'audited legacy image registry'],
   ['translate-media-alt.mjs', 'bn/zh alt text'],
 ];

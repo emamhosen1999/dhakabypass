@@ -184,6 +184,13 @@
 .db-stat{display:flex;flex-direction:column;padding:18px 8px 18px 0;}
 .db-stat-value{order:1;font-family:var(--db-font-display);font-weight:700;
   font-size:clamp(1.9rem,1.2rem + 2.2vw,2.9rem);line-height:1;margin:0;}
+/* A stat tile is sized for numerals. An editor can put any string in `value`,
+   and a long one rendered larger than the figures beside it — so text past a
+   few characters steps down and is allowed to wrap. */
+.db-stat-value{overflow-wrap:anywhere;}
+@supports (font-size:1cqi){
+  .db-stat-value{max-width:100%;}
+}
 .db-stat-unit{font-size:.48em;color:var(--db-accent);margin-left:2px;}
 .db-stat-label{order:2;font-family:var(--db-font-display);font-size:.7rem;
   letter-spacing:.15em;text-transform:uppercase;color:var(--db-ink-3);margin-top:6px;}
@@ -255,6 +262,22 @@
   padding:4px 9px;border-radius:2px;text-decoration:none;color:inherit;opacity:.6;}
 .db-locale-btn[aria-current="true"]{background:var(--db-plate-accent);color:#0B1620;opacity:1;}
 .db-footer{border-top:1px solid var(--db-rule);margin-top:64px;}
+/* Footer navigation: the statutory pages live here rather than in the header,
+   so this is the one place a landowner or a supplier finds them. auto-fit means
+   the four groups become two columns on a tablet and one on a phone without a
+   breakpoint for each step. */
+.db-footer-nav{max-width:var(--db-shell);margin:0 auto;
+  padding:32px clamp(12px,3vw,20px) 8px;
+  display:grid;gap:24px 32px;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+.db-footer-heading{font-family:var(--db-font-display);font-size:.72rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--db-ink-3);margin:0 0 10px;}
+.db-footer-links{list-style:none;margin:0;padding:0;display:grid;gap:2px;}
+/* 44px of tap target: these sit close together and are often reached for on a
+   phone, at the bottom of a long page. */
+.db-footer-link{display:block;padding:7px 0;min-height:var(--db-tap,44px);
+  color:var(--db-ink-2);text-decoration:none;font-size:.9rem;line-height:1.5;}
+.db-footer-link:hover,.db-footer-link:focus-visible{color:var(--db-ink);text-decoration:underline;}
 .db-footer-inner{max-width:var(--db-shell);margin:0 auto;padding:24px clamp(12px,3vw,20px);
   display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;
   color:var(--db-ink-3);font-size:.86rem;}
@@ -270,6 +293,30 @@
   color:var(--db-ink-2);font-size:.88rem;}
 .db-illustrative-tag{font-family:var(--db-font-display);font-weight:700;font-size:.72rem;
   letter-spacing:.12em;text-transform:uppercase;color:var(--db-build);white-space:nowrap;}
+
+/* Awaiting confirmation from DBEDC.
+   Six of about 116 claims on the old site are corroborated by anything, so most
+   pages carry a gap where a figure would normally sit. A gap that announces
+   itself is recoverable; a plausible invented figure on a government-linked
+   site is not. This is the same construction as .db-illustrative above — a word
+   as well as a colour, because status is never colour alone — but authored
+   inside rich-text bodies, so it styles a <p> rather than a wrapper. */
+.db-pending{display:block;margin:20px 0;padding:12px 14px;
+  border-left:3px solid var(--db-build);background:var(--db-build-wash);
+  color:var(--db-ink-2);font-size:.94rem;}
+.db-pending-tag{display:block;margin-bottom:4px;
+  font-family:var(--db-font-display);font-weight:700;font-size:.72rem;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--db-build);}
+
+/* Prose lists inside rich-text bodies. The blocks that existed before this
+   point were all headline-and-paragraph, so ul/ol had never appeared in a
+   .db-prose body and inherited the reset's list-style:none — every bullet list
+   authored in the admin rendered as undifferentiated lines. */
+.db-prose ul,.db-prose ol{margin:12px 0;padding-left:1.35em;}
+.db-prose ul{list-style:disc;}
+.db-prose ol{list-style:decimal;}
+.db-prose li{margin:4px 0;}
+.db-prose li::marker{color:var(--db-ink-3);}
 
 /* ---- corridor strip ---- */
 .db-strip-wrap{max-width:var(--db-shell);margin:0 auto;padding:0 clamp(12px,3vw,20px);}
@@ -383,6 +430,7 @@
 .db-page-head{max-width:var(--db-shell);margin:0 auto;padding:clamp(24px,4vw,40px) clamp(12px,3vw,20px) 0;}
 .db-h1{font-size:clamp(1.9rem,1.3rem + 2.4vw,3rem);text-transform:uppercase;letter-spacing:.01em;}
 .db-h2{font-size:clamp(1.4rem,1.1rem + 1.4vw,2rem);text-transform:uppercase;letter-spacing:.02em;}
+.db-h3{font-size:clamp(1.05rem,.95rem + .5vw,1.3rem);letter-spacing:.01em;}
 .db-lede{max-width:var(--db-measure);margin-top:10px;color:var(--db-ink-2);font-size:1.02rem;}
 .db-toll-amount{font-family:var(--db-font-display);font-weight:700;font-size:1.05rem;text-align:right;}
 /* Column-header counterpart, so the "Toll" heading sits over its figures.
@@ -539,3 +587,48 @@
    to say so, this marks it as a caveat rather than as body copy. */
 .db-provisional-inline{border-left:3px solid var(--db-build);padding-left:14px;
   color:var(--db-ink-2);font-size:.93rem;}
+
+
+/* ---- forms (contact) ------------------------------------------------------
+   The first real form on the localised site. Tailwind's preflight strips the
+   browser's own input styling, so every one of these declarations is load
+   bearing rather than decorative — without them the fields render as unbordered
+   transparent boxes that are almost invisible in dark mode. */
+.db-contact-grid{display:grid;gap:32px clamp(24px,4vw,48px);
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start;}
+.db-contact-aside{max-width:var(--db-measure);}
+.db-form{margin-top:20px;max-width:34rem;}
+.db-field{margin-bottom:16px;}
+.db-label{display:block;margin-bottom:6px;font-size:.9rem;font-weight:600;color:var(--db-ink);}
+.db-required{color:var(--db-alert);}
+.db-input{display:block;width:100%;padding:10px 12px;
+  min-height:var(--db-tap,44px);
+  font:inherit;font-size:1rem;   /* 1rem: anything smaller makes iOS Safari zoom on focus */
+  color:var(--db-ink);background:var(--db-surface);
+  border:1px solid var(--db-rule-2);border-radius:3px;}
+.db-input:focus-visible{outline:2px solid var(--db-accent);outline-offset:1px;
+  border-color:var(--db-accent);}
+/* Not colour alone: the field also carries aria-invalid, which is what a screen
+   reader announces. */
+.db-input[aria-invalid="true"]{border-color:var(--db-alert);border-width:2px;}
+.db-textarea{min-height:9rem;resize:vertical;line-height:1.55;}
+.db-form-live:empty{display:none;}
+.db-form-error{margin:0 0 16px;padding:10px 12px;
+  border-left:3px solid var(--db-alert);background:var(--db-alert-wash);color:var(--db-ink);}
+.db-form-note{margin:0 0 16px;color:var(--db-ink-3);font-size:.86rem;}
+.db-form-result{max-width:34rem;margin-top:20px;padding:16px 18px;
+  border-left:3px solid var(--db-open);background:var(--db-open-wash);}
+/* Off-screen rather than display:none — a hidden input is not submitted by
+   every browser when display:none, and the honeypot has to reach the server. */
+.db-honeypot{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
+.db-btn{display:inline-flex;align-items:center;justify-content:center;
+  min-height:var(--db-tap,44px);padding:10px 20px;border:1px solid transparent;
+  border-radius:3px;font-family:var(--db-font-display);font-weight:700;
+  font-size:.86rem;letter-spacing:.06em;text-transform:uppercase;
+  text-decoration:none;cursor:pointer;}
+.db-btn-primary{background:var(--db-plate-accent);color:#0B1620;}
+.db-btn-primary:hover{filter:brightness(1.08);}
+.db-btn-primary:disabled{opacity:.6;cursor:progress;}
+.db-btn:focus-visible{outline:2px solid var(--db-accent);outline-offset:2px;}
+.db-eyebrow{font-family:var(--db-font-display);font-size:.72rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--db-ink-3);margin:0 0 8px;}

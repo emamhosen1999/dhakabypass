@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { buildSitemap, lastModifiedFor } from '../../lib/seo/sitemap.js';
+import { STATIC_LOCALISED_PATHS } from '../../lib/seo/routes.js';
 import { LOCALES } from '../../lib/i18n/locales.js';
 
 const original = process.env.SITE_URL;
@@ -68,7 +69,12 @@ describe('buildSitemap', () => {
     const got = urls(buildSitemap({ pages: [homeRow] }));
     for (const path of ['/project', '/gallery', '/contact', '/stakeholders',
       '/economic-impact', '/latest-updates', '/routes-facilities', '/chinese-contribution']) {
-      expect(got.some((u) => u.endsWith(path))).toBe(false);
+      // Compared as a whole pathname, not with endsWith. `/en/contact` ends
+      // with `/contact` but is the LOCALISED contact page, a different page in
+      // a different tree from the legacy `/contact` under app/(site)/. The
+      // invariant is that no UNPREFIXED legacy URL is emitted, which the
+      // locale-prefix assertion below states directly.
+      expect(got.some((u) => new URL(u).pathname === path)).toBe(false);
     }
     // And no unprefixed URL at all: every entry lives under a locale.
     for (const u of got) {
@@ -89,8 +95,11 @@ describe('buildSitemap', () => {
     const got = urls(buildSitemap({ pages: [] }));
     expect(got).toContain('https://dhakabypass.com/en');
     expect(got).toContain('https://dhakabypass.com/bn/travel/toll');
-    // home + the five travel leaf pages, in each of the three locales.
-    expect(got.length).toBe(LOCALES.length * 6);
+    // home + every code route in STATIC_LOCALISED_PATHS, in each locale.
+    // Asserted against the list rather than a literal, so adding a route
+    // updates this with it instead of failing for the wrong reason — the
+    // drift guard in seo-routes.test.js is what keeps that list honest.
+    expect(got.length).toBe(LOCALES.length * (STATIC_LOCALISED_PATHS.length + 1));
   });
 
   it('survives being called with no argument at all', () => {
