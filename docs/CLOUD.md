@@ -24,8 +24,20 @@ eight `tests/db/**` files and every seed script need one.
 ```bash
 npm test          # expect: 57 files / 635 tests, 0 skipped
 npm run build     # expect: ✓ Compiled successfully
-npm run test:e2e  # expect: 74 passed
+npm run test:e2e  # expect: 81 passed
 ```
+
+The e2e suite needs a browser Playwright recognises. In a cloud sandbox the
+pre-installed Chromium rarely matches the build this package pins, and every
+test then fails with "Executable doesn't exist" — which reads like a broken
+suite rather than a missing download. Point at the installed binary instead:
+
+```bash
+PLAYWRIGHT_CHROMIUM=/opt/pw-browsers/chromium npm run test:e2e
+```
+
+`PLAYWRIGHT_BASE_URL` runs the same suite against a real deployment (and skips
+starting a dev server), which is how the runbook verifies a staging release.
 
 **A test that reports as `skipped` is not a passing test.** It means the file
 failed to collect — almost always a bad relative path. This has bitten the

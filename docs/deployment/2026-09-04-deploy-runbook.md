@@ -251,6 +251,16 @@ Run these against the target's own hostname.
 | 6 | Upload one image in the admin, then confirm the file exists on disk under the media root | if it is missing, `MEDIA_ROOT` points somewhere unexpected |
 | 7 | **Production only:** every legacy URL still returns 200 — `/`, `/project`, `/project/overview`, `/gallery`, `/contact`, `/stakeholders`, `/economic-impact`, `/latest-updates`, `/routes-facilities`, `/chinese-contribution` | the legacy site is still live and none of these has a replacement yet |
 
+You can also run the whole e2e suite against the deployment:
+
+```bash
+PLAYWRIGHT_BASE_URL=https://staging.dhakabypass.com npm run test:e2e
+```
+
+It skips starting a dev server when a base URL is given, so it exercises the
+real deployment rather than a local one. On production the legacy checks in row
+7 are part of that suite already.
+
 Check 3 is the one that catches the failure this whole deploy path was built to
 prevent. Look at the page, do not just check the status code — a 200 with no
 stylesheet is exactly what a missing `.next/static` produces.
