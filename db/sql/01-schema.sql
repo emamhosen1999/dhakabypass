@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS `media` (
   `origin` varchar(16) NOT NULL DEFAULT 'upload',
   `credit` varchar(160) NOT NULL DEFAULT '',
   `original_path` varchar(255) DEFAULT NULL,
+  `in_gallery` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `path` (`path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -184,6 +185,20 @@ CREATE TABLE IF NOT EXISTS `menus` (
   `slug` varchar(64) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `news_translations` (
+  `news_id` int(11) NOT NULL,
+  `locale` varchar(5) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `excerpt` text NOT NULL,
+  `body` longtext DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'draft',
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`news_id`,`locale`),
+  CONSTRAINT `fk_news_translations_news` FOREIGN KEY (`news_id`) REFERENCES `news_updates` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

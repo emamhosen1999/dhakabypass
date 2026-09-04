@@ -31,6 +31,7 @@ const GROUPS = [
       { key: 'navGovernance', href: '/about/governance' },
       { key: 'navSustainability', href: '/sustainability' },
       { key: 'navNews', href: '/news' },
+      { key: 'navGallery', href: '/gallery' },
     ],
   },
   {

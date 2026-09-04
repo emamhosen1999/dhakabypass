@@ -1,5 +1,6 @@
 import { listPublishedPagesForSitemap } from '../lib/seo/pages.js';
 import { buildSitemap } from '../lib/seo/sitemap.js';
+import { listNewsSlugsCached } from '../lib/newsroom/cache.js';
 
 /**
  * `/sitemap.xml`, generated from the database.
@@ -13,6 +14,15 @@ export const revalidate = 3600;
 
 export default async function sitemap() {
   let pages = [];
+  let news = [];
+  // Settled independently: a failure reading the newsroom must not cost the
+  // sitemap its pages, and vice versa. Promise.all would let either one empty
+  // the whole file.
+  try {
+    news = await listNewsSlugsCached();
+  } catch {
+    news = [];
+  }
   try {
     pages = await listPublishedPagesForSitemap();
   } catch {
@@ -24,5 +34,5 @@ export default async function sitemap() {
     // fewer URLs crawled until the database comes back.
     pages = [];
   }
-  return buildSitemap({ pages });
+  return buildSitemap({ pages, news });
 }

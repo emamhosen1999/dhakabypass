@@ -66,6 +66,13 @@ say "Schema"
 npm run db:migrate
 
 say "Seed"
+# db-seed.mjs first: it fills the legacy `content` table and, only when they are
+# empty, `gallery_images` and `news_updates`. Without it a fresh environment has
+# no news at all, so /[locale]/news renders its empty state and looks broken —
+# and the legacy site, which is still live and is what the e2e tripwire checks,
+# has no content either. It was missing from this script until the localised
+# newsroom made the gap visible.
+npm run db:seed
 npm run db:seed:all
 node scripts/import-legacy-media.mjs
 node scripts/translate-media-alt.mjs

@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { revalidateNews } from '../../lib/revalidate.js';
 import { assertCan } from '../../lib/auth/assert-can';
 import { saveContent, getContent } from '../../lib/content';
 import { query, dbEnabled } from '../../lib/db';
@@ -250,6 +251,11 @@ export async function saveNewsAction(formData) {
   revalidatePath('/latest-updates');
   revalidatePath('/admin/news');
   revalidatePath('/admin');
+  // The localised newsroom reads through unstable_cache with a 300-second
+  // recovery floor. Without this tag an editor's change would take up to five
+  // minutes to appear at /en/news while showing instantly on the legacy page —
+  // which reads as the new site being broken.
+  revalidateNews();
   return { ok: true };
 }
 
@@ -265,5 +271,6 @@ export async function deleteNewsAction(formData) {
   revalidatePath('/latest-updates');
   revalidatePath('/admin/news');
   revalidatePath('/admin');
+  revalidateNews();
   return { ok: true };
 }

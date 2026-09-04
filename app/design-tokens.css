@@ -632,3 +632,42 @@
 .db-btn:focus-visible{outline:2px solid var(--db-accent);outline-offset:2px;}
 .db-eyebrow{font-family:var(--db-font-display);font-size:.72rem;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;color:var(--db-ink-3);margin:0 0 8px;}
+
+/* ---- newsroom -------------------------------------------------------------
+   A dated list, not a card grid. News here is operational — a closure, a rate
+   change, a notice — and the date is the first thing a reader checks, so it
+   leads and the rule between items does the grouping. */
+.db-newslist{list-style:none;margin:0;padding:0;display:grid;gap:0;}
+.db-newsitem{padding:22px 0;border-top:1px solid var(--db-rule);}
+.db-newsitem:first-child{border-top:0;padding-top:0;}
+.db-newsmeta{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin:0 0 6px;
+  font-family:var(--db-font-display);font-size:.74rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--db-ink-3);}
+.db-newscat{padding:2px 8px;background:var(--db-surface-2);color:var(--db-ink-2);}
+.db-newstitle{margin:0;font-size:clamp(1.1rem,1rem + .6vw,1.45rem);line-height:1.3;}
+.db-newstitle a{color:var(--db-ink);text-decoration:none;}
+.db-newstitle a:hover,.db-newstitle a:focus-visible{text-decoration:underline;}
+.db-newsexcerpt{margin:8px 0 0;max-width:var(--db-measure);color:var(--db-ink-2);}
+/* Says in words that the item is untranslated. A reader who is not told
+   concludes the translation exists and is simply poor. */
+.db-newsfallback{margin:8px 0 0;font-size:.82rem;color:var(--db-ink-3);}
+.db-article{max-width:var(--db-measure);}
+.db-article .db-prose{margin-top:20px;}
+.db-article-source{margin-top:24px;font-size:.9rem;}
+.db-article-back{margin-top:32px;padding-top:16px;border-top:1px solid var(--db-rule);}
+
+/* ---- gallery --------------------------------------------------------------
+   auto-fill rather than auto-fit: with auto-fit a single remaining image in the
+   last row stretches to the full width of the grid, which reads as a deliberate
+   feature image when it is really just the last one. */
+.db-gallery{list-style:none;margin:0;padding:0;display:grid;gap:20px;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
+.db-gallery-item{margin:0;}
+.db-gallery-link{display:block;background:var(--db-surface-2);}
+.db-gallery-link:focus-visible{outline:2px solid var(--db-accent);outline-offset:2px;}
+/* A fixed aspect box keeps the grid even while the library holds photographs of
+   mixed shape, and object-fit crops rather than distorting. width/height on the
+   img itself still reserve the space before the file arrives. */
+.db-gallery-img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;}
+.db-gallery-caption{margin:8px 0 0;font-size:.88rem;color:var(--db-ink-2);line-height:1.45;}
+.db-gallery-credit{margin:4px 0 0;font-size:.76rem;color:var(--db-ink-3);}

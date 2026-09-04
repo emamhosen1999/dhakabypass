@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  STATIC_LOCALISED_PATHS, REDIRECT_LOCALISED_PATHS, HOME_PATH, pathForSlug, localisedPath,
+  STATIC_LOCALISED_PATHS, REDIRECT_LOCALISED_PATHS, DYNAMIC_LOCALISED_PATHS,
+  HOME_PATH, pathForSlug, localisedPath,
 } from '../../lib/seo/routes.js';
 
 const LOCALE_DIR = path.join(process.cwd(), 'app', '[locale]');
@@ -16,8 +17,6 @@ function routesOnDisk(dir = LOCALE_DIR, prefix = '') {
   const found = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      // Dynamic segments are served from the database, not from the filesystem.
-      if (entry.name.startsWith('[')) continue;
       // Route groups contribute no path segment.
       const segment = entry.name.startsWith('(') ? '' : `/${entry.name}`;
       found.push(...routesOnDisk(path.join(dir, entry.name), `${prefix}${segment}`));
@@ -28,12 +27,17 @@ function routesOnDisk(dir = LOCALE_DIR, prefix = '') {
   return found;
 }
 
+/** A path containing a dynamic segment: `/news/[slug]`, `/[...slug]`. */
+const isDynamic = (p) => p.includes('[');
+
 describe('STATIC_LOCALISED_PATHS', () => {
   it('lists every code route under app/[locale]/ except the database-driven ones', () => {
     // Drift guard. Adding app/[locale]/about/page.jsx without listing it here
     // means that page silently never appears in the sitemap, which is a bug
     // nobody notices for months. This test is the noticing.
-    const onDisk = routesOnDisk().filter((p) => p !== HOME_PATH).sort();
+    const onDisk = routesOnDisk()
+      .filter((p) => p !== HOME_PATH && !isDynamic(p))
+      .sort();
     const accounted = [...STATIC_LOCALISED_PATHS, ...REDIRECT_LOCALISED_PATHS].sort();
     expect(onDisk).toEqual(accounted);
   });
@@ -45,6 +49,20 @@ describe('STATIC_LOCALISED_PATHS', () => {
       expect(STATIC_LOCALISED_PATHS).not.toContain(p);
     }
     expect(REDIRECT_LOCALISED_PATHS).toContain('/travel');
+  });
+
+  it('accounts for the dynamic routes too', () => {
+    // The walker used to skip any directory starting with `[`, which meant a
+    // new dynamic route — `/news/[slug]` — was invisible to this guard AND
+    // absent from the sitemap, with nothing to notice either. Dynamic routes
+    // are now walked and matched against their own list, so adding one without
+    // deciding how its URLs reach the sitemap fails here.
+    //
+    // `/[...slug]` is the catch-all that renders `pages` rows; the sitemap gets
+    // those from the database, which is why it is listed as accounted for.
+    const onDisk = routesOnDisk().filter(isDynamic).sort();
+    const accounted = [...DYNAMIC_LOCALISED_PATHS, '/[...slug]'].sort();
+    expect(onDisk).toEqual(accounted);
   });
 
   it('actually found routes to compare against', () => {

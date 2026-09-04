@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
-import { revalidatePage } from '../../../../lib/revalidate';
+import { revalidatePage, revalidateMedia } from '../../../../lib/revalidate';
 import { query, withTransaction } from '../../../../lib/db';
 import { saveUpload, ALLOWED_MIME_TYPES } from '../../../../lib/media';
 import { imageSize } from '../../../../lib/media/probe';
@@ -93,5 +93,10 @@ export async function replaceMediaAction(formData) {
   // pageTag(slug) and the page list under LIST_TAG, and revalidatePage() fires
   // both. There is no global 'pages' tag — invalidating one would be a no-op.
   for (const slug of slugs) revalidatePage(slug);
+  // The public gallery reads the media library through its own cache entry,
+  // which pageTag() does not touch. Replacing a photograph that is in the
+  // gallery has to invalidate that too, or the old picture keeps serving there
+  // for up to the 300-second recovery floor while the pages show the new one.
+  revalidateMedia();
   revalidatePath(ADMIN);
 }

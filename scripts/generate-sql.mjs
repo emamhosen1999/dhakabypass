@@ -127,6 +127,8 @@ const chain = [
   ['db-setup-v4.mjs', 'media.origin, media.credit'],
   ['db-setup-v5.mjs', "interchanges.kind += 'waypoint'"],
   ['db-setup-v6.mjs', 'media.original_path'],
+  ['db-setup-v7.mjs', 'news_translations (bn/zh newsroom)'],
+  ['db-setup-v8.mjs', 'media.in_gallery'],
   ['migrate-users.mjs', 'admin_users -> users'],
   ['db-seed.mjs', 'legacy content rows'],
   ['seed-corridor.mjs', 'corridor data'],
