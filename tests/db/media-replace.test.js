@@ -133,6 +133,18 @@ describe('applyMediaReplacement — repointing the references', () => {
     expect(data.image).toBe('/uploads/new.webp');
   });
 
+  it('repoints an image pasted into a richtext body, which the LIKE prefilter must also reach', async () => {
+    const id = await seedRow();
+    const blockId = await seedBlock({ body: '<p>Text</p><img src="/old.webp" alt="x">' });
+
+    const slugs = await replace({ id, oldPath: '/old.webp', newPath: '/uploads/new.webp' });
+    expect(slugs).toContain('home');
+
+    const [bt] = await query('SELECT data FROM block_translations WHERE block_id = ?', [blockId]);
+    const data = typeof bt.data === 'string' ? JSON.parse(bt.data) : bt.data;
+    expect(data.body).toBe('<p>Text</p><img src="/uploads/new.webp" alt="x">');
+  });
+
   it('repoints the social preview image column too', async () => {
     const id = await seedRow();
     await seedBlock({ image: '/old.webp' });
