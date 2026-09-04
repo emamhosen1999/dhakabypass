@@ -12,6 +12,8 @@ beforeAll(async () => {
   // omitting this migration makes the seed fail with a truncated-column error
   // and the whole file reports as SKIPPED rather than failed.
   execFileSync('node', ['scripts/db-setup-v5.mjs', `--database=${DB}`], { stdio: 'inherit' });
+  // v6 adds media.original_path, which lib/media/replace.js reads and writes.
+  execFileSync('node', ['scripts/db-setup-v6.mjs', `--database=${DB}`], { stdio: 'inherit' });
   S = await import('../../lib/settings.js');
 });
 

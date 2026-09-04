@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import mysql from 'mysql2/promise';
 import { imageSize } from '../lib/media/probe.js';
+import { replacedLegacyPaths } from '../lib/media/replace.js';
 
 /**
  * AUDITED allowlist. Every entry here was opened and looked at.
@@ -109,11 +110,37 @@ const root = path.join(process.cwd(), 'public');
  * old site ended up publishing a Belt and Road infographic. An image reaches
  * the database only because a person opened it and wrote a line for it here.
  */
+// Paths the operator has ALREADY replaced through the admin.
+//
+// A replacement rewrites the row's `path` from /photo/16.webp to /uploads/...,
+// so no row holds the legacy path any more. The upsert below is keyed on the
+// UNIQUE `path`, so it found no duplicate and cheerfully INSERTed the
+// placeholder back — with its original English-only alt — on every run. After
+// 28 replacements, one run refilled the entire list the operator had just
+// cleared. Pages never broke, because blocks point at /uploads/..., so nobody
+// would notice until the client asked why the list was full again.
+//
+// media.original_path (scripts/db-setup-v6.mjs) is the row's memory of what it
+// was first registered as. Consulting it is what makes re-running safe.
+const alreadyReplaced = await replacedLegacyPaths(
+  async (sql, params) => {
+    const [rows] = await db.execute(sql, params);
+    return rows;
+  },
+  Object.keys(AUDITED),
+);
+
 let ok = 0;
 let missing = 0;
 let unreadable = 0;
+let replaced = 0;
 
 for (const [rel, entry] of Object.entries(AUDITED)) {
+  if (alreadyReplaced.has(rel)) {
+    console.log(`  = already replaced by the operator, left alone: ${rel}`);
+    replaced += 1;
+    continue;
+  }
   if (REJECTED[rel]) {
     // Belt and braces: a path must never appear in both maps. If one does,
     // stop rather than guess which list the author meant.
@@ -148,7 +175,7 @@ for (const [rel, entry] of Object.entries(AUDITED)) {
 // alt is deliberately NOT in the ON DUPLICATE KEY UPDATE list: re-running must
 // never overwrite alt text an operator has edited or translated in the admin.
 
-console.log(`registered ${ok} audited images (${missing} missing, ${unreadable} unreadable)`);
+console.log(`registered ${ok} audited images (${missing} missing, ${unreadable} unreadable, ${replaced} already replaced)`);
 console.log(`${Object.keys(REJECTED).length} files excluded by the audit and NOT registered:`);
 for (const [rel, why] of Object.entries(REJECTED)) console.log(`  - ${rel}  ${why}`);
 console.log('Every registered image is a PLACEHOLDER — see docs/admin/replacing-images.md');

@@ -19,6 +19,12 @@ beforeAll(async () => {
     stdio: 'inherit',
     env: { ...process.env, DB_NAME: DB },
   });
+  // v6 adds media.original_path, which applyMediaReplacement writes and the
+  // legacy import reads back. Same DB_NAME handling as v4.
+  execFileSync('node', ['scripts/db-setup-v6.mjs'], {
+    stdio: 'inherit',
+    env: { ...process.env, DB_NAME: DB },
+  });
   ({ query, withTransaction } = await import('../../lib/db.js'));
   ({ applyMediaReplacement } = await import('../../lib/media/replace.js'));
 });
