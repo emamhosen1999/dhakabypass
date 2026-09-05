@@ -1,0 +1,8 @@
+# This directory is NOT meant to be served directly by Apache — Passenger runs
+# the Node app and the clone belongs outside the web root. These rules exist so
+# that a misconfiguration cannot leak the git history or the environment file,
+# which is how a great many sites have been compromised.
+RedirectMatch 404 /\.git
+<FilesMatch "^\.(env|git)">
+  Require all denied
+</FilesMatch>

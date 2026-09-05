@@ -1,0 +1,9 @@
+{
+  "status": 307,
+  "headers": {
+    "location": "/bn/travel/status",
+    "x-nextjs-stale-time": "4294967294",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/[locale]/layout,_N_T_/[locale]/travel/layout,_N_T_/[locale]/travel/page,_N_T_/bn/travel,corridor:advisories,menus"
+  }
+}

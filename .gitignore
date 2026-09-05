@@ -1,0 +1,22 @@
+# Runtime state that must survive a deploy.
+#
+# A pull never deletes untracked files, so anything ignored here persists
+# across releases. That is what makes `git pull` a safe deploy for this app
+# rather than a destructive one.
+
+# Uploaded media, when MEDIA_ROOT is left at its default. lib/media.js writes
+# here and app/uploads/[...path]/route.js serves it.
+var/uploads/
+
+# The environment file, if the host cannot inject variables another way.
+# It holds the database password and AUTH_SECRET and must never be committed.
+.env
+.env.local
+
+# Written by the running app: the ISR and unstable_cache store. Never shipped
+# (it would bake the build machine's database reads into production) and never
+# committed back.
+.next/cache/
+
+# Passenger restart hook — tracked once, then touched in place.
+tmp/*.pid

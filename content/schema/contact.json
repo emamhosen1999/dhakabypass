@@ -1,0 +1,114 @@
+[
+  {
+    "key": "t1",
+    "type": "text",
+    "section": "Contact Us",
+    "multiline": false,
+    "label": "Heading (h1)"
+  },
+  {
+    "key": "t2",
+    "type": "text",
+    "section": "Contact Us",
+    "multiline": true,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t3",
+    "type": "text",
+    "section": "Send us a message",
+    "multiline": false,
+    "label": "Heading (h2)"
+  },
+  {
+    "key": "t4",
+    "type": "text",
+    "section": "Send us a message",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t5",
+    "type": "text",
+    "section": "Send us a message",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t6",
+    "type": "text",
+    "section": "Send us a message",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t7",
+    "type": "text",
+    "section": "Send us a message",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t8",
+    "type": "text",
+    "section": "Send us a message",
+    "multiline": false,
+    "label": "Text"
+  },
+  {
+    "key": "t9",
+    "type": "text",
+    "section": "Contact Information",
+    "multiline": false,
+    "label": "Heading (h2)"
+  },
+  {
+    "key": "t10",
+    "type": "text",
+    "section": "Address",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t11",
+    "type": "text",
+    "section": "Address",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t12",
+    "type": "text",
+    "section": "Address",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t13",
+    "type": "text",
+    "section": "Email",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t14",
+    "type": "text",
+    "section": "Email",
+    "multiline": false,
+    "label": "Paragraph"
+  },
+  {
+    "key": "t15",
+    "type": "text",
+    "section": "Phone",
+    "multiline": false,
+    "label": "Heading (h3)"
+  },
+  {
+    "key": "t16",
+    "type": "text",
+    "section": "Phone",
+    "multiline": false,
+    "label": "Paragraph"
+  }
+]

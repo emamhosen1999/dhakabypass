@@ -1,0 +1,139 @@
+{
+  "site.header": {
+    "logo": "/logo.webp",
+    "brandName": "DBEDC",
+    "brandTagline": "Dhaka Bypass Expressway",
+    "navLinks": [
+      { "label": "Home", "href": "/" },
+      { "label": "Project", "href": "/project" },
+      { "label": "Economic Impact", "href": "/economic-impact" },
+      { "label": "Stakeholders", "href": "/stakeholders" },
+      { "label": "Chinese Contribution", "href": "/chinese-contribution" },
+      { "label": "Routes & Facilities", "href": "/routes-facilities" },
+      { "label": "Latest Updates", "href": "/latest-updates" }
+    ],
+    "ctaLabel": "Get in Touch",
+    "ctaHref": "/contact",
+    "translateHref": "https://demodasher-com.translate.goog/?_x_tr_sl=en&_x_tr_tl=zh-CN&_x_tr_hl=en-US&_x_tr_pto=wapp&_x_tr_hist=true",
+    "translateIcon": "/translate.png"
+  },
+
+  "site.footer": {
+    "brand": {
+      "logo": "/logo.webp",
+      "name": "DBEDC",
+      "tagline": "Dhaka Bypass Expressway Development Company",
+      "description": "Bangladesh's first enclosed expressway, transforming national connectivity and enhancing transportation infrastructure."
+    },
+    "quickLinksHeading": "Quick Links",
+    "quickLinks": [
+      { "label": "Home", "href": "/" },
+      { "label": "Project", "href": "/project" },
+      { "label": "Stakeholders", "href": "/stakeholders" },
+      { "label": "Route & Facilities", "href": "/routes-facilities" },
+      { "label": "News", "href": "/latest-updates" },
+      { "label": "Contact", "href": "/contact" }
+    ],
+    "contactHeading": "Contact",
+    "contact": {
+      "addressLine1": "Road 6, House 15, Block K",
+      "addressLine2": "Baridhara, Dhaka-1212, Bangladesh",
+      "email": "info@dbedc.com",
+      "phoneDisplay": "+880 12345-6789",
+      "phoneHref": "tel:+880123456789"
+    },
+    "newsletter": {
+      "heading": "Newsletter",
+      "text": "Subscribe to our newsletter for the latest updates",
+      "placeholder": "Your email",
+      "button": "Subscribe"
+    },
+    "copyright": "© 2025 Dhaka Bypass Expressway Development Company. All Rights Reserved.",
+    "legalLinks": ["Privacy Policy", "Terms of Service", "Sitemap"]
+  },
+
+  "home.hero": {
+    "logo": "/logo.webp",
+    "backgroundImage": "/bg-hero.webp",
+    "headline": "Connecting Bangladesh's Infrastructure",
+    "subheadline": "Building the first fully access-controlled expressway to transform national connectivity",
+    "primaryCta": { "label": "Learn More", "href": "#overview" },
+    "routeMapButton": "View Route Map",
+    "routeMapImage": "/map.webp"
+  },
+
+  "home.overview": {
+    "heading": "Project Overview",
+    "subheading": "Transforming Bangladesh's Transportation Infrastructure",
+    "paragraphs": [
+      "The Dhaka Bypass Expressway is Bangladesh's first fully enclosed highway, spanning 48 kilometers from Joydebpur (Gazipur) to Madanpur (Narayanganj). This vital arterial route connects four national highways (N1, N2, N3, N4) and provides an efficient pathway around the capital, linking northern industrial areas to southern ports.",
+      "Developed by Dhaka Bypass Expressway Development Company (DBEDC), the project represents a landmark public-private partnership between Sichuan Road & Bridge Group (SRBG), Shamim Enterprise Ltd (SEL), and UDC Construction Ltd. This consortium is responsible for the design, build, finance, operate, and maintain (DBFOM) tasks under a 25-year concession agreement.",
+      "Upon completion in July 2025, this state-of-the-art expressway will transform travel around Dhaka with four main carriageways, service roads on both sides, and fully grade-separated interchanges, cutting the journey time from Gazipur to Madanpur from 2 hours to just 30 minutes."
+    ],
+    "inlineLink": { "label": "Learn more about the project", "href": "/about-project" },
+    "image": { "src": "/bypass-ex.webp", "alt": "Dhaka Bypass Expressway" },
+    "imageCaption": { "eyebrow": "Bangladesh's First", "title": "Fully Access-Controlled Expressway" },
+    "stats": [
+      { "icon": "truck", "value": "48 km", "label": "Total Expressway Length", "color": "blue" },
+      { "icon": "clock", "value": "75% Reduction", "label": "In Travel Time", "color": "orange" },
+      { "icon": "file-text", "value": "1st PPP", "label": "Road Project in Bangladesh", "color": "blue" },
+      { "icon": "trending-up", "value": "25 Years", "label": "Concession Period", "color": "orange" }
+    ],
+    "cta": { "label": "Complete Project Details", "href": "/project/" }
+  },
+
+  "home.economicImpact": {
+    "heading": "Economic Impact",
+    "subheading": "Creating Sustainable Value for Bangladesh's Growth",
+    "paragraphs": [
+      "The Dhaka Bypass Expressway is having significant economic impact. As a connector that intelligently links production zones with ports, it enhances Bangladesh's supply chain reliability and trade competitiveness by creating an efficient freight corridor linking manufacturing and export processing zones in northern Bangladesh to Chattogram Port.",
+      "Upon completion, the expressway will cut journey time from Gazipur to Madanpur from 2 hours to just 30 minutes – a 75% reduction that translates directly to fuel savings, lower vehicle operating costs, and improved productivity for businesses. Diverting traffic from city roads will save millions of dollars in lost time and fuel that would otherwise be spent in traffic jams.",
+      "The project has already created 1,000+ jobs during construction with this number expected to double to approximately 2,000 at peak construction. The project represents a total investment of around ৳3,585-3,723 crore (approximately US$350-412 million) into Bangladesh's infrastructure, mobilizing both domestic and foreign capital under an innovative PPP structure.",
+      "Areas along the bypass route (Gazipur, Narayanganj, Narsingdi districts) are experiencing new economic opportunities, with improved connectivity attracting industrial parks, warehouses, and real estate development. The expressway aligns with the Asian Highway network and supports the Greater Dhaka urban expansion, thereby decentralizing growth from the capital."
+    ],
+    "metrics": [
+      { "icon": "users", "value": "1,000+", "label": "Local Jobs Created", "color": "blue" },
+      { "icon": "award", "value": "75%", "label": "Travel Time Reduction", "color": "orange" },
+      { "icon": "trending-up", "value": "US$412M", "label": "Total Investment", "color": "blue" },
+      { "icon": "truck", "value": "4 Highways", "label": "National Routes Connected", "color": "orange" }
+    ],
+    "cta": { "label": "Detailed Economic Studies", "href": "/economic-impact" },
+    "image": { "src": "/eco-eff.webp", "alt": "Dhaka Bypass Expressway" }
+  },
+
+  "home.route": {
+    "heading": "Expressway Route",
+    "subheading": "Connecting Communities and Commerce",
+    "paragraphs": [
+      "The Dhaka Bypass Expressway spans 48 kilometers from Joydebpur (Gazipur) in the north to Madanpur (Narayanganj) in the south. This strategic route connects four major national highways (N1, N2, N3, N4), creating an uninterrupted corridor around eastern Dhaka.",
+      "Key interchanges include Vogra, Mirer Bazar, Purbachal, Bhulta, and Madanpur, providing crucial connectivity to industrial zones, new urban developments, and transportation networks. The expressway features 12 bridges, 7 flyovers, and 27 underpasses."
+    ],
+    "cta": { "label": "Explore The Route Map", "href": "/expressway-route" },
+    "image": { "src": "/map.webp", "alt": "Dhaka Bypass Expressway" }
+  },
+
+  "home.callout": {
+    "heading": "Experience the Future of Transportation in Bangladesh",
+    "text": "Discover how the Dhaka Bypass Expressway is creating connections and transforming communities with state-of-the-art infrastructure.",
+    "primaryCta": { "label": "Take a Tour", "href": "/virtual-tour" },
+    "secondaryCta": { "label": "Contact Us", "href": "/contact" }
+  },
+
+  "page.gallery": {
+    "heading": "Project Gallery",
+    "intro": "Visual documentation of the Dhaka Bypass Expressway construction progress and milestones."
+  },
+
+  "page.notFound": {
+    "code": "404",
+    "heading": "Page Not Found",
+    "text": "The page you're looking for doesn't exist or has been moved.",
+    "ctaLabel": "Back to Home",
+    "ctaHref": "/"
+  },
+
+  "home.meta": {
+    "title": "Dhaka Bypass Expressway - Bangladesh's First Fully Access-Controlled Highway",
+    "description": "Official website of the Dhaka Bypass Expressway project, spanning 48km and connecting major national highways around Dhaka."
+  }
+}
