@@ -58,7 +58,7 @@ export default async function GalleryPage({ params }) {
           <p className="db-empty">{t(locale, 'galleryEmpty')}</p>
         ) : (
           <ul className="db-gallery">
-            {images.map((img) => (
+            {images.map((img, i) => (
               <li key={img.id} className="db-gallery-item">
                 <a href={img.path} className="db-gallery-link">
                   <img
@@ -70,7 +70,13 @@ export default async function GalleryPage({ params }) {
                     alt={img.alt}
                     width={img.width || undefined}
                     height={img.height || undefined}
-                    loading="lazy"
+                    // The first row is above the fold and contains the LCP
+                    // element. Lazy-loading it delays the largest paint by a
+                    // whole round trip — Lighthouse reports it as
+                    // `lcp-lazy-loaded`, and it is the single biggest thing
+                    // slowing this page down. Four covers the widest grid row.
+                    loading={i < 4 ? 'eager' : 'lazy'}
+                    fetchPriority={i === 0 ? 'high' : undefined}
                     decoding="async"
                     className="db-gallery-img"
                   />

@@ -5,6 +5,8 @@ import { t } from '../../../../lib/i18n/ui.js';
 import { alternatesFor } from '../../../../lib/seo/alternates.js';
 import { getNewsBySlugCached } from '../../../../lib/newsroom/cache.js';
 import { formatNewsDate, newsDateISO } from '../../../../lib/newsroom/format.js';
+import StructuredData from '../../../../components/chrome/StructuredData.jsx';
+import { newsArticleJsonLd } from '../../../../lib/seo/organization.js';
 
 /**
  * One article.
@@ -56,6 +58,7 @@ export default async function NewsArticle({ params }) {
 
   return (
     <article className="db-block db-article">
+      <StructuredData data={newsArticleJsonLd(article, `/news/${slug}`, locale)} />
       <p className="db-newsmeta">
         <time dateTime={newsDateISO(article.published_at)}>
           {formatNewsDate(article.published_at, locale)}
