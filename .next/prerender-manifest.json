@@ -181,81 +181,6 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/bn/gallery": {
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "Next-Action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": 60,
-      "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/gallery",
-      "dataRoute": "/bn/gallery.rsc",
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
-    "/en/gallery": {
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "Next-Action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": 60,
-      "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/gallery",
-      "dataRoute": "/en/gallery.rsc",
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
-    "/zh/gallery": {
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "Next-Action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": 60,
-      "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/gallery",
-      "dataRoute": "/zh/gallery.rsc",
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
     "/bn": {
       "experimentalBypassFor": [
         {
@@ -331,7 +256,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/bn/travel/route": {
+    "/bn/gallery": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -345,8 +270,8 @@
       ],
       "initialRevalidateSeconds": 60,
       "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/travel/route",
-      "dataRoute": "/bn/travel/route.rsc",
+      "srcRoute": "/[locale]/gallery",
+      "dataRoute": "/bn/gallery.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -356,7 +281,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/en/travel/route": {
+    "/en/gallery": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -370,8 +295,8 @@
       ],
       "initialRevalidateSeconds": 60,
       "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/travel/route",
-      "dataRoute": "/en/travel/route.rsc",
+      "srcRoute": "/[locale]/gallery",
+      "dataRoute": "/en/gallery.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -381,7 +306,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/zh/travel/route": {
+    "/zh/gallery": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -395,8 +320,8 @@
       ],
       "initialRevalidateSeconds": 60,
       "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/travel/route",
-      "dataRoute": "/zh/travel/route.rsc",
+      "srcRoute": "/[locale]/gallery",
+      "dataRoute": "/zh/gallery.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -481,6 +406,81 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/bn/travel/route": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "Next-Action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": 60,
+      "initialExpireSeconds": 31536000,
+      "srcRoute": "/[locale]/travel/route",
+      "dataRoute": "/bn/travel/route.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/en/travel/route": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "Next-Action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": 60,
+      "initialExpireSeconds": 31536000,
+      "srcRoute": "/[locale]/travel/route",
+      "dataRoute": "/en/travel/route.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/zh/travel/route": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "Next-Action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": 60,
+      "initialExpireSeconds": 31536000,
+      "srcRoute": "/[locale]/travel/route",
+      "dataRoute": "/zh/travel/route.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/bn/travel/map": {
       "experimentalBypassFor": [
         {
@@ -556,7 +556,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/bn/travel": {
+    "/bn/travel/status": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -570,8 +570,8 @@
       ],
       "initialRevalidateSeconds": 60,
       "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/travel",
-      "dataRoute": "/bn/travel.rsc",
+      "srcRoute": "/[locale]/travel/status",
+      "dataRoute": "/bn/travel/status.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -581,7 +581,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/en/travel": {
+    "/en/travel/status": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -595,8 +595,8 @@
       ],
       "initialRevalidateSeconds": 60,
       "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/travel",
-      "dataRoute": "/en/travel.rsc",
+      "srcRoute": "/[locale]/travel/status",
+      "dataRoute": "/en/travel/status.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -606,7 +606,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/zh/travel": {
+    "/zh/travel/status": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -620,8 +620,8 @@
       ],
       "initialRevalidateSeconds": 60,
       "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/travel",
-      "dataRoute": "/zh/travel.rsc",
+      "srcRoute": "/[locale]/travel/status",
+      "dataRoute": "/zh/travel/status.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -706,7 +706,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/bn/travel/status": {
+    "/bn/travel": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -720,8 +720,8 @@
       ],
       "initialRevalidateSeconds": 60,
       "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/travel/status",
-      "dataRoute": "/bn/travel/status.rsc",
+      "srcRoute": "/[locale]/travel",
+      "dataRoute": "/bn/travel.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -731,7 +731,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/en/travel/status": {
+    "/en/travel": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -745,8 +745,8 @@
       ],
       "initialRevalidateSeconds": 60,
       "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/travel/status",
-      "dataRoute": "/en/travel/status.rsc",
+      "srcRoute": "/[locale]/travel",
+      "dataRoute": "/en/travel.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -756,7 +756,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/zh/travel/status": {
+    "/zh/travel": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -770,8 +770,8 @@
       ],
       "initialRevalidateSeconds": 60,
       "initialExpireSeconds": 31536000,
-      "srcRoute": "/[locale]/travel/status",
-      "dataRoute": "/zh/travel/status.rsc",
+      "srcRoute": "/[locale]/travel",
+      "dataRoute": "/zh/travel.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -908,31 +908,6 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/[locale]/gallery": {
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "Next-Action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "routeRegex": "^/([^/]+?)/gallery(?:/)?$",
-      "dataRoute": "/[locale]/gallery.rsc",
-      "fallback": null,
-      "dataRouteRegex": "^/([^/]+?)/gallery\\.rsc$",
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
     "/[locale]": {
       "experimentalBypassFor": [
         {
@@ -958,7 +933,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/[locale]/travel/route": {
+    "/[locale]/gallery": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -970,10 +945,10 @@
           "value": "multipart/form-data;.*"
         }
       ],
-      "routeRegex": "^/([^/]+?)/travel/route(?:/)?$",
-      "dataRoute": "/[locale]/travel/route.rsc",
+      "routeRegex": "^/([^/]+?)/gallery(?:/)?$",
+      "dataRoute": "/[locale]/gallery.rsc",
       "fallback": null,
-      "dataRouteRegex": "^/([^/]+?)/travel/route\\.rsc$",
+      "dataRouteRegex": "^/([^/]+?)/gallery\\.rsc$",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -1008,6 +983,31 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/[locale]/travel/route": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "Next-Action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "routeRegex": "^/([^/]+?)/travel/route(?:/)?$",
+      "dataRoute": "/[locale]/travel/route.rsc",
+      "fallback": null,
+      "dataRouteRegex": "^/([^/]+?)/travel/route\\.rsc$",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/[locale]/travel/map": {
       "experimentalBypassFor": [
         {
@@ -1033,7 +1033,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/[locale]/travel": {
+    "/[locale]/travel/status": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -1045,10 +1045,10 @@
           "value": "multipart/form-data;.*"
         }
       ],
-      "routeRegex": "^/([^/]+?)/travel(?:/)?$",
-      "dataRoute": "/[locale]/travel.rsc",
+      "routeRegex": "^/([^/]+?)/travel/status(?:/)?$",
+      "dataRoute": "/[locale]/travel/status.rsc",
       "fallback": null,
-      "dataRouteRegex": "^/([^/]+?)/travel\\.rsc$",
+      "dataRouteRegex": "^/([^/]+?)/travel/status\\.rsc$",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -1083,7 +1083,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/[locale]/travel/status": {
+    "/[locale]/travel": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -1095,10 +1095,10 @@
           "value": "multipart/form-data;.*"
         }
       ],
-      "routeRegex": "^/([^/]+?)/travel/status(?:/)?$",
-      "dataRoute": "/[locale]/travel/status.rsc",
+      "routeRegex": "^/([^/]+?)/travel(?:/)?$",
+      "dataRoute": "/[locale]/travel.rsc",
       "fallback": null,
-      "dataRouteRegex": "^/([^/]+?)/travel/status\\.rsc$",
+      "dataRouteRegex": "^/([^/]+?)/travel\\.rsc$",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -1136,8 +1136,8 @@
   },
   "notFoundRoutes": [],
   "preview": {
-    "previewModeId": "95b5480e0c33ff4da8d4a98099ab27b0",
-    "previewModeSigningKey": "6496b96f7af13fd0428cb4a52d1185e7d364bd7e15dd7191fb43f2666adbda1d",
-    "previewModeEncryptionKey": "eafbc4d260b32e22f9416f64c16b26ca731dbf7e65cd2322c030923eaff56b96"
+    "previewModeId": "ea0bb4ab1dedce5b1ee1b4e721da0844",
+    "previewModeSigningKey": "9d018108b70cd00e5d18cd66de78797678ebafb868fa04abc9df835b2590f17b",
+    "previewModeEncryptionKey": "f45904d621dee4665005e39815b1b61756e49a2e2a4861ee345407decf8798ab"
   }
 }
