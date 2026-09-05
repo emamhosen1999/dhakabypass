@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { redirectOrNotFound } from '../../../lib/redirects/resolve.js';
 import { isLocale } from '../../../lib/i18n/locales.js';
 import { getPageBySlugCached, getPageBlocksCached } from '../../../lib/content/cache.js';
 import { resolveTranslation } from '../../../lib/content/resolve.js';
@@ -34,7 +35,15 @@ export async function generateMetadata({ params }) {
 
 export default async function CmsPage({ params }) {
   const loaded = await load(params);
-  if (!loaded || loaded.page.status !== 'published') notFound();
+  // Multi-segment URLs reach here rather than a catch-all, for the same reason
+  // as the home route: `[locale]/[...slug]` is preferred over a root catch-all.
+  // An unpublished page is NOT redirect-eligible — it exists and the operator
+  // has chosen not to show it, which is a 404, not a move.
+  if (!loaded) {
+    const { locale: segment, slug: rest } = await params;
+    await redirectOrNotFound(`/${[segment, ...(rest || [])].join('/')}`);
+  }
+  if (loaded.page.status !== 'published') notFound();
   const blocks = await getPageBlocksCached(loaded.page.id, loaded.page.slug);
   return <BlockRenderer blocks={blocks} locale={loaded.locale} />;
 }

@@ -29,18 +29,33 @@ const nextConfig = {
    * than a decorative one. Revisit if middleware ever becomes editable.
    */
   async headers() {
+    /**
+     * Next's DEV server compiles with eval — hot reload, the React refresh
+     * runtime and the dev overlay all need it. A policy without 'unsafe-eval'
+     * therefore makes `npm run dev` unusable: the page loads and then every
+     * interactive script dies with "Refused to evaluate a string as
+     * JavaScript". It cost 58 e2e failures to notice, because the production
+     * BUILD needs no eval at all and the packaged artifact was perfectly fine.
+     *
+     * So the allowance is development-only and can never reach production: this
+     * function runs under `next dev` (development) and `next build`
+     * (production), and the deployed artifact is always built by the latter.
+     */
+    const isDev = process.env.NODE_ENV !== 'production';
+
     const csp = [
       "default-src 'self'",
       // 'unsafe-inline': the theme script and the analytics consent defaults
       // must run before paint. See the note above.
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://www.googletagmanager.com`,
       // Tailwind emits a stylesheet; 'unsafe-inline' covers the style attributes
       // React sets for the corridor strip's computed offsets.
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data:",
       "font-src 'self'",
       // Analytics beacons. Everything else is refused.
-      "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com",
+      `connect-src 'self'${isDev ? ' ws: http://localhost:* http://127.0.0.1:*' : ''}`
+        + ' https://www.google-analytics.com https://region1.google-analytics.com',
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

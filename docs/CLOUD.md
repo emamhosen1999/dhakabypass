@@ -22,9 +22,9 @@ eight `tests/db/**` files and every seed script need one.
 ## Verifying
 
 ```bash
-npm test          # expect: 57 files / 635 tests, 0 skipped
+npm test          # expect: 60 files / 666 tests, 0 skipped
 npm run build     # expect: ✓ Compiled successfully
-npm run test:e2e  # expect: 81 passed
+npm run test:e2e  # expect: 122 passed
 ```
 
 The e2e suite needs a browser Playwright recognises. In a cloud sandbox the

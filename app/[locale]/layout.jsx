@@ -24,7 +24,24 @@ export const viewport = {
 
 export default async function LocaleLayout({ children, params }) {
   const { locale } = await params;
-  if (!isLocale(locale)) notFound();
+
+  /**
+   * A layout must NOT decide the 404 here, and this used to.
+   *
+   * `[locale]` is a dynamic segment, so `/old-economic-impact` matches it and
+   * arrives with `locale = 'old-economic-impact'`. Calling `notFound()` at this
+   * point ended the request before the page ran — which meant the page, the only
+   * component that can see the REST of the path, never got to decide anything.
+   * That is what stopped operator-configured redirects from ever firing: the
+   * lookup has to happen somewhere that knows the whole URL, and a layout only
+   * ever receives its own segment.
+   *
+   * So an unrecognised segment now renders the children bare — no chrome, no
+   * advisory or header queries — and the page below resolves a redirect or calls
+   * `notFound()` itself. A visitor sees exactly what they saw before: the same
+   * 404 page, without localised chrome around it.
+   */
+  if (!isLocale(locale)) return <>{children}</>;
 
   return (
     <div className="db-root" lang={LOCALE_HTML_LANG[locale]}>

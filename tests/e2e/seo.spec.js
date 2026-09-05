@@ -5,11 +5,18 @@
 // only discovered weeks later in Search Console. These assertions run against
 // the real server with the real database behind it.
 //
-// SITE_URL is unset in development, so every absolute URL here resolves to
-// http://localhost:3000 — the documented default in lib/seo/site.js.
+// Absolute URLs come from SITE_URL, which lib/seo/site.js defaults to
+// http://localhost:3000 when unset — the normal state in development.
+//
+// The origin is READ here rather than assumed. This file used to hardcode
+// localhost and .env.example shipped a real production domain, so every fresh
+// environment failed 41 of these tests for a configuration reason that had
+// nothing to do with the SEO surface they exist to protect. Deriving it means
+// the suite is equally correct against a developer's machine and against a
+// staging deployment via PLAYWRIGHT_BASE_URL.
 import { test, expect } from '@playwright/test';
 
-const ORIGIN = 'http://localhost:3000';
+const ORIGIN = (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
 const LOCALES = ['en', 'bn', 'zh'];
 
 // The old site, still live at unprefixed paths under app/(site)/. None of it
@@ -106,11 +113,29 @@ test.describe('sitemap.xml', () => {
   test('every listed URL actually resolves', async ({ request }) => {
     // The strongest available check that no draft or dead page is listed: a
     // draft page 404s, so if one leaked into the sitemap this fails.
+    //
+    // Fetched in batches rather than one at a time. The sitemap grew from 21
+    // URLs to 75 as the institutional pages, the newsroom and the gallery
+    // landed, and a serial walk of 75 pages against a dev server that compiles
+    // each one on demand runs past any sane timeout — the test started failing
+    // for its own length rather than for anything it was asserting. The
+    // concurrency is bounded because the point is to check the pages, not to
+    // load-test the dev server.
     const xml = await (await request.get('/sitemap.xml')).text();
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-    for (const loc of locs) {
-      const res = await request.get(loc, { maxRedirects: 0 });
-      expect(res.status(), `${loc} should return 200`).toBe(200);
+    expect(locs.length, 'the sitemap should not be empty').toBeGreaterThan(0);
+
+    test.setTimeout(Math.max(30_000, locs.length * 2_000));
+
+    const BATCH = 6;
+    for (let i = 0; i < locs.length; i += BATCH) {
+      const batch = locs.slice(i, i + BATCH);
+      const results = await Promise.all(
+        batch.map(async (loc) => [loc, (await request.get(loc, { maxRedirects: 0 })).status()]),
+      );
+      for (const [loc, status] of results) {
+        expect(status, `${loc} should return 200`).toBe(200);
+      }
     }
   });
 

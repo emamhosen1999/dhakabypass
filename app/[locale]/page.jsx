@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { redirectOrNotFound } from '../../lib/redirects/resolve.js';
 import Link from 'next/link';
 import { isLocale } from '../../lib/i18n/locales.js';
 import { getPageBySlugCached, getPageBlocksCached } from '../../lib/content/cache.js';
@@ -63,7 +64,14 @@ export async function generateMetadata({ params }) {
 
 export default async function LocaleHome({ params }) {
   const loaded = await load(params);
-  if (!loaded) notFound(); // bad/unsupported locale segment — genuinely not found
+  // A single-segment URL that is not a locale — /old-economic-impact — lands
+  // here rather than in a catch-all, because `[locale]` is a dynamic segment and
+  // Next prefers it. This is therefore where an operator-configured redirect has
+  // to be checked, and it 404s exactly as before when none matches.
+  if (!loaded) {
+    const { locale: segment } = await params;
+    await redirectOrNotFound(`/${segment}`);
+  }
 
   const { locale, page } = loaded;
 

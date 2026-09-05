@@ -92,6 +92,12 @@ const STRUCTURE_ONLY = new Set([
   'newsletter_subscribers',
   'revisions',
   'audit_log',
+  // Redirects are operator data, not seed content: they are added after launch
+  // in response to what Search Console and the server logs actually show. A row
+  // created while testing would otherwise ship as seed and silently redirect a
+  // real URL on every fresh install — a redirect nobody configured and nobody
+  // can explain.
+  'redirects',
 ]);
 
 const mysqlArgs = () => {
