@@ -698,3 +698,227 @@
 .db-contact-list a{color:var(--db-ink);}
 /* The address is typed with line breaks in the admin; keep them. */
 .db-contact-address{white-space:pre-line;}
+
+/* ---- corridor map ---------------------------------------------------------
+   Two traffic colours the palette did not have. They sit between the existing
+   open (green) and alert (red) so the five conditions read as one ramp rather
+   than five unrelated colours, and each is also carried by a word in the table
+   beside the map — status is never colour alone here. */
+:root{
+  --db-traffic-moderate:#C8901A;
+  --db-traffic-slow:#D2600F;
+}
+:root:not([data-theme="light"]){
+  @media (prefers-color-scheme: dark){
+    --db-traffic-moderate:#E8B23E;
+    --db-traffic-slow:#F0813A;
+  }
+}
+:root[data-theme="dark"]{
+  --db-traffic-moderate:#E8B23E;
+  --db-traffic-slow:#F0813A;
+}
+
+.db-map-wrap{position:relative;background:var(--db-surface-2);
+  border:1px solid var(--db-rule);border-radius:4px;overflow:hidden;
+  /* aspect-ratio comes from the view: the frame wraps the corridor's own
+     proportions, so the grey box never has a dead margin the drawing does not
+     fill.
+
+     NO max-height and NO margin-inline:auto HERE. The frame is a grid item, so
+     an auto inline margin replaces `justify-self: stretch` with shrink-to-fit
+     — and on a box whose only intrinsic size comes from an aspect-ratio, that
+     collapsed the map to a third of its column. A max-height is transferred
+     through the aspect-ratio into a max-width and does the same thing more
+     quietly. The height is whatever the column width and the corridor's own
+     proportions make it. */
+  }
+/* Only once the interactive layer is mounted: without JavaScript a grab cursor
+   promises a drag that will not happen. */
+.db-map-wrap.is-enhanced{cursor:grab;touch-action:none;}
+.db-map-wrap.is-dragging{cursor:grabbing;}
+.db-map{display:block;width:100%;height:auto;}
+/* The casing is what makes the coloured sections read as one road rather than
+   as separate coloured lines that happen to touch. */
+.db-map-casing{fill:none;stroke:var(--db-ink);stroke-width:11;
+  stroke-linejoin:round;stroke-linecap:round;opacity:.35;}
+.db-map-section{fill:none;stroke-width:7;stroke-linejoin:round;stroke-linecap:round;}
+.db-map-feature{fill:var(--db-surface);stroke:var(--db-ink-2);stroke-width:1.5;}
+.db-map-feature-toll_plaza{fill:var(--db-plate-accent);stroke:var(--db-ink);}
+.db-map-feature-bridge{fill:var(--db-surface);stroke:var(--db-accent);}
+.db-map-wp-dot{fill:var(--db-surface);stroke:var(--db-ink);stroke-width:2.5;}
+/* NOT --db-open. The terminals were drawn in the same green the legend uses
+   for "free flow", so the start and end markers read as a traffic condition
+   rather than as the ends of the road. Ink is neutral and cannot be confused
+   with any condition in the ramp. */
+.db-map-terminal{fill:var(--db-ink);stroke:var(--db-surface);stroke-width:3;}
+.db-map-wp-label{font-family:var(--db-font-display);font-weight:700;font-size:12px;
+  fill:var(--db-ink);}
+.db-map-wp-label-terminal{fill:#FFFFFF;}
+.db-map-wp-km{font-family:var(--db-font-display);font-weight:700;font-size:10.5px;
+  letter-spacing:.06em;fill:var(--db-ink-2);
+  paint-order:stroke;stroke:var(--db-surface-2);stroke-width:3.5;stroke-linejoin:round;}
+
+/* Legend, section table and the panels beside the map. */
+.db-map-layout{display:grid;gap:20px;grid-template-columns:minmax(0,1fr);}
+@media (min-width:1100px){
+  .db-map-layout{grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr);align-items:start;}
+}
+.db-map-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 0;padding:0;list-style:none;}
+.db-map-legend li{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--db-ink-2);}
+.db-map-swatch{width:22px;height:6px;border-radius:3px;flex:none;}
+.db-panel{border:1px solid var(--db-rule);border-radius:4px;background:var(--db-surface);
+  padding:16px clamp(12px,2vw,18px);}
+.db-panel + .db-panel{margin-top:16px;}
+.db-panel-title{font-family:var(--db-font-display);font-size:.74rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--db-ink-3);margin:0 0 12px;}
+.db-sectionlist{list-style:none;margin:0;padding:0;display:grid;gap:2px;}
+.db-sectionrow{display:grid;grid-template-columns:4px 1fr auto;gap:12px;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--db-rule);}
+.db-sectionrow:last-child{border-bottom:0;}
+.db-sectionbar{width:4px;height:100%;min-height:28px;border-radius:2px;}
+/* block, not inline: as spans these ran together, so a section read
+   "Naojor (corridor start) — Waypoint 20.0–2.3 km" with the chainage welded to
+   the name. */
+.db-sectionname{display:block;font-weight:600;color:var(--db-ink);font-size:.9rem;line-height:1.35;}
+.db-sectionmeta{display:block;color:var(--db-ink-3);font-size:.78rem;margin-top:2px;
+  font-variant-numeric:tabular-nums;}
+.db-sectiontag{font-family:var(--db-font-display);font-size:.68rem;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;white-space:nowrap;}
+.db-facts{list-style:none;margin:0;padding:0;display:grid;gap:10px;}
+.db-facts li{display:flex;justify-content:space-between;gap:16px;font-size:.88rem;
+  padding-bottom:9px;border-bottom:1px solid var(--db-rule);}
+.db-facts li:last-child{border-bottom:0;padding-bottom:0;}
+.db-facts dt,.db-facts .k{color:var(--db-ink-3);}
+.db-facts .v{color:var(--db-ink);font-weight:600;text-align:right;
+  font-variant-numeric:tabular-nums;}
+
+/* Distribution bar: one row, widths proportional to distance. */
+.db-dist{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--db-surface-2);}
+.db-dist span{display:block;height:100%;}
+.db-distkey{list-style:none;margin:12px 0 0;padding:0;
+  display:grid;gap:8px 16px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));}
+.db-distkey li{display:flex;align-items:baseline;gap:7px;font-size:.82rem;color:var(--db-ink-2);}
+.db-distkey b{font-family:var(--db-font-display);color:var(--db-ink);font-variant-numeric:tabular-nums;}
+
+/* Monthly flow: a plain column chart, no library. */
+.db-flow{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:clamp(3px,1vw,8px);
+  align-items:end;height:150px;margin-top:4px;}
+.db-flow-col{display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:6px;}
+.db-flow-bar{background:var(--db-accent);border-radius:2px 2px 0 0;min-height:2px;}
+.db-flow-col:last-child .db-flow-bar{background:var(--db-plate-accent);}
+.db-flow-label{font-size:.66rem;color:var(--db-ink-3);text-align:center;
+  font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+/* Scale bar and north arrow. A map without either shows shape but not size or
+   orientation, which is the difference between a map and a diagram. */
+.db-map-scale-line{stroke:var(--db-ink-2);stroke-width:1.5;}
+.db-map-scale-label{font-family:var(--db-font-display);font-size:11px;font-weight:700;
+  letter-spacing:.06em;fill:var(--db-ink-2);
+  paint-order:stroke;stroke:var(--db-surface-2);stroke-width:3.5;stroke-linejoin:round;}
+.db-map-north-arrow{fill:var(--db-ink-2);}
+.db-map-north-label{font-family:var(--db-font-display);font-size:11px;font-weight:700;
+  fill:var(--db-ink-2);}
+
+/* The map fills the frame, which already carries the corridor's proportions. */
+.db-map{display:block;width:100%;height:100%;margin:0 auto;}
+
+/* The distribution key was wrapping "Free flow" and its distance onto separate
+   lines at odd points; give each entry its own column and let the distance sit
+   under the label. */
+.db-distkey li{display:block;}
+.db-distkey .db-sectionmeta{margin-top:2px;}
+
+/* Point symbols in the legend, drawn to match the markers on the map itself. */
+.db-map-legend-points{margin-top:8px;}
+.db-map-key{width:14px;height:14px;border-radius:50%;flex:none;display:inline-block;}
+.db-map-key-terminal{background:var(--db-ink);border:2px solid var(--db-surface);
+  box-shadow:0 0 0 1px var(--db-rule-2);}
+.db-map-key-wp{background:var(--db-surface);border:2px solid var(--db-ink);}
+.db-map-key-toll{background:var(--db-plate-accent);border:1.5px solid var(--db-ink);}
+.db-map-key-bridge{background:var(--db-surface);border:1.5px solid var(--db-accent);}
+.db-flow-peak{margin:0 0 6px;font-size:.74rem;color:var(--db-ink-3);
+  font-variant-numeric:tabular-nums;}
+
+/* ---- Corridor map: annotation gutters, hit targets, :target linkage ------- */
+
+/* The frame wraps the drawing, so the drawing fills the frame exactly: the
+   wrap carries the corridor's own aspect-ratio, and a max-height on either
+   would transfer through that ratio into a max-width and shrink the map. */
+.db-map{display:block;width:100%;height:100%;margin:0 auto;}
+
+/* Facility names in the right-hand gutter, with a leader back to the marker. */
+.db-map-leader{fill:none;stroke:var(--db-ink-3);stroke-width:1;opacity:.5;}
+/* No font-size here: the size is set on the element from LABEL_FONT in
+   CorridorMap.jsx, which is the same constant the gutter width is measured
+   with. Two places to change it is one place too many. */
+.db-map-label-text{font-family:var(--db-font-body);fill:var(--db-ink-2);
+  paint-order:stroke;stroke:var(--db-surface-2);stroke-width:3;stroke-linejoin:round;}
+/* A facility that is not open yet: hollow, dashed, unmistakably not the same
+   symbol as one a driver can use today. */
+.db-map-feature-pending{fill:var(--db-surface-2);stroke-dasharray:2.5 2;}
+
+/* Clicking a section of road jumps to its row in the table. The hit path is
+   the wide invisible stroke; the visible one keeps its own width. */
+.db-map-hit{cursor:pointer;}
+.db-map-hitarea{fill:none;stroke:transparent;stroke-width:20;
+  stroke-linejoin:round;stroke-linecap:round;}
+.db-map-hit:hover .db-map-section{stroke-width:10;}
+
+/* The row the map just linked to. :target is the whole interaction — no
+   JavaScript, and it survives being copied as a URL. */
+.db-sectionrow:target{background:var(--db-surface-2);
+  box-shadow:inset 3px 0 0 var(--db-accent);scroll-margin-top:96px;}
+.db-sectionrow{scroll-margin-top:96px;transition:background .15s ease;}
+
+.db-map-key-pending{background:var(--db-surface-2);
+  border:1.5px dashed var(--db-ink-3);}
+
+@media (prefers-reduced-motion:reduce){
+  .db-sectionrow{transition:none;}
+}
+
+/* The coordinate grid. Deliberately faint: it is context for the road, not a
+   competitor to it, and it must not read as another line on the map. */
+.db-map-grid line{stroke:var(--db-ink-3);stroke-width:.75;opacity:.22;}
+.db-map-grid-label{font-family:var(--db-font-display);font-size:11px;font-weight:700;
+  letter-spacing:.04em;fill:var(--db-ink-3);opacity:.75;}
+
+/* ---- The interactive layer ----------------------------------------------- */
+
+/* The map and its section list are one object: the list is the map's key, its
+   accessible equivalent and its control surface. */
+.db-map-explorer{display:grid;gap:20px;grid-template-columns:minmax(0,1fr);align-items:start;}
+@media (min-width:1100px){
+  .db-map-explorer{grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr);}
+}
+.db-map-sections{max-height:min(84vh,900px);overflow:auto;}
+
+.db-map-controls{position:absolute;top:10px;right:10px;display:grid;gap:6px;justify-items:end;}
+.db-map-controls button{min-width:34px;height:34px;padding:0 9px;
+  font-family:var(--db-font-display);font-size:1rem;font-weight:700;line-height:1;
+  color:var(--db-ink);background:var(--db-surface);border:1px solid var(--db-rule-2);
+  border-radius:3px;cursor:pointer;}
+.db-map-controls button:hover:not(:disabled){background:var(--db-surface-2);}
+.db-map-controls button:disabled{opacity:.4;cursor:default;}
+.db-map-controls .db-map-reset{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;}
+
+/* The licence credit for the geometry. Small, permanent, and rendered from the
+   same row the geometry was imported with so it cannot be lost. */
+.db-map-credit{position:absolute;right:8px;bottom:6px;margin:0;
+  font-size:.66rem;color:var(--db-ink-3);background:color-mix(in srgb,var(--db-surface-2) 80%,transparent);
+  padding:2px 6px;border-radius:2px;}
+
+.db-map-hint{margin:12px 0 0;font-size:.76rem;color:var(--db-ink-3);}
+
+/* A section row is a button: the whole name and chainage is the target, and it
+   is in the tab order, which the SVG paths deliberately are not. */
+.db-sectionbtn{display:block;width:100%;padding:0;margin:0;text-align:start;
+  background:none;border:0;font:inherit;color:inherit;cursor:pointer;}
+.db-sectionrow.is-hovered{background:var(--db-surface-2);}
+.db-sectionrow.is-selected{background:var(--db-surface-2);
+  box-shadow:inset 3px 0 0 var(--db-accent);}
+/* Hovering or selecting a section thickens it on the map, so the link between
+   the list and the road is visible rather than implied. */
+.db-map-hit.is-active .db-map-section{stroke-width:11;}
+.db-map-hit.is-active .db-map-casing{opacity:.6;}

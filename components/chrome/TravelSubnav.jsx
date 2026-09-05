@@ -8,6 +8,7 @@ const SECTION = [
   { key: 'travelStatus', href: '/travel/status' },
   { key: 'travelToll', href: '/travel/toll' },
   { key: 'travelRoute', href: '/travel/route' },
+  { key: 'navMap', href: '/travel/map' },
   { key: 'travelFacilities', href: '/travel/facilities' },
   { key: 'travelRules', href: '/travel/rules' },
 ];

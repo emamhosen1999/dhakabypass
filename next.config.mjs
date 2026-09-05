@@ -5,6 +5,32 @@ const nextConfig = {
   // Node.js app (Passenger) without running `next build` / `npm install` on
   // the memory-limited shared host.
   output: 'standalone',
+  experimental: {
+    /**
+     * ISR MUST NOT WRITE BACK INTO THE ARTIFACT.
+     *
+     * By default a revalidating page is flushed to disk, overwriting
+     * `.next/server/app/<route>.html` and `.rsc` in place. Those files are
+     * TRACKED on the deploy branch — they are the prerendered site. So the
+     * first page to revalidate on the server dirties the working tree, and the
+     * next deploy dies on:
+     *
+     *   error: Your local changes to the following files would be overwritten
+     *          by merge: .next/server/app/en/travel/map.html
+     *
+     * which is exactly the "no manual folder work, just pull" contract this
+     * deploy model exists to keep. It bit here first as a local symptom: a
+     * server left running during a rebuild flushed its old render over the new
+     * one, and the page then asked for a JS chunk from the previous build,
+     * which 400'd.
+     *
+     * With this off, a revalidated page is held in memory instead. It is
+     * regenerated after a restart rather than restored from disk — a first
+     * request that takes a few hundred milliseconds longer, against a deploy
+     * that cannot silently jam.
+     */
+    isrFlushToDisk: false,
+  },
   /**
    * Security headers.
    *
