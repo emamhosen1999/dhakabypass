@@ -21,7 +21,7 @@ export default function CorridorMap({
       <defs><pattern id="db-map-closed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
         <rect width="8" height="8" fill="var(--db-ink-3)"/><rect width="4" height="8" fill="var(--db-surface-2)"/>
       </pattern></defs>
-      <image className="db-map-geography" href={geo.image} x={geo.x} y={geo.y} width={geo.width} height={geo.height} preserveAspectRatio="none"/>
+      <image className="db-map-geography" href={detailZoom > 2 ? geo.image : geo.overviewImage || geo.image} x={geo.x} y={geo.y} width={geo.width} height={geo.height} preserveAspectRatio="none"/>
       {connections ? <g className="db-map-approaches">{geo.highlights.map(r =>
         <a key={r.id} href="#map-roads" aria-hidden="true" tabIndex={-1}
           onMouseEnter={()=>onHoverRoad?.(r.roadId)} onMouseLeave={()=>onHoverRoad?.(null)}

@@ -128,6 +128,7 @@ export default async function CorridorMapPage({ params }) {
 
   return (
     <>
+      <link rel="preload" as="image" href="/maps/corridor-geography.webp" fetchPriority="high" />
       <section className="db-block">
         <p className="db-eyebrow">{t(locale, 'travelRoute')}</p>
         <h1 className="db-h1">{t(locale, 'mapHeading')}</h1>
@@ -257,7 +258,7 @@ export default async function CorridorMapPage({ params }) {
                         a reader to assume the average, and then "Closed" looked
                         like a bug rather than one genuinely closed section. */}
                     <span className="k">{t(locale, 'mapWorst')}</span>
-                    <span className="v" style={{ color: CONDITION_COLOUR[overall] }}>{t(locale, `traffic_${overall}`)}</span>
+                    <span className="v">{t(locale, `traffic_${overall}`)}</span>
                   </li>
                 </ul>
               </div>

@@ -121,4 +121,20 @@ test.describe('map interaction', () => {
     await page.locator('.db-map-reset').click();
     expect(errors).toEqual([]);
   });
+
+  test('crossing roads expose their highway code and can be hidden as a layer', async ({ page }) => {
+    const badge = page.locator('.db-map-road-badges a').filter({has:page.locator('text', {hasText:/^N2$/})});
+    await badge.click();
+    await expect(page.locator('.db-map-road-card')).toContainText('National highway');
+    await expect(page.locator('.db-map-road-card .db-map-road-code')).toHaveText('N2');
+    await expect(page.locator('.db-map-road-card a')).toHaveAttribute('href',/rhd\.gov\.bd/);
+    await page.getByRole('button',{name:'Close road information'}).click();
+    await page.mouse.move(1,1);
+    await expect(page.locator('.db-map-road-card')).toHaveCount(0);
+    await page.getByRole('button',{name:/Layers/}).click();
+    await page.getByRole('checkbox',{name:'Crossing & connecting roads'}).uncheck();
+    await expect(page.locator('.db-map-approaches')).toHaveCount(0);
+    await page.getByRole('checkbox',{name:'Crossing & connecting roads'}).check();
+    await expect(page.locator('.db-map-approach').first()).toBeVisible();
+  });
 });

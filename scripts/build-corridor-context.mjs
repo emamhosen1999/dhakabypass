@@ -4,6 +4,7 @@
  * Usage: node scripts/build-corridor-context.mjs --file export.json
  */
 import fs from 'node:fs/promises';
+import sharp from 'sharp';
 import { projectMercator, haversineMetres } from '../lib/corridor/map.js';
 import { stitch, simplify, nearestOnLine, chainages, clipChainage, clipToTerminals } from '../lib/corridor/geometry-import.js';
 
@@ -144,6 +145,9 @@ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${hei
 await fs.mkdir('public/maps',{recursive:true});
 await fs.mkdir('lib/corridor/data',{recursive:true});
 await fs.writeFile('public/maps/corridor-geography.svg',svg);
+// A raster overview avoids parsing thousands of geographic paths on mobile.
+// The same vector drawing remains available when the visitor zooms into detail.
+await sharp(Buffer.from(svg)).webp({quality:82}).toFile('public/maps/corridor-geography.webp');
 const alignment = simplify(clipToTerminals(corridor,{lat:23.986737,lng:90.362246},{lat:23.690500,lng:90.546722}).line,5);
 await fs.writeFile('public/maps/corridor-alignment.geojson',JSON.stringify({type:'Feature',properties:{source:'OpenStreetMap',license:'ODbL-1.0',attribution:'© OpenStreetMap contributors',date:data.osm3s?.timestamp_osm_base},geometry:{type:'LineString',coordinates:alignment.map(p=>[p.lng,p.lat])}}));
 await fs.writeFile('public/maps/corridor-geography.geojson',JSON.stringify({type:'FeatureCollection',license:'ODbL-1.0',attribution:'© OpenStreetMap contributors',features}));
