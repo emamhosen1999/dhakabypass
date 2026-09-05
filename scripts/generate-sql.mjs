@@ -98,6 +98,13 @@ const STRUCTURE_ONLY = new Set([
   // real URL on every fresh install — a redirect nobody configured and nobody
   // can explain.
   'redirects',
+  // Menus are an OVERRIDE of the built-in navigation, and an EMPTY table is
+  // what selects the built-in one. Seeding rows here would silently switch
+  // every fresh install onto a database-driven navigation containing whatever
+  // a developer happened to be testing — and the operator would have no way to
+  // tell that the links they see are not the ones in the code.
+  'menus',
+  'menu_items',
 ]);
 
 const mysqlArgs = () => {

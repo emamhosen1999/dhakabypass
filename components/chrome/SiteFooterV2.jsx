@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { t } from '../../lib/i18n/ui.js';
+import { getMenuCached } from '../../lib/menus/cache.js';
+import { localeHref } from '../../lib/blocks/href.js';
 
 /**
  * The footer carries the statutory pages.
@@ -52,19 +54,52 @@ const GROUPS = [
   },
 ];
 
-export default function SiteFooterV2({ locale }) {
+export default async function SiteFooterV2({ locale }) {
   const year = new Date().getFullYear();
+
+  /**
+   * A `footer` menu in the database overrides the groups above, using
+   * `menu_items.parent_id`: a top-level item is a column heading and its
+   * children are the links beneath it. A heading needs no href.
+   *
+   * As in the header, this only ever overrides — no menu, no items or no
+   * database leaves the built-in groups in place, so the statutory links a
+   * landowner or a supplier comes here for cannot vanish because a query failed.
+   */
+  let menu = [];
+  try {
+    menu = await getMenuCached('footer', locale);
+  } catch {
+    menu = [];
+  }
+
+  const groups = menu.length
+    ? menu.map((g) => ({
+        key: g.id,
+        heading: g.label,
+        links: (g.children || []).map((c) => ({
+          key: c.id, href: localeHref(c.href, locale), label: c.label,
+        })),
+      }))
+    : GROUPS.map((group) => ({
+        key: group.heading,
+        heading: t(locale, group.heading),
+        links: group.links.map((link) => ({
+          key: link.href, href: `/${locale}${link.href}`, label: t(locale, link.key),
+        })),
+      }));
+
   return (
     <footer className="db-footer">
       <nav className="db-footer-nav" aria-label={t(locale, 'footerNavLabel')}>
-        {GROUPS.map((group) => (
-          <div key={group.heading} className="db-footer-group">
-            <h2 className="db-footer-heading">{t(locale, group.heading)}</h2>
+        {groups.map((group) => (
+          <div key={group.key} className="db-footer-group">
+            <h2 className="db-footer-heading">{group.heading}</h2>
             <ul className="db-footer-links">
               {group.links.map((link) => (
-                <li key={link.href}>
-                  <Link href={`/${locale}${link.href}`} className="db-footer-link">
-                    {t(locale, link.key)}
+                <li key={link.key}>
+                  <Link href={link.href} className="db-footer-link">
+                    {link.label}
                   </Link>
                 </li>
               ))}
