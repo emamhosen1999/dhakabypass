@@ -128,7 +128,7 @@ export default async function CorridorMapPage({ params }) {
 
   return (
     <>
-      <link rel="preload" as="image" href="/maps/corridor-geography.webp" fetchPriority="high" />
+      <link rel="preload" as="image" href="/maps/corridor-geography.avif" type="image/avif" fetchPriority="high" />
       <section className="db-block">
         <p className="db-eyebrow">{t(locale, 'travelRoute')}</p>
         <h1 className="db-h1">{t(locale, 'mapHeading')}</h1>

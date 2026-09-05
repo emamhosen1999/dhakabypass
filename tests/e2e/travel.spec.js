@@ -208,7 +208,8 @@ test('the section navigation is reachable at 320px', async ({ page }) => {
 
   const links = page.locator('.db-subnav a:visible');
   const count = await links.count();
-  expect(count).toBe(5);
+  expect(count).toBe(6);
+  await expect(page.locator('.db-subnav a[href="/en/travel/map"]')).toHaveCount(1);
   // The row scrolls horizontally on purpose, so only the first item has to
   // be in view without scrolling — but it must be.
   const box = await links.first().boundingBox();
@@ -224,7 +225,7 @@ test('the section navigation marks the current page, and only the current page',
     await page.goto(`/en${path}`);
     const links = page.locator('.db-subnav a');
     const count = await links.count();
-    expect(count).toBe(5);
+    expect(count).toBe(6);
 
     let currentHrefs = [];
     for (let i = 0; i < count; i += 1) {

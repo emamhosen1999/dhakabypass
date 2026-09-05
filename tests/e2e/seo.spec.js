@@ -131,7 +131,13 @@ test.describe('sitemap.xml', () => {
     for (let i = 0; i < locs.length; i += BATCH) {
       const batch = locs.slice(i, i + BATCH);
       const results = await Promise.all(
-        batch.map(async (loc) => [loc, (await request.get(loc, { maxRedirects: 0 })).status()]),
+        batch.map(async (loc) => {
+          const url = new URL(loc);
+          expect(url.origin).toBe(ORIGIN);
+          // A production-origin artifact is also tested locally before release.
+          // Check its routes on the configured test server, not the old live site.
+          return [loc, (await request.get(url.pathname + url.search, { maxRedirects: 0 })).status()];
+        }),
       );
       for (const [loc, status] of results) {
         expect(status, `${loc} should return 200`).toBe(200);
