@@ -23,6 +23,10 @@ beforeEach(async () => {
 });
 
 describe('settings', () => {
+  it('round-trips string settings used by traffic publication controls', async () => {
+    await S.setSetting('corridor.traffic_source', 'operator');
+    expect(await S.getSetting('corridor.traffic_source', 'sample')).toBe('operator');
+  });
   it('round-trips a value', async () => {
     await S.setSetting('demo.key', { a: 1 });
     expect(await S.getSetting('demo.key')).toEqual({ a: 1 });

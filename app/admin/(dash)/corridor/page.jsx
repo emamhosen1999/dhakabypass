@@ -7,6 +7,10 @@ export default async function CorridorHub() {
   const { segments, interchanges, tolls, advisories, illustrative } = await listCorridorAction();
 
   const areas = [
+    { href: '/admin/corridor/sections', name: 'Section traffic', count: '',
+      note: 'Current conditions and average speeds, with deliberate publication controls.' },
+    { href: '/admin/corridor/monthly', name: 'Monthly traffic', count: '',
+      note: 'Add, edit and remove the vehicle counts recorded at toll plazas.' },
     { href: '/admin/corridor/segments', name: 'Segments', count: segments.length,
       note: 'Which stretches are open, under construction or planned. The published progress figure is calculated from these.' },
     { href: '/admin/corridor/interchanges', name: 'Interchanges', count: interchanges.length,

@@ -53,11 +53,12 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { loadEnv } from './load-env.mjs';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const NEXT_DIR = path.join(ROOT, '.next');
 const STANDALONE = path.join(NEXT_DIR, 'standalone');
 const DIST = path.join(ROOT, 'var', 'dist');
@@ -366,9 +367,10 @@ const PREFLIGHT_ENTRY = `#!/usr/bin/env node
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { checkEnvironment, checkMediaRootWritable, formatReport } from './deploy/env-check.js';
 
-const dir = path.dirname(new URL(import.meta.url).pathname);
+const dir = path.dirname(fileURLToPath(import.meta.url));
 const env = { ...process.env };
 
 for (const f of ['.env', '.env.local']) {

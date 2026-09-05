@@ -1,15 +1,15 @@
 import { notFound } from 'next/navigation';
 import { isLocale } from '../../../../lib/i18n/locales.js';
 import { t } from '../../../../lib/i18n/ui.js';
+import { mapUi } from '../../../../lib/i18n/map-ui.js';
 import { alternatesFor } from '../../../../lib/seo/alternates.js';
 import CorridorExplorer from '../../../../components/corridor/CorridorExplorer.jsx';
 import { buildMapView } from '../../../../lib/corridor/view.js';
 import { trafficDistribution, overallCondition } from '../../../../lib/corridor/map.js';
 import {
-  listCorridorWaypoints, listCorridorSections, listMonthlyTraffic,
-  listCorridorGeometry, getGeometrySource,
-  getTrafficSource, peakVehicles, monthOnMonthChange,
+  peakVehicles, monthOnMonthChange,
 } from '../../../../lib/corridor/traffic.js';
+import { getMapTrafficCached } from '../../../../lib/corridor/traffic-cache.js';
 import { getInterchangesCached } from '../../../../lib/corridor/cache.js';
 import { localeName } from '../../../../lib/corridor/interchanges.js';
 
@@ -64,16 +64,11 @@ export default async function CorridorMapPage({ params }) {
   let geometry = [];
   let geoSource = null;
   let source = 'sample';
+  let monthlySource = 'sample';
   try {
-    [waypoints, sections, interchanges, monthly, geometry, geoSource, source] = await Promise.all([
-      listCorridorWaypoints(),
-      listCorridorSections(),
-      getInterchangesCached().catch(() => []),
-      listMonthlyTraffic({ limit: 12 }),
-      listCorridorGeometry(),
-      getGeometrySource(),
-      getTrafficSource(),
-    ]);
+    const [traffic, places] = await Promise.all([getMapTrafficCached(), getInterchangesCached().catch(() => [])]);
+    ({ waypoints, sections, monthly, geometry, geoSource, source, monthlySource } = traffic);
+    interchanges = places;
   } catch {
     // Every reader above already degrades on its own; this is the last guard.
   }
@@ -140,7 +135,7 @@ export default async function CorridorMapPage({ params }) {
 
         {/* The label that keeps the colouring honest. Sample conditions are
             still conditions to a reader looking at a coloured road. */}
-        {source === 'sample' ? (
+        {source === 'sample' || (monthly.length > 0 && monthlySource === 'sample') ? (
           <p className="db-pending">
             <span className="db-pending-tag">{t(locale, 'mapSampleTag')}</span>
             {t(locale, 'mapSampleBody')}
@@ -171,6 +166,8 @@ export default async function CorridorMapPage({ params }) {
             <CorridorExplorer
                 view={view}
                 ui={{
+                  ...mapUi(locale),
+                  locale:intlLocale, kmUnit:t(locale,'mapKm'), mUnit:locale==='bn'?'মি':locale==='zh'?'米':'m',
                   zoomIn: t(locale, 'mapZoomIn'),
                   zoomOut: t(locale, 'mapZoomOut'),
                   resetView: t(locale, 'mapResetView'),

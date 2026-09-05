@@ -15,6 +15,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { INSTITUTIONAL_PAGES } from '../../lib/institutional/pages.js';
 import { getBlock } from '../../lib/blocks/registry.js';
 import { registerAllBlocks } from '../../lib/blocks/index.js';
@@ -23,7 +24,7 @@ import { LOCALES } from '../../lib/i18n/locales.js';
 
 registerAllBlocks();
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const slugs = INSTITUTIONAL_PAGES.map((p) => p.slug);
 
 /** Every string a reader could see, flattened out of a block's data. */

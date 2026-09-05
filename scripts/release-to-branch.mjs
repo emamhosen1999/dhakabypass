@@ -47,9 +47,10 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const STANDALONE = path.join(ROOT, '.next', 'standalone');
 const WORKTREE = path.join(ROOT, 'var', 'release-worktree');
 

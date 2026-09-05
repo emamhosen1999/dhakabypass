@@ -81,7 +81,7 @@ const nextConfig = {
       "font-src 'self'",
       // Analytics beacons. Everything else is refused.
       `connect-src 'self'${isDev ? ' ws: http://localhost:* http://127.0.0.1:*' : ''}`
-        + ' https://www.google-analytics.com https://region1.google-analytics.com',
+        + ' https://www.google-analytics.com https://region1.google-analytics.com https://api.tomtom.com',
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

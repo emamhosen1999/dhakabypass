@@ -36,18 +36,20 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { loadEnv } from './load-env.mjs';
 
 loadEnv();
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUT = path.join(ROOT, 'db', 'sql');
 
 const HOST = process.env.DB_HOST || '127.0.0.1';
 const PORT = process.env.DB_PORT || '3306';
 const USER = process.env.DB_USER;
 const PASS = process.env.DB_PASSWORD || '';
+const sqlEnv = { ...process.env, MYSQL_PWD: PASS };
 const SCRATCH = process.env.DB_NAME_SQLGEN || 'dhakabypass_sqlgen';
 
 const bold = (s) => `\x1b[1m${s}\x1b[0m`;
@@ -109,14 +111,13 @@ const STRUCTURE_ONLY = new Set([
 
 const mysqlArgs = () => {
   const a = [`-h${HOST}`, `-P${PORT}`, `-u${USER}`];
-  if (PASS) a.push(`-p${PASS}`);
   return a;
 };
 
 function mysql(sql, db) {
   const args = mysqlArgs();
   if (db) args.push(db);
-  return execFileSync('mysql', [...args, '-N', '-B', '-e', sql], { encoding: 'utf8' });
+  return execFileSync('mysql', [...args, '-N', '-B', '-e', sql], { encoding: 'utf8', env: sqlEnv });
 }
 
 /**
@@ -136,13 +137,13 @@ function dump(extra, tables = []) {
       SCRATCH,
       ...tables,
     ],
-    { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 },
+    { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, env: sqlEnv },
   );
   // MariaDB's dump opens with a sandbox-mode directive. It is a MariaDB-only
   // conditional comment and harmless on MySQL, but it restricts what the client
   // will execute afterwards, and this file has to import cleanly through
   // phpMyAdmin on a host we do not control. Strip it.
-  return out.replace(/^\/\*M!999999.*$/gm, '');
+  return out.replace(/\r\n/g, '\n').replace(/^\/\*M!999999.*$/gm, '');
 }
 
 /**
@@ -174,18 +175,22 @@ const chain = [
   ['db-setup-v6.mjs', 'media.original_path'],
   ['db-setup-v7.mjs', 'news_translations (bn/zh newsroom)'],
   ['db-setup-v8.mjs', 'media.in_gallery'],
+  ['db-setup-v9.mjs', 'section traffic and monthly counts'],
+  ['db-setup-v10.mjs', 'sourced road alignment'],
   ['migrate-users.mjs', 'admin_users -> users'],
   ['db-seed.mjs', 'legacy content rows'],
   ['seed-corridor.mjs', 'corridor data'],
+  ['seed-corridor-geometry.mjs', 'reference waypoints and sections'],
+  ['import-corridor-geometry.mjs', 'verified OSM alignment snapshot', ['--file', 'public/maps/corridor-alignment.geojson', '--source', 'osm', '--attribution', '© OpenStreetMap contributors']],
   ['seed-home-v2.mjs', 'home page blocks, 3 locales'],
   ['seed-institutional.mjs', 'about, governance, project, safety, sustainability,\n    procurement, disclosures, land acquisition, tariff, grievances'],
   ['import-legacy-media.mjs', 'audited legacy image registry'],
   ['translate-media-alt.mjs', 'bn/zh alt text'],
 ];
 
-for (const [script, what] of chain) {
+for (const [script, what, args = []] of chain) {
   try {
-    execFileSync('node', [path.join('scripts', script), `--database=${SCRATCH}`], {
+    execFileSync('node', [path.join('scripts', script), ...args, `--database=${SCRATCH}`], {
       cwd: ROOT,
       stdio: 'pipe',
       env: { ...process.env, DB_NAME: SCRATCH },
@@ -198,7 +203,7 @@ for (const [script, what] of chain) {
 }
 
 step('Dumping the schema');
-const tables = mysql(`SHOW TABLES;`, SCRATCH).trim().split('\n').filter(Boolean);
+const tables = mysql(`SHOW TABLES;`, SCRATCH).trim().split(/\r?\n/).map(t=>t.trim()).filter(Boolean);
 ok(`${tables.length} tables`);
 
 let schema = dump(['--no-data', '--routines=false', '--triggers=false']);
@@ -311,7 +316,7 @@ const VERIFY = `${SCRATCH}_verify`;
 mysql(`DROP DATABASE IF EXISTS \`${VERIFY}\`; CREATE DATABASE \`${VERIFY}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
 for (const f of ['01-schema.sql', '02-seed.sql']) {
   const sql = fs.readFileSync(path.join(OUT, f), 'utf8');
-  execFileSync('mysql', [...mysqlArgs(), VERIFY], { input: sql, encoding: 'utf8' });
+  execFileSync('mysql', [...mysqlArgs(), VERIFY], { input: sql, encoding: 'utf8', env: sqlEnv });
   ok(`imported ${f}`);
 }
 // Import twice: idempotency is a claim this file makes, so it gets tested.
@@ -319,6 +324,7 @@ for (const f of ['01-schema.sql', '02-seed.sql']) {
   execFileSync('mysql', [...mysqlArgs(), VERIFY], {
     input: fs.readFileSync(path.join(OUT, f), 'utf8'),
     encoding: 'utf8',
+    env: sqlEnv,
   });
 }
 ok('imported both a second time — no error, so the files are re-runnable');
@@ -327,7 +333,11 @@ const mismatches = [];
 for (const t of tables) {
   const a = mysql(`SHOW CREATE TABLE \`${t}\`;`, SCRATCH).split('\t')[1] || '';
   const b = mysql(`SHOW CREATE TABLE \`${t}\`;`, VERIFY).split('\t')[1] || '';
-  const norm = (s) => s.replace(/AUTO_INCREMENT=\d+ ?/g, '').replace(/\s+/g, ' ').trim();
+  // MySQL 8's dump spells out a column's inherited utf8mb4 character set;
+  // MariaDB and the migration's CREATE omit it. The collation still compares.
+  const norm = (s) => s.replace(/AUTO_INCREMENT=\d+ ?/g, '')
+    .replace(/ CHARACTER SET utf8mb4(?= COLLATE utf8mb4_)/g, '')
+    .replace(/\s+/g, ' ').trim();
   if (norm(a) !== norm(b)) mismatches.push(t);
 
   if (!STRUCTURE_ONLY.has(t)) {

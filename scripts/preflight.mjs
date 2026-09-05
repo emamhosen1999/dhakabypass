@@ -19,6 +19,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { loadEnv } from './load-env.mjs';
 import {
   checkEnvironment,
@@ -26,7 +27,7 @@ import {
   formatReport,
 } from '../lib/deploy/env-check.js';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 // The release directory the app would run from. Passenger sets the working
 // directory to the artifact root, so that is what MEDIA_ROOT must sit outside

@@ -4,7 +4,7 @@
  * ---------------------------------------------------------------------------
  * THE PROBLEM THIS SOLVES
  * ---------------------------------------------------------------------------
- * DBEDC's survey workbook gives eight road-network waypoints across 47.6 km.
+ * DBEDC's source workbook gives eight road-network waypoints across 47.6 km.
  * Drawn as an alignment they are eight straight legs — a schematic, not a road,
  * and it looks like one. The chainages in that workbook were measured along the
  * routed centreline, so the waypoints are a sample of a curve we were not given
@@ -19,7 +19,7 @@
  * ---------------------------------------------------------------------------
  *   --osm            Query OpenStreetMap's Overpass API for the highway ways
  *                    that carry the corridor, stitch them into one line, clip
- *                    it to the surveyed terminals and store it.
+ *                    it to the reference terminals and store it.
  *
  *   --file <path>    Read a GeoJSON (LineString / MultiLineString / Feature /
  *                    FeatureCollection) or GPX track. Use this when DBEDC or
@@ -44,7 +44,7 @@
 import fs from 'node:fs/promises';
 import mysql from 'mysql2/promise';
 import { loadEnv } from './load-env.mjs';
-import { haversineMetres } from '../lib/corridor/map.js';
+import { stitch, clipToTerminals, simplify, chainages, nearestOnLine } from '../lib/corridor/geometry-import.js';
 
 loadEnv();
 
@@ -92,12 +92,14 @@ out geom;`;
 async function fromOverpass(bbox) {
   const body = new URLSearchParams({ data: overpassQuery(bbox) });
   const res = await fetch(ENDPOINT, {
+    signal: AbortSignal.timeout(150000),
     method: 'POST',
     body,
     headers: { 'User-Agent': 'dhakabypass.com corridor import (one-off)' },
   });
   if (!res.ok) throw new Error(`Overpass answered ${res.status} ${res.statusText}`);
   const json = await res.json();
+  if (json.remark) throw new Error(json.remark);
   const ways = (json.elements || [])
     .filter((e) => e.type === 'way' && Array.isArray(e.geometry) && e.geometry.length > 1)
     .map((e) => e.geometry.map((g) => ({ lat: Number(g.lat), lng: Number(g.lon) })));
@@ -115,7 +117,7 @@ async function fromFile(path) {
   if (!lines.length) throw new Error(`No line geometry found in ${path}.`);
   return {
     lines,
-    source: 'file',
+    source: val('--source') === 'osm' ? 'osm' : 'file',
     attribution: val('--attribution', ''),
   };
 }
@@ -159,138 +161,6 @@ function parseGpx(text) {
 /* Stitching, clipping, simplifying                                            */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Join a bag of way fragments into one line.
- *
- * Overpass returns the corridor as many ways in arbitrary order and arbitrary
- * direction — a dual carriageway is two ways, a bridge is its own way, and a
- * junction splits one road into three. Greedy nearest-endpoint stitching from
- * the fragment closest to the corridor start reassembles them in road order.
- *
- * A fragment whose nearest endpoint is further than `maxGapM` is dropped rather
- * than bridged: a leap across open country is a different road that happened to
- * match the query, and drawing the leap would put a straight 4 km line through
- * a field.
- */
-export function stitch(lines, start, maxGapM = 400) {
-  const pool = lines.map((l) => l.slice());
-  if (!pool.length) return [];
-
-  const endpoints = (l) => [l[0], l[l.length - 1]];
-  let best = 0;
-  let bestD = Infinity;
-  pool.forEach((l, i) => {
-    for (const e of endpoints(l)) {
-      const d = haversineMetres(start, e);
-      if (d < bestD) { bestD = d; best = i; }
-    }
-  });
-
-  let line = pool.splice(best, 1)[0];
-  if (haversineMetres(start, line[line.length - 1]) < haversineMetres(start, line[0])) line.reverse();
-
-  let joined = true;
-  while (joined && pool.length) {
-    joined = false;
-    const tail = line[line.length - 1];
-    let pick = -1;
-    let pickD = Infinity;
-    let pickRev = false;
-    pool.forEach((l, i) => {
-      const [a, b] = endpoints(l);
-      const da = haversineMetres(tail, a);
-      const db = haversineMetres(tail, b);
-      if (da < pickD) { pickD = da; pick = i; pickRev = false; }
-      if (db < pickD) { pickD = db; pick = i; pickRev = true; }
-    });
-    if (pick >= 0 && pickD <= maxGapM) {
-      const next = pool.splice(pick, 1)[0];
-      if (pickRev) next.reverse();
-      // Drop the duplicated joint so the line has no zero-length segment.
-      line = line.concat(pickD < 1 ? next.slice(1) : next);
-      joined = true;
-    }
-  }
-  return line;
-}
-
-/** The index of the point on `line` nearest to `p`. */
-export function nearestIndex(line, p) {
-  let best = 0;
-  let bestD = Infinity;
-  line.forEach((q, i) => {
-    const d = haversineMetres(p, q);
-    if (d < bestD) { bestD = d; best = i; }
-  });
-  return { index: best, metres: bestD };
-}
-
-/**
- * Cut the line down to the corridor.
- *
- * The query returns the whole named road, which runs past both ends of the
- * concession. The surveyed terminals are the concession, so the line is clipped
- * to the points nearest them — otherwise the map would show DBEDC operating
- * kilometres it does not operate.
- */
-export function clipToTerminals(line, start, end) {
-  const a = nearestIndex(line, start);
-  const b = nearestIndex(line, end);
-  const [lo, hi] = a.index <= b.index ? [a.index, b.index] : [b.index, a.index];
-  const cut = line.slice(lo, hi + 1);
-  if (a.index > b.index) cut.reverse();
-  return { line: cut, startOffM: a.metres, endOffM: b.metres };
-}
-
-/** Ramer-Douglas-Peucker, with distances in metres. */
-export function simplify(line, toleranceM) {
-  if (line.length < 3 || !(toleranceM > 0)) return line;
-  const keep = new Array(line.length).fill(false);
-  keep[0] = true;
-  keep[line.length - 1] = true;
-
-  const perpendicular = (p, a, b) => {
-    // Local flat-earth approximation: over the few hundred metres between
-    // candidate points the curvature is far below the tolerance.
-    const kx = 111320 * Math.cos((a.lat * Math.PI) / 180);
-    const ky = 110540;
-    const ax = a.lng * kx; const ay = a.lat * ky;
-    const bx = b.lng * kx; const by = b.lat * ky;
-    const px = p.lng * kx; const py = p.lat * ky;
-    const dx = bx - ax; const dy = by - ay;
-    const len2 = dx * dx + dy * dy;
-    if (!len2) return Math.hypot(px - ax, py - ay);
-    let t = ((px - ax) * dx + (py - ay) * dy) / len2;
-    t = Math.max(0, Math.min(1, t));
-    return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
-  };
-
-  const stack = [[0, line.length - 1]];
-  while (stack.length) {
-    const [lo, hi] = stack.pop();
-    let far = -1;
-    let farD = toleranceM;
-    for (let i = lo + 1; i < hi; i += 1) {
-      const d = perpendicular(line[i], line[lo], line[hi]);
-      if (d > farD) { farD = d; far = i; }
-    }
-    if (far > 0) {
-      keep[far] = true;
-      stack.push([lo, far], [far, hi]);
-    }
-  }
-  return line.filter((_, i) => keep[i]);
-}
-
-/** Cumulative distance along the line, in metres. */
-export function chainages(line) {
-  let total = 0;
-  return line.map((p, i) => {
-    if (i > 0) total += haversineMetres(line[i - 1], p);
-    return { ...p, chainage_m: Math.round(total) };
-  });
-}
-
 /* -------------------------------------------------------------------------- */
 /* Run                                                                         */
 /* -------------------------------------------------------------------------- */
@@ -331,19 +201,19 @@ try {
   console.error(
     '\nIf this host has no outbound network, run the import somewhere that does,\n'
     + 'or export the alignment as GeoJSON and use --file.\n'
-    + 'The map keeps working meanwhile: it falls back to the surveyed waypoints\n'
+    + 'The map keeps working meanwhile: it falls back to the reference waypoints\n'
     + 'and labels itself a schematic.',
   );
   await db.end();
   process.exit(1);
 }
 
-const stitched = stitch(fetched.lines, start);
+const stitched = stitch(fetched.lines, start, end);
 const clipped = clipToTerminals(stitched, start, end);
 const simplified = simplify(clipped.line, TOLERANCE);
 const points = chainages(simplified);
 const lengthM = points.length ? points[points.length - 1].chainage_m : 0;
-const surveyed = Number(wp[wp.length - 1].chainage_m) || 0;
+const reference = Number(wp[wp.length - 1].chainage_m) || 0;
 
 console.log(`  fragments      ${fetched.lines.length}`);
 console.log(`  stitched       ${stitched.length} points`);
@@ -351,27 +221,27 @@ console.log(`  clipped        ${clipped.line.length} points `
   + `(terminals off by ${Math.round(clipped.startOffM)} m / ${Math.round(clipped.endOffM)} m)`);
 console.log(`  simplified     ${points.length} points at ${TOLERANCE} m`);
 console.log(`  length         ${(lengthM / 1000).toFixed(3)} km `
-  + `(surveyed ${(surveyed / 1000).toFixed(3)} km)`);
+  + `(reference ${(reference / 1000).toFixed(3)} km)`);
 
 /**
  * The check that decides whether this is the road.
  *
  * A stitched line can be plausible and still wrong — a parallel service road,
  * a fragment of the old highway, one carriageway of a dual pair. Two tests
- * catch every one of those: the length must be within 5% of the surveyed
- * chainage, and every surveyed waypoint must lie within 250 m of the line. A
+ * catch every one of those: the length must be within 5% of the reference
+ * chainage, and every reference waypoint must lie within 250 m of the line. A
  * geometry that fails is refused rather than stored, because a wrong centreline
  * is far worse than the honest polyline it would replace.
  */
 const problems = [];
-if (surveyed && Math.abs(lengthM - surveyed) / surveyed > 0.05) {
+if (reference && Math.abs(lengthM - reference) / reference > 0.05) {
   problems.push(
-    `length differs from the surveyed chainage by `
-    + `${((Math.abs(lengthM - surveyed) / surveyed) * 100).toFixed(1)}% (limit 5%)`,
+    `length differs from the reference chainage by `
+    + `${((Math.abs(lengthM - reference) / reference) * 100).toFixed(1)}% (limit 5%)`,
   );
 }
 for (const w of wp) {
-  const near = nearestIndex(points, { lat: Number(w.lat), lng: Number(w.lng) });
+  const near = nearestOnLine(points, { lat: Number(w.lat), lng: Number(w.lng) });
   if (near.metres > 250) {
     problems.push(`waypoint ${w.code} is ${Math.round(near.metres)} m from the line (limit 250 m)`);
   }

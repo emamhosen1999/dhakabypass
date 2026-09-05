@@ -1,178 +1,103 @@
-/**
- * The corridor, drawn from surveyed coordinates.
- *
- * Presentational only: it is handed a fully-formatted view (lib/corridor/view.js)
- * and draws it. No data access, no geometry, no i18n — so it renders identically
- * on the server and in the browser, which is what lets the map work with
- * JavaScript off and gain zoom, pan and highlighting when JavaScript arrives.
- *
- * NO MAP LIBRARY, and that is a decision rather than a limitation:
- *
- *  - It renders identically for a reader on a 3G phone in Gazipur and one on a
- *    desk in Dhaka. The road-user audience is mobile-heavy and the spec sets a
- *    performance budget on a throttled 3G profile; a map SDK is 200KB+ of
- *    JavaScript before it draws anything.
- *  - It costs no API key, no per-tile billing and no third-party licence on the
- *    operator's own map of the operator's own road.
- *  - It works with JavaScript off, which a schematic of a public road should.
- *
- * A raster basemap can sit UNDERNEATH this: the projection is Web Mercator
- * precisely so an overlay lines up with tiles rather than drifting.
- *
- * ACCESSIBILITY. An SVG map is a picture to a screen reader however carefully
- * it is drawn, so it carries role="img" and one honest label, and the section
- * list beside it is the accessible equivalent — every fact on the map is in
- * that list as text, as a real button, in the tab order. Nothing inside the
- * drawing is focusable: an interactive descendant of role="img" would be
- * announced from inside something assistive technology treats as one picture.
- */
+import { nearbyLabels, roadBadges } from '../../lib/corridor/map-labels.js';
+
+/** Geographic drawing with a sourced centreline and diagrammatic lane widths. */
 export default function CorridorMap({
   view, viewBox, hovered, selected, onHoverSection, onSelectSection,
+  connections = true, landmarks = true, traffic = false, pixelWidth = view.width,
+  activeRoad = null, onHoverRoad, onSelectRoad,
 }) {
-  if (!view || !view.ok) return null;
-  const active = selected || hovered;
-
+  if (!view?.ok) return null;
+  const active = hovered || selected;
+  const zoom = pixelWidth / Number((viewBox || view.viewBox).split(' ')[2]);
+  const [vx,vy,vw,vh] = (viewBox || view.viewBox).split(' ').map(Number);
+  const compact = pixelWidth < 600;
+  const detailZoom = (compact ? 720 : view.width) / vw;
+  const labels = nearbyLabels(view.facilities, { zoom, compact, detailZoom, bounds:{x:vx,y:vy,w:vw,h:vh} });
+  const roadStyle = { vectorEffect: 'non-scaling-stroke' };
+  const geo = view.geography;
+  const badges = roadBadges(geo.roads,labels,view.linePoints,zoom,{x:vx,y:vy,w:vw,h:vh});
   return (
-    <svg
-      className="db-map"
-      viewBox={viewBox || view.viewBox}
-      role="img"
-      aria-label={view.alt}
-      preserveAspectRatio="xMidYMid meet"
-    >
-      <defs>
-        {/* Hatching for a closed section — the pattern is what carries the
-            meaning for a reader who cannot distinguish the colour. */}
-        <pattern id="db-map-closed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <rect width="8" height="8" fill="var(--db-ink-3)" />
-          <rect width="4" height="8" fill="var(--db-surface-2)" />
-        </pattern>
-        <filter id="db-map-pin" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodOpacity="0.35" />
-        </filter>
-      </defs>
-
-      {/* The coordinate grid, under everything. This is the only thing on the
-          map that answers "where is this?" without a basemap: the corridor is
-          drawn from surveyed coordinates and the grid is what shows it. The
-          degree values are labelled on the two edges the drawing leaves empty
-          — meridians along the top, parallels down the far left. */}
-      {view.graticule ? (
-        <g className="db-map-grid" aria-hidden="true">
-          {view.graticule.meridians.map((m) => (
-            <g key={`mer-${m.text}`}>
-              <line x1={m.x} y1={view.graticule.box.y0} x2={m.x} y2={view.graticule.box.y1} />
-              <text x={m.x} y={view.graticule.box.y0 - 12} textAnchor="middle" className="db-map-grid-label">
-                {m.text}
-              </text>
-            </g>
-          ))}
-          {view.graticule.parallels.map((p) => (
-            <g key={`par-${p.text}`}>
-              <line x1={view.graticule.box.x0} y1={p.y} x2={view.graticule.box.x1} y2={p.y} />
-              <text x="6" y={p.y} dominantBaseline="central" className="db-map-grid-label">
-                {p.text}
-              </text>
-            </g>
-          ))}
+    <svg className="db-map" viewBox={viewBox || view.viewBox} role="img" aria-label={view.alt} preserveAspectRatio="xMidYMid meet">
+      <defs><pattern id="db-map-closed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="8" height="8" fill="var(--db-ink-3)"/><rect width="4" height="8" fill="var(--db-surface-2)"/>
+      </pattern></defs>
+      <image className="db-map-geography" href={geo.image} x={geo.x} y={geo.y} width={geo.width} height={geo.height} preserveAspectRatio="none"/>
+      {connections ? <g className="db-map-approaches">{geo.highlights.map(r =>
+        <a key={r.id} href="#map-roads" aria-hidden="true" tabIndex={-1}
+          onMouseEnter={()=>onHoverRoad?.(r.roadId)} onMouseLeave={()=>onHoverRoad?.(null)}
+          onClick={onSelectRoad?e=>{e.preventDefault();onSelectRoad(r.roadId);}:undefined}>
+          <title>{`${r.roadId} · ${r.name || (r.kind === 'connection' ? 'Connecting road' : 'Crossing road')}`}</title>
+          <path d={r.d} className="db-map-road-hit" style={roadStyle}/>
+          <path d={r.d} className={`db-map-approach is-${r.kind}${r.major?' is-major':''}${activeRoad===r.roadId?' is-active':''}`} style={roadStyle}/>
+        </a>)}
+      </g> : null}
+      {connections ? <g className="db-map-road-badges">{badges.map(r=><a key={r.id}
+        href="#map-roads" aria-hidden="true" tabIndex={-1} onMouseEnter={()=>onHoverRoad?.(r.id)} onMouseLeave={()=>onHoverRoad?.(null)}
+        onClick={onSelectRoad?e=>{e.preventDefault();onSelectRoad(r.id);}:undefined}>
+        <title>{`${r.ref} · ${r.name}`}</title>
+        <path d={`M${r.x},${r.y} L${r.badgeX},${r.badgeY}`} className="db-map-road-badge-leader" style={roadStyle}/>
+        <g transform={`translate(${r.badgeX},${r.badgeY}) scale(${1/zoom})`}>
+          <rect x="-22" y="-11" width="44" height="22" rx="5"/>
+          <text y="1" textAnchor="middle" dominantBaseline="central">{r.ref}</text>
         </g>
-      ) : null}
-
-      {/* The casing: one continuous dark stroke under the coloured sections, so
-          the road reads as a single object and the joins between sections do
-          not show as seams. */}
-      <path d={view.d} className="db-map-casing" />
-
-      {/*
-        Each section is a link to its own row in the list beside the map, so the
-        map is navigable with no JavaScript at all — the row highlights through
-        CSS :target. With JavaScript the same click selects it in place instead,
-        and hovering previews it.
-      */}
-      {view.sections.map((s) => (
-        <a
-          key={s.id}
-          href={`#sec-${s.id}`}
-          className={`db-map-hit${active === s.id ? ' is-active' : ''}`}
-          aria-hidden="true"
-          tabIndex={-1}
-          onMouseEnter={onHoverSection ? () => onHoverSection(s.id) : undefined}
-          onMouseLeave={onHoverSection ? () => onHoverSection(null) : undefined}
-          onClick={onSelectSection ? (e) => { e.preventDefault(); onSelectSection(s.id); } : undefined}
-        >
-          <title>{s.title}</title>
-          {/* An invisible fat stroke: a 7-unit line is a 5px pointer target. */}
-          <path d={s.d} className="db-map-hitarea" />
-          <path d={s.d} className="db-map-section" stroke={s.stroke} />
-        </a>
-      ))}
-
-      {/* Facilities are drawn before the waypoints, so a plaza marker never
-          covers a numbered corridor point. A facility that is not open yet is
-          drawn hollow and dashed: most of the named facilities on this corridor
-          are still under construction, and showing them the same as the open
-          ones would tell a driver they can stop at a toll plaza that does not
-          exist. */}
-      {view.features.map((f) => (
-        <circle
-          key={`f-${f.id}`} cx={f.x} cy={f.y} r="5"
-          className={`db-map-feature db-map-feature-${f.kind}${f.pending ? ' db-map-feature-pending' : ''}`}
-        />
-      ))}
-
-      {/* Facility names, stacked down the right-hand gutter with a leader back
-          to the marker. The label may move to avoid its neighbour; the leader
-          is what keeps it attached to the place it names. */}
-      {view.labels.map((f) => (
-        <g key={`l-${f.id}`} className="db-map-label">
-          <path
-            className="db-map-leader"
-            d={`M${f.x.toFixed(1)},${f.y.toFixed(1)} L${(f.labelX - 16).toFixed(1)},${f.labelY.toFixed(1)} L${(f.labelX - 4).toFixed(1)},${f.labelY.toFixed(1)}`}
-          />
-          <text x={f.labelX} y={f.labelY} fontSize={view.labelFont} dominantBaseline="central" className="db-map-label-text">
-            {f.name}
-          </text>
-        </g>
-      ))}
-
-      {view.waypoints.map((w) => (
-        <g key={w.code} className="db-map-wp" filter="url(#db-map-pin)">
-          <circle cx={w.x} cy={w.y} r={w.terminal ? 14 : 11} className={w.terminal ? 'db-map-terminal' : 'db-map-wp-dot'} />
-          <text x={w.x} y={w.y} className={`db-map-wp-label${w.terminal ? ' db-map-wp-label-terminal' : ''}`}
-                dominantBaseline="central" textAnchor="middle">
-            {w.code}
-          </text>
-          {/* Suppressed where two waypoints sit too close to label both — the
-              marker stays, only the redundant distance goes. Chainage sits to
-              the LEFT: the right-hand side of the road is the facility label
-              column, and the two ran into each other. */}
-          {w.chainageLabel ? (
-            <text x={w.x - (w.terminal ? 20 : 16)} y={w.y} className="db-map-wp-km"
-                  textAnchor="end" dominantBaseline="central">
-              {w.chainageLabel}
-            </text>
-          ) : null}
-        </g>
-      ))}
-
-      {/* North arrow, grouped with the scale bar in the bottom-left corner —
-          the conventional place for a map's furniture, and the one part of this
-          frame the corridor and the label column both leave empty. */}
-      <g className="db-map-north" transform={`translate(34, ${(view.height - 78).toFixed(1)})`} aria-hidden="true">
-        <path d="M0,-14 L6,8 L0,3 L-6,8 Z" className="db-map-north-arrow" />
-        <text y="22" textAnchor="middle" className="db-map-north-label">{view.north}</text>
+      </a>)}</g>:null}
+      <g className="db-map-road" fill="none" strokeLinejoin="round" strokeLinecap="round">
+        <path d={view.d} stroke="var(--map-edge)" strokeWidth="24" style={roadStyle}/>
+        <path d={view.d} stroke="var(--map-service)" strokeWidth="21" style={roadStyle}/>
+        <path d={view.d} stroke="var(--map-edge)" strokeWidth="16" style={roadStyle}/>
+        <path d={view.d} className="db-map-casing" stroke="var(--map-toll)" strokeWidth="12" style={roadStyle}/>
+        <path d={view.d} stroke="var(--map-median)" strokeWidth="2" style={roadStyle}/>
       </g>
-
-      {view.scale ? (
-        <g className="db-map-scale" transform={`translate(24, ${(view.height - 26).toFixed(1)})`} aria-hidden="true">
-          <line x1="0" y1="0" x2={view.scale.px.toFixed(1)} y2="0" className="db-map-scale-line" />
-          <line x1="0" y1="-4" x2="0" y2="4" className="db-map-scale-line" />
-          <line x1={view.scale.px.toFixed(1)} y1="-4" x2={view.scale.px.toFixed(1)} y2="4" className="db-map-scale-line" />
-          <text x={(view.scale.px / 2).toFixed(1)} y="-8" textAnchor="middle" className="db-map-scale-label">
-            {view.scale.text}
-          </text>
-        </g>
-      ) : null}
+      {view.sections.map(s => <a key={s.id} href={`#sec-${s.id}`}
+        className={`db-map-hit${active === s.id ? ' is-active' : ''}`} aria-hidden="true" tabIndex={-1}
+        onMouseEnter={onHoverSection ? () => onHoverSection(s.id) : undefined}
+        onMouseLeave={onHoverSection ? () => onHoverSection(null) : undefined}
+        onClick={onSelectSection ? e => { e.preventDefault(); onSelectSection(s.id); } : undefined}>
+        <title>{s.title}</title><path d={s.d} className="db-map-hitarea" style={roadStyle}/>
+        <path d={s.d} className="db-map-section" stroke={active === s.id ? 'var(--map-selection)' : s.stroke}
+          style={{ ...roadStyle, opacity: active === s.id ? 0.85 : traffic ? 0.8 : 0 }}/>
+      </a>)}
+      <g className="db-map-direction" pointerEvents="none">
+        {view.linePoints.filter((_, i) => i % 16 === 5).map((p, i) => {
+          const index = i * 16 + 5; const next = view.linePoints[Math.min(index + 1, view.linePoints.length - 1)];
+          const angle = Math.atan2(next.y - p.y, next.x - p.x) * 180 / Math.PI;
+          return <g key={index} transform={`translate(${p.x},${p.y}) rotate(${angle}) scale(${1 / zoom})`}>
+            <path d="M-3,-5 L3,-5 M0,-8 L3,-5 L0,-2"/><path d="M3,5 L-3,5 M0,2 L-3,5 L0,8"/>
+          </g>;
+        })}
+      </g>
+      {connections && detailZoom > 1.6 ? <g pointerEvents="none">{geo.junctions.map((j, i) =>
+        <g key={i} transform={`translate(${j.x},${j.y}) scale(${1 / zoom})`}>
+          {j.kind === 'connection' ? <circle r="4" className="db-map-connection-dot"/>
+            : <path d="M-7,-5 L7,-5 M-7,5 L7,5" className="db-map-crossing-mark"/>}
+        </g>)}
+      </g> : null}
+      {landmarks ? <g className="db-map-landmarks" pointerEvents="none">
+        {detailZoom > 2 ? view.features.map(f => <g key={f.id} transform={`translate(${f.x},${f.y}) scale(${1 / zoom})`}>
+          <circle r="4" className={`db-map-feature db-map-feature-${f.kind}${f.pending ? ' db-map-feature-pending' : ''}`}/>
+        </g>) : null}
+        {labels.map(f => <g key={f.id} className={`db-map-label${f.detail ? ' is-detail' : ''}`}>
+          <path d={`M${f.x},${f.y} L${f.labelX},${f.labelY}`} className="db-map-leader" style={roadStyle}/>
+          <g transform={`translate(${f.left},${f.labelY}) scale(${1 / zoom})`}>
+            <rect x="0" y={-f.height/2} width={f.width} height={f.height} rx="7" className="db-map-label-card"/>
+            <rect x="7" y="-11" width="23" height="22" rx="5" className={`db-map-label-icon is-${f.kind}`}/>
+            {f.kind === 'toll_plaza' ? <path d="M12,5V-4H25V5M11,-7H26M18,-4V5" className="db-map-icon-line"/>
+              : f.kind === 'bridge' ? <path d="M11,4H26M13,3V-6M24,3V-6M13,-3Q18,-10 24,-3" className="db-map-icon-line"/>
+                : <circle cx="18.5" cy="0" r="4" className="db-map-icon-line"/>}
+            <text x={compact?34:37} y="1" dominantBaseline="central" className="db-map-label-text" style={{fontSize:compact?11:14}}>{f.displayName}</text>
+          </g>
+        </g>)}
+      </g> : null}
+      {view.waypoints.map(w => <g key={w.code} transform={`translate(${w.x},${w.y}) scale(${1 / zoom})`} className="db-map-wp">
+        {(w.terminal || detailZoom > 1.8) ? <>
+          <circle r={w.terminal ? 11 : 8} className={w.terminal ? 'db-map-terminal' : 'db-map-wp-dot'}/>
+          <text textAnchor="middle" dominantBaseline="central" className={`db-map-wp-label${w.terminal ? ' db-map-wp-label-terminal' : ''}`}>{w.code}</text>
+        </> : null}
+        {w.terminal ? <g transform={`translate(${compact ? (w.code==='S'?22:-22) : (w.code === 'S' ? -26 : 26)},${w.code === 'S' ? -28 : 28})`}>
+          <text className="db-map-terminal-name" textAnchor={(w.code === 'S') !== compact ? 'end' : 'start'}>{w.name.replace(/\s*\(.*?\)|（.*?）/g, '')}</text>
+          <text y="18" className="db-map-terminal-distance" textAnchor={(w.code === 'S') !== compact ? 'end' : 'start'}>{w.chainageLabel}</text>
+        </g> : null}
+      </g>)}
     </svg>
   );
 }
