@@ -4,14 +4,21 @@ import { auth, signOut } from '../../../auth';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * `/admin/pages-v2` — the block builder for the localised site — was missing
+ * from this list, so the screen that edits every page of the new site was
+ * reachable only by typing its URL. It is listed as "Content" to distinguish it
+ * from "Pages", which edits the legacy site's sections.
+ */
 const NAV = [
   { href: '/admin', label: 'Dashboard' },
-  { href: '/admin/pages', label: 'Pages' },
+  { href: '/admin/pages-v2', label: 'Content' },
   { href: '/admin/news', label: 'News' },
-  { href: '/admin/gallery', label: 'Gallery' },
-  { href: '/admin/messages', label: 'Messages' },
-  { href: '/admin/corridor', label: 'Corridor' },
   { href: '/admin/media', label: 'Media' },
+  { href: '/admin/corridor', label: 'Corridor' },
+  { href: '/admin/messages', label: 'Messages' },
+  { href: '/admin/settings', label: 'Settings' },
+  { href: '/admin/pages', label: 'Legacy' },
 ];
 
 /**

@@ -13,7 +13,7 @@
 -- hand. Check db/sql/README.md before upgrading an existing database.
 --
 -- GENERATED FILE — do not edit. Regenerate with:  npm run db:sql
--- Generated 2026-09-04 from scripts/db-setup*.mjs and the seed scripts.
+-- Generated 2026-09-05 from scripts/db-setup*.mjs and the seed scripts.
 -- ---------------------------------------------------------------------------
 
 SET NAMES utf8mb4;

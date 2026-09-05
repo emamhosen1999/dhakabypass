@@ -67,6 +67,24 @@ if (!USER) die('DB_USER is not set.', 'Run `npm run setup` first, or set DB_* in
  * moment anyone imports it) and personal data (messages and subscriptions are
  * the public's, not ours).
  */
+/**
+ * Settings that belong to a DEPLOYMENT, not to the seed.
+ *
+ * `site_settings` legitimately carries seed content — the corridor's published
+ * length, the prohibited-vehicle list — which every environment should start
+ * with. It also carries DBEDC's real telephone number, emergency hotline,
+ * postal address and official accounts, entered by an operator at
+ * /admin/settings.
+ *
+ * Those must never be dumped into a file in the repository. Two reasons, and
+ * the second is the one that matters: a staging environment would come up
+ * publishing production's contact details, and — far worse — a developer's test
+ * value would ship as seed content and appear on a live page as the road
+ * operator's own phone number. An invented emergency number published by DBEDC
+ * is the single most damaging thing this project can put on a page.
+ */
+const DEPLOYMENT_SETTING_PREFIXES = ['contact.', 'social.'];
+
 const STRUCTURE_ONLY = new Set([
   'users',
   'admin_users',
@@ -112,6 +130,20 @@ function dump(extra, tables = []) {
   // will execute afterwards, and this file has to import cleanly through
   // phpMyAdmin on a host we do not control. Strip it.
   return out.replace(/^\/\*M!999999.*$/gm, '');
+}
+
+/**
+ * A WHERE clause excluding the deployment-owned settings.
+ *
+ * mysqldump applies one `--where` across every table in the call, so
+ * `site_settings` is dumped on its own with this clause and the remaining
+ * tables are dumped separately without it.
+ */
+function siteSettingsWhere() {
+  const conditions = DEPLOYMENT_SETTING_PREFIXES.map(
+    (prefix) => `setting_key NOT LIKE '${prefix}%'`,
+  );
+  return conditions.join(' AND ');
 }
 
 step('Building a scratch database from the migration scripts');
@@ -171,8 +203,15 @@ schema = schema.replace(/\n{3,}/g, '\n\n').trim();
 step('Dumping the seed content');
 const dataTables = tables.filter((t) => !STRUCTURE_ONLY.has(t));
 let data = dump(
+  ['--no-create-info', '--complete-insert', '--skip-extended-insert',
+    // mysqldump's own WHERE, so the rows never enter the dump at all rather
+    // than being filtered out of it afterwards by a regex over SQL text.
+    `--where=${siteSettingsWhere()}`],
+  ['site_settings'],
+);
+data += dump(
   ['--no-create-info', '--complete-insert', '--skip-extended-insert'],
-  dataTables,
+  dataTables.filter((t) => t !== 'site_settings'),
 );
 
 // INSERT IGNORE, not INSERT: re-importing must never overwrite content an
