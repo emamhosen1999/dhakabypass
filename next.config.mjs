@@ -6,6 +6,8 @@ const nextConfig = {
   // the memory-limited shared host.
   output: 'standalone',
   experimental: {
+    // Keep static generation within the memory available on the local machine.
+    cpus: 2,
     /**
      * ISR MUST NOT WRITE BACK INTO THE ARTIFACT.
      *
@@ -113,6 +115,7 @@ const nextConfig = {
     return [
       { source: '/:path*', headers: common },
       // Enforced on the trees we own and test.
+      { source: '/', headers: [{ key: 'Content-Security-Policy', value: csp }] },
       { source: '/:locale(en|bn|zh)/:path*', headers: [{ key: 'Content-Security-Policy', value: csp }] },
       { source: '/:locale(en|bn|zh)', headers: [{ key: 'Content-Security-Policy', value: csp }] },
       { source: '/admin/:path*', headers: [{ key: 'Content-Security-Policy', value: csp }] },
@@ -121,8 +124,24 @@ const nextConfig = {
       { source: '/:path*', headers: [{ key: 'Content-Security-Policy-Report-Only', value: csp }] },
     ];
   },
+  async rewrites() {
+    // The public domain opens the English homepage without a language suffix.
+    // Locale routes remain available for switching languages and deep links.
+    return { beforeFiles: [{ source: '/', destination: '/en' }] };
+  },
   async redirects() {
     return [
+      ...[
+        ['/project', '/en/project'],
+        ['/project/overview', '/en/project'],
+        ['/economic-impact', '/en/project'],
+        ['/stakeholders', '/en/about/governance'],
+        ['/chinese-contribution', '/en/about'],
+        ['/routes-facilities', '/en/travel/map'],
+        ['/latest-updates', '/en/news'],
+        ['/gallery', '/en/gallery'],
+        ['/contact', '/en/contact'],
+      ].map(([source, destination]) => ({ source, destination, permanent: true })),
       {
         source: '/about-project',
         destination: '/project/overview',

@@ -1,30 +1,26 @@
-// tests/e2e/legacy.spec.js
 import { test, expect } from '@playwright/test';
 
-// The live site must keep working untouched until cutover.
-const LEGACY = ['/', '/project', '/economic-impact', '/stakeholders',
-                '/chinese-contribution', '/routes-facilities', '/latest-updates',
-                '/gallery', '/contact'];
+test('the root opens the English homepage without redirecting', async ({page}) => {
+  const response = await page.goto('/');
+  expect(response.status()).toBe(200);
+  expect(response.request().redirectedFrom()).toBeNull();
+  expect(new URL(page.url()).pathname).toBe('/');
+  await expect(page.locator('.db-root')).toHaveAttribute('lang', 'en');
+});
 
-for (const path of LEGACY) {
-  test(`legacy ${path} still serves`, async ({ page }) => {
-    const response = await page.goto(path);
-    expect(response.status()).toBe(200);
-
-    // A 200 is not enough — the tripwire this spec exists for is a redirect
-    // (e.g. middleware widened to send '/' -> '/en' ahead of cutover) that
-    // still ends in a 200, just on the NEW site. Reject any redirect and
-    // confirm we're still looking at the URL we asked for.
-    expect(response.request().redirectedFrom()).toBeNull();
-    expect(new URL(page.url()).pathname).toBe(path);
-
-    // Distinguish the old site from the new one structurally: the new
-    // locale layout wraps everything in a `.db-root` element that the
-    // legacy (site) layout never renders. The legacy header is the only
-    // place the "DBEDC Logo" alt text appears (the new header renders
-    // "DBEDC" as its own visible brand text, so that string alone would
-    // match both sites and prove nothing).
-    await expect(page.locator('.db-root')).toHaveCount(0);
-    await expect(page.locator('img[alt="DBEDC Logo"]')).toBeVisible();
+// The client authorised retiring the legacy site on 2026-09-06.
+for (const [from, to] of [
+  ['/project', '/en/project'], ['/project/overview', '/en/project'],
+  ['/economic-impact', '/en/project'], ['/stakeholders', '/en/about/governance'],
+  ['/chinese-contribution', '/en/about'], ['/routes-facilities', '/en/travel/map'],
+  ['/latest-updates', '/en/news'], ['/gallery', '/en/gallery'], ['/contact', '/en/contact'],
+]) {
+  test(`retired ${from} redirects to ${to}`, async ({request}) => {
+    const response = await request.get(from, {maxRedirects: 0});
+    expect(response.status()).toBe(308);
+    expect(new URL(response.headers().location, response.url()).pathname).toBe(to);
+    const destination = await request.get(to);
+    expect(destination.status()).toBe(200);
+    expect(await destination.text()).toContain('db-root');
   });
 }
