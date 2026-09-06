@@ -13,7 +13,7 @@ try {
   await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
   await connection.query(`USE \`${database}\``);
   for(let repeat=0;repeat<2;repeat++) {
-    for(const file of ['01-schema.sql','02-seed.sql']) await connection.query(await fs.readFile(new URL('../db/sql/'+file,import.meta.url),'utf8'));
+    for(const file of ['01-schema.sql','02-seed.sql','03-content-recovery.sql']) await connection.query(await fs.readFile(new URL('../db/sql/'+file,import.meta.url),'utf8'));
   }
   const [rows]=await connection.query('SELECT COUNT(*) AS count FROM corridor_geometry');
   const [sources]=await connection.query('SELECT source FROM corridor_geometry_source WHERE id=1');

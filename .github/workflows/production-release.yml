@@ -43,6 +43,7 @@ jobs:
           npm run db:seed:all
           node scripts/import-legacy-media.mjs
           node scripts/translate-media-alt.mjs
+          node scripts/apply-content-recovery.mjs
           node scripts/import-corridor-geometry.mjs --source osm --file public/maps/corridor-alignment.geojson
       - run: npm test
       - run: node scripts/verify-release-sql.mjs --database=dhakabypass_sql_test

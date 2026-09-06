@@ -5,10 +5,16 @@ These two files are how the database is created and seeded on the server.
 ```
 01-schema.sql   every table                       ~17 KB
 02-seed.sql     the starting content               ~117 KB
+03-content-recovery.sql  reviewed legacy content recovery and gallery additions
 ```
 
 Both are **generated**. Do not edit them by hand — regenerate with `npm run db:sql`
 and commit the result.
+
+Import `03-content-recovery.sql` after the first two files on existing and fresh
+installs. It updates only blocks that still match the former seeded content and
+records the gallery publication once, preserving later editor choices. Its
+sources and remaining gaps are in `docs/source-data/2026-09-06-content-recovery.md`.
 
 ## Why these exist
 

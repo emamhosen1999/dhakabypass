@@ -185,7 +185,8 @@ const chain = [
   ['seed-home-v2.mjs', 'home page blocks, 3 locales'],
   ['seed-institutional.mjs', 'about, governance, project, safety, sustainability,\n    procurement, disclosures, land acquisition, tariff, grievances'],
   ['import-legacy-media.mjs', 'audited legacy image registry'],
-  ['translate-media-alt.mjs', 'bn/zh alt text'],
+    ['translate-media-alt.mjs', 'bn/zh alt text'],
+    ['apply-content-recovery.mjs', 'reviewed content recovery and additional gallery photographs'],
 ];
 
 for (const [script, what, args = []] of chain) {

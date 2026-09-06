@@ -27,6 +27,10 @@ registerAllBlocks();
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const slugs = INSTITUTIONAL_PAGES.map((p) => p.slug);
 
+// Previous-site claims were explicitly authorised on 2026-09-06 when labelled
+// as historical. Keep the stronger figure/name guards on current statements.
+const currentCopy = (s) => s.replace(/<div class="db-archive">[\s\S]*?<\/div>/g, '');
+
 /** Every string a reader could see, flattened out of a block's data. */
 function strings(value, out = []) {
   if (typeof value === 'string') out.push(value);
@@ -196,7 +200,9 @@ describe('no unconfirmed figures', () => {
    * class counts and years that appear as ordinary prose. Anything else that
    * looks like a published quantity has to be justified here first.
    */
-  const ALLOWED = new Set(['48', '47.611', '18', '1']);
+  // Historical dates verified in the 2026-09-06 recovery audit: PPPA contract
+  // 6 December 2018; BIFFL first disbursement April 2022, annual report p88.
+  const ALLOWED = new Set(['48', '47.611', '18', '1', '6', '12', '2018', '2022', '4', '88']);
 
   /**
    * Bangla copy sets figures in Bengali numerals (৪৮, not 48), matching the
@@ -212,7 +218,7 @@ describe('no unconfirmed figures', () => {
     const offenders = [];
     for (const locale of LOCALES) {
       for (const s of allStrings(page, locale)) {
-        const text = toAscii(s.replace(/<[^>]+>/g, ' '));
+        const text = toAscii(currentCopy(s).replace(/<[^>]+>/g, ' '));
         for (const m of text.matchAll(/\d[\d,.]*/g)) {
           const n = m[0].replace(/[.,]$/, '');
           if (!ALLOWED.has(n)) offenders.push(`${locale}: "${n}" in "${text.slice(0, 70)}"`);
@@ -230,30 +236,49 @@ describe('no unconfirmed figures', () => {
     expect(bnFigures.length).toBeGreaterThan(0);
   });
 
-  it('never states a currency amount', () => {
+  it('never states an unconfirmed current currency amount', () => {
     // Toll rates are confirmed and published on /travel/toll from the database.
     // A rate hardcoded into institutional prose is a second place for it to rot.
     for (const page of INSTITUTIONAL_PAGES) {
       for (const locale of LOCALES) {
         for (const s of allStrings(page, locale)) {
-          expect(/[৳$]|BDT|Taka/i.test(s.replace(/<[^>]+>/g, ' ')), `${page.slug}/${locale}`)
+          expect(/[৳$]|BDT|Taka/i.test(currentCopy(s).replace(/<[^>]+>/g, ' ')), `${page.slug}/${locale}`)
             .toBe(false);
         }
       }
     }
   });
 
-  it('names no individual', () => {
+  it('does not present the archived officers as current', () => {
     // The old site listed five officers with titles; the audit rates that list
     // as years old, unverified, and containing a romanisation that collides
     // with an internationally known name.
     const forbidden = ['Liu Xiaobo', 'Xiao Zhiming', 'Shafiqul Islam Akand', 'Syed Aslam Ali', 'Shamim Ahmed'];
     for (const page of INSTITUTIONAL_PAGES) {
       for (const locale of LOCALES) {
-        const blob = allStrings(page, locale).join(' ');
+        const blob = allStrings(page, locale).map(currentCopy).join(' ');
         for (const name of forbidden) expect(blob).not.toContain(name);
       }
     }
+  });
+});
+
+describe('historical content provenance', () => {
+  it('labels each restored section in all three languages', () => {
+    const labels = {en:'Previous website information',bn:'আগের ওয়েবসাইটের তথ্য',zh:'旧版网站信息'};
+    for (const page of INSTITUTIONAL_PAGES) for (const block of page.blocks) {
+      if (!block.data.en.body?.includes('db-archive')) continue;
+      for (const locale of LOCALES) {
+        expect(block.data[locale].body).toContain('db-archive-tag');
+        expect(block.data[locale].body).toContain(labels[locale]);
+      }
+    }
+  });
+  it('keeps expired targets distinct from current road availability', () => {
+    const page = INSTITUTIONAL_PAGES.find(p=>p.slug==='project');
+    const body = page.blocks.map(b=>b.data.en.body||'').join('');
+    expect(body).toContain('historical targets that have passed');
+    expect(body).toContain('do not indicate that the remaining road is open');
   });
 });
 
