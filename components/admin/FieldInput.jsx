@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { uploadImage } from './upload-image';
 
 /** Heuristics: which fields are images, and which want a textarea. */
 const isImagePath = (v) =>
@@ -40,12 +41,9 @@ export default function FieldInput({ name, value }) {
     setUploading(true);
     setError('');
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/admin/api/upload', { method: 'POST', body: fd });
-      const json = await res.json();
-      if (!res.ok || !json.ok) throw new Error(json.error || 'Upload failed');
-      setVal(json.path);
+      // Shared with the pages-v2 block editor's image picker — see
+      // components/admin/upload-image.js.
+      setVal(await uploadImage(file));
     } catch (err) {
       setError(err.message);
     } finally {

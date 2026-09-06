@@ -27,8 +27,9 @@ import { revalidatePage } from '../../lib/revalidate.js';
 import { revalidatePath } from 'next/cache';
 import { resetRegistry } from '../../lib/blocks/registry.js';
 import { registerAllBlocks } from '../../lib/blocks/index.js';
+import * as blockActions from '../../app/admin/(dash)/pages-v2/[id]/block-actions.js';
 import {
-  addBlockAction, deleteBlockAction, duplicateBlockAction, moveBlockAction, saveTranslationAction,
+  addBlockAction, deleteBlockAction, duplicateBlockAction, reorderBlocksAction, saveTranslationAction,
 } from '../../app/admin/(dash)/pages-v2/[id]/block-actions.js';
 
 function formData(entries) {
@@ -113,23 +114,57 @@ describe('duplicateBlockAction — error handling', () => {
   });
 });
 
-describe('moveBlockAction — error handling', () => {
-  it('turns a database failure from reorderBlocks into the generic message, never the driver text', async () => {
-    getPageBlocks.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]);
+describe('reorderBlocksAction', () => {
+  it("assertCan's rejection reaches the caller unchanged, and the DB is never touched", async () => {
+    auth.mockResolvedValue({ user: { isAdmin: true, role: 'translator' } });
+    await expect(
+      reorderBlocksAction(formData({ pageId: '1', slug: 'home', order: '3,1,2' }))
+    ).rejects.toThrow('Your role cannot edit blocks');
+    expect(reorderBlocks).not.toHaveBeenCalled();
+  });
+
+  it('writes the whole new ordering in ONE reorderBlocks call — no read-modify-write round trip', async () => {
+    reorderBlocks.mockResolvedValue(undefined);
+    await reorderBlocksAction(formData({ pageId: '1', slug: 'home', order: '9,4,7,2' }));
+    expect(reorderBlocks).toHaveBeenCalledTimes(1);
+    expect(reorderBlocks).toHaveBeenCalledWith(1, [9, 4, 7, 2]);
+    // The old up/down action had to re-read the page to compute a swap.
+    expect(getPageBlocks).not.toHaveBeenCalled();
+  });
+
+  it('revalidates the public page and the admin path on success', async () => {
+    reorderBlocks.mockResolvedValue(undefined);
+    await reorderBlocksAction(formData({ pageId: '5', slug: 'about', order: '1,2' }));
+    expect(revalidatePage).toHaveBeenCalledWith('about');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/pages-v2/5');
+  });
+
+  it.each([
+    ['empty', ''],
+    ['non-numeric', '3,abc,1'],
+    ['duplicated ids', '3,1,3'],
+    ['a zero id', '0,1'],
+    ['a negative id', '-2,1'],
+    ['a fractional id', '1.5,2'],
+  ])('rejects a %s order without writing', async (_label, order) => {
+    await expect(
+      reorderBlocksAction(formData({ pageId: '1', slug: 'home', order }))
+    ).rejects.toThrow('That is not a valid block order.');
+    expect(reorderBlocks).not.toHaveBeenCalled();
+  });
+
+  it('turns a database failure into the generic message, never the driver text', async () => {
     reorderBlocks.mockRejectedValue(driverError());
     await expect(
-      moveBlockAction(formData({ pageId: '1', slug: 'home', blockId: '2', direction: 'up' }))
+      reorderBlocksAction(formData({ pageId: '1', slug: 'home', order: '2,1,3' }))
     ).rejects.toThrow('Could not reorder the blocks. Please try again.');
     await expect(
-      moveBlockAction(formData({ pageId: '1', slug: 'home', blockId: '2', direction: 'up' }))
+      reorderBlocksAction(formData({ pageId: '1', slug: 'home', order: '2,1,3' }))
     ).rejects.not.toThrow(/Connection lost|PROTOCOL_/);
   });
 
-  it('still submits the full ordered id list to reorderBlocks, not a partial one', async () => {
-    getPageBlocks.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]);
-    reorderBlocks.mockResolvedValue(undefined);
-    await moveBlockAction(formData({ pageId: '1', slug: 'home', blockId: '2', direction: 'up' }));
-    expect(reorderBlocks).toHaveBeenCalledWith(1, [2, 1, 3]);
+  it('no longer exports moveBlockAction — one drag is one action, not one swap per reload', () => {
+    expect(blockActions.moveBlockAction).toBeUndefined();
   });
 });
 

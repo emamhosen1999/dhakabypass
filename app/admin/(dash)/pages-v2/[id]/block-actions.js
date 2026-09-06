@@ -6,7 +6,7 @@ import { getBlock, validateBlockData, defaultBlockData } from '../../../../../li
 import { parseBlockForm } from '../../../../../lib/blocks/form';
 import '../../../../../lib/blocks/index';
 import {
-  getPageBlocks, addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation,
+  addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation,
 } from '../../../../../lib/content/pages';
 import { revalidatePage } from '../../../../../lib/revalidate';
 import { isLocale } from '../../../../../lib/i18n/locales';
@@ -61,20 +61,48 @@ export async function duplicateBlockAction(formData) {
   revalidatePath(adminPath(pageId));
 }
 
-export async function moveBlockAction(formData) {
+/**
+ * Parses the `order` field — a comma-separated list of block ids in their new
+ * order — into a validated array of positive integers.
+ *
+ * This is a forgeable hidden field, so every element is checked here before it
+ * reaches SQL: ids must be whole positive numbers and each may appear once.
+ * `reorderBlocks` then re-checks the set against the page's actual block ids
+ * inside the transaction, so a valid-looking list belonging to another page is
+ * still rejected — this is the cheap first gate, not the only one.
+ */
+function parseOrder(raw) {
+  const parts = String(raw ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s !== '');
+  if (parts.length === 0) throw new Error('That is not a valid block order.');
+
+  const ids = parts.map((s) => Number(s));
+  const ok = ids.every((n) => Number.isInteger(n) && n > 0);
+  if (!ok || new Set(ids).size !== ids.length) {
+    throw new Error('That is not a valid block order.');
+  }
+  return ids;
+}
+
+/**
+ * Replaces the whole ordering of a page's blocks in one action.
+ *
+ * This supersedes the per-block up/down forms, which cost one server round
+ * trip and one full page re-render per single swap — moving a block from
+ * position 9 to position 1 was eight page reloads. One drag is now one action
+ * and one `reorderBlocks` transaction (lib/content/pages.js, which uses
+ * `withTransaction`), so the page is never observed mid-shuffle.
+ */
+export async function reorderBlocksAction(formData) {
   await assertCan('edit_blocks');
   const pageId = Number(formData.get('pageId'));
-  const blockId = Number(formData.get('blockId'));
-  const direction = String(formData.get('direction'));
   const slug = String(formData.get('slug') || '');
+  // Outside the try: a malformed order is the caller's bug, not a database
+  // failure, and must not be reported as one.
+  const ids = parseOrder(formData.get('order'));
 
-  const blocks = await getPageBlocks(pageId);
-  const ids = blocks.map((b) => b.id);
-  const i = ids.indexOf(blockId);
-  const j = direction === 'up' ? i - 1 : i + 1;
-  if (i === -1 || j < 0 || j >= ids.length) return;
-
-  [ids[i], ids[j]] = [ids[j], ids[i]];
   try {
     await reorderBlocks(pageId, ids);
   } catch {
