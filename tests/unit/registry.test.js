@@ -68,3 +68,78 @@ describe('defaultBlockData', () => {
     expect(defaultBlockData('demo')).toEqual({ heading: '', count: 0, items: [] });
   });
 });
+
+/**
+ * W1.22 — `select`. Before this, media-prose's "image side" was free text and
+ * `Left` silently rendered as `right`, because MediaProseBlock tests
+ * `data.side === 'left'`. A field whose only valid values are known to the
+ * block type declares them, and the validator refuses anything else instead
+ * of publishing a page that ignores what the operator typed.
+ */
+describe('select fields', () => {
+  const Sided = (extra = {}) => ({
+    type: 'sided',
+    label: 'Sided',
+    fields: [{
+      name: 'side', type: 'select', label: 'Image side', default: 'right',
+      options: [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }],
+      ...extra,
+    }],
+    Component: () => null,
+  });
+
+  it('accepts a declared option', () => {
+    registerBlock(Sided());
+    expect(validateBlockData('sided', { side: 'left' })).toEqual({ ok: true, errors: [] });
+  });
+
+  it('rejects a value that is not one of the options, naming them', () => {
+    registerBlock(Sided());
+    const r = validateBlockData('sided', { side: 'Left' });
+    expect(r.ok).toBe(false);
+    expect(r.errors[0]).toMatch(/left/);
+    expect(r.errors[0]).toMatch(/right/);
+  });
+
+  it('treats an unset optional select as absent, not as invalid', () => {
+    registerBlock(Sided());
+    expect(validateBlockData('sided', { side: '' }).ok).toBe(true);
+  });
+
+  it('still enforces required', () => {
+    registerBlock(Sided({ required: true }));
+    expect(validateBlockData('sided', { side: '' }).ok).toBe(false);
+  });
+
+  it('defaults to the declared default, or to the first option', () => {
+    registerBlock(Sided());
+    expect(defaultBlockData('sided')).toEqual({ side: 'right' });
+    resetRegistry();
+    registerBlock(Sided({ default: undefined }));
+    expect(defaultBlockData('sided')).toEqual({ side: 'left' });
+  });
+
+  it('refuses a select with no options — an unauthorable field', () => {
+    expect(() => registerBlock({
+      type: 'no-options', label: 'N',
+      fields: [{ name: 'side', type: 'select', label: 'Side' }],
+      Component: () => null,
+    })).toThrow(/options/i);
+  });
+
+  it('refuses an option with no value or no label', () => {
+    expect(() => registerBlock({
+      type: 'bad-option', label: 'B',
+      fields: [{ name: 'side', type: 'select', label: 'Side', options: [{ value: 'left' }] }],
+      Component: () => null,
+    })).toThrow(/option/i);
+  });
+
+  it('refuses options declared on a field that is not a select', () => {
+    expect(() => registerBlock({
+      type: 'not-a-select', label: 'N',
+      fields: [{ name: 'heading', type: 'text', label: 'H', options: [{ value: 'a', label: 'A' }] }],
+      Component: () => null,
+    })).toThrow(/select/i);
+  });
+});

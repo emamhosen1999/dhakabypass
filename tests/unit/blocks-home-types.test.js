@@ -47,6 +47,15 @@ describe('media-prose block', () => {
     });
     expect(r.ok).toBe(true);
   });
+
+  it('takes the image side from a fixed set, so "Left" is an error not a no-op', () => {
+    // MediaProseBlock tests `data.side === 'left'`. As free text, anything
+    // else — including the capitalised form an operator naturally types —
+    // silently rendered as `right`.
+    expect(getBlock('media-prose').fields.find((f) => f.name === 'side').type).toBe('select');
+    expect(validateBlockData('media-prose', { heading: 'x', side: 'Left' }).ok).toBe(false);
+    expect(validateBlockData('media-prose', { heading: 'x', side: 'left' }).ok).toBe(true);
+  });
 });
 
 describe('figure-grid block', () => {
