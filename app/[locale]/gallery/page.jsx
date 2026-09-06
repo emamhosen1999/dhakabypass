@@ -89,12 +89,6 @@ export default async function GalleryPage({ params }) {
         )}
       </section>
 
-      <section className="db-block">
-        <p className="db-pending">
-          <span className="db-pending-tag">{t(locale, 'pendingTag')}</span>
-          {t(locale, 'galleryResolutionNote')}
-        </p>
-      </section>
     </>
   );
 }

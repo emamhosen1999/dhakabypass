@@ -16,9 +16,9 @@ import { getContactDetailsCached } from '../../../lib/settings-cache.js';
  * The address, telephone number and email have NOT been supplied by DBEDC.
  * `docs/source-data/2026-09-03-client-decisions.md` lists them as outstanding,
  * and the legacy site's versions are in the unverified pile. They are therefore
- * shown as an explicit gap rather than guessed at: on a contact page a wrong
- * phone number is worse than an absent one, because it sends someone away
- * believing they have tried.
+ * restored only as labelled historical information on the client's instruction
+ * of 2026-09-06. Current CMS settings supersede the archived address and email.
+ * The obvious placeholder telephone number is never carried across.
  */
 export function generateMetadata({ params }) {
   return Promise.resolve(params).then(({ locale }) => {
@@ -78,10 +78,18 @@ export default async function ContactPage({ params }) {
               construction as the institutional pages: a word as well as a
               colour, because status is never colour alone here. */}
           {details.isEmpty ? (
-            <p className="db-pending">
-              <span className="db-pending-tag">{t(locale, 'pendingTag')}</span>
-              {t(locale, 'contactDetailsPending')}
-            </p>
+            <div className="db-archive">
+              <p className="db-archive-notice">
+                <strong className="db-archive-tag">{t(locale, 'legacyDataTag')}</strong>
+                {t(locale, 'legacyDataNotice')}
+              </p>
+              <dl className="db-contact-list">
+                <div><dt>{t(locale, 'contactAddress')}</dt>
+                  <dd>Road 6, House 15, Block K, Baridhara, Dhaka-1212, Bangladesh</dd></div>
+                <div><dt>{t(locale, 'contactEmail')}</dt>
+                  <dd><a href="mailto:info@dbedc.com">info@dbedc.com</a></dd></div>
+              </dl>
+            </div>
           ) : (
             <dl className="db-contact-list">
               {details.address ? (

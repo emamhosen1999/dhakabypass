@@ -283,6 +283,12 @@
   color:var(--db-ink-3);font-size:.86rem;}
 .db-block{max-width:var(--db-shell);margin:0 auto;padding:clamp(28px,5vw,40px) clamp(12px,3vw,20px);}
 .db-prose{max-width:var(--db-measure);color:var(--db-ink-2);}
+.db-prose p+p{margin-top:1em;}
+.db-prose a{text-decoration:underline;text-underline-offset:.18em;text-decoration-thickness:1px;overflow-wrap:anywhere;}
+.db-prose a:hover{text-decoration-thickness:2px;}
+.db-archive{margin-top:20px;padding:18px 20px;border-left:3px solid var(--db-ink-3);background:var(--db-surface-2);}
+.db-archive-tag{display:block;margin-bottom:6px;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;}
+.db-archive-notice{margin-bottom:14px;font-size:.9rem;}
 .db-prose table{display:block;overflow-x:auto;max-width:100%;}
 .db-empty{max-width:var(--db-shell);margin:0 auto;padding:60px clamp(12px,3vw,20px);color:var(--db-ink-3);}
 
