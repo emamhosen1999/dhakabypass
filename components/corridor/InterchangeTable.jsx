@@ -1,18 +1,10 @@
 // components/corridor/InterchangeTable.jsx
 import { t } from '../../lib/i18n/ui';
-
-const KIND_KEY = {
-  interchange: 'kindInterchange',
-  toll_plaza: 'kindTollPlaza',
-  service_area: 'kindServiceArea',
-  u_loop: 'kindULoop',
-  pedestrian_overpass: 'kindPedestrianOverpass',
-  bridge: 'kindBridge',
-};
-const STATUS_KEY = { open: 'statusOpen', construction: 'statusConstruction', planned: 'statusPlanned' };
-// planned is a real, expected status — it must not visually collapse onto
-// the same tag as construction just because both are "not yet open".
-const TAG_CLASS = { open: 'open', construction: 'build', planned: 'planned' };
+// Shared with components/blocks/InterchangeTableBlock.jsx, which renders the
+// same interchange records with operator-chosen columns. One copy of the
+// kind/status label keys, so the two tables cannot name the same record
+// differently.
+import { kindKey, statusKey, statusTagClass } from '../../lib/corridor/interchange-labels';
 
 /**
  * The accessible equivalent of the strip, and useful in its own right — this is
@@ -42,11 +34,11 @@ export default function InterchangeTable({ interchanges, locale, caption }) {
             <tr key={i.id}>
               <th scope="row">{i.name}</th>
               <td className="db-num">{i.chainage}</td>
-              <td>{t(locale, KIND_KEY[i.kind] || 'kindInterchange')}</td>
+              <td>{t(locale, kindKey(i.kind))}</td>
               <td>{i.connectsTo || '—'}</td>
               <td>
-                <span className={`db-tag db-tag-${TAG_CLASS[i.status] || 'planned'}`}>
-                  {t(locale, STATUS_KEY[i.status] || 'statusPlanned')}
+                <span className={`db-tag db-tag-${statusTagClass(i.status)}`}>
+                  {t(locale, statusKey(i.status))}
                 </span>
               </td>
             </tr>

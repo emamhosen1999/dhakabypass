@@ -1449,3 +1449,100 @@ a.db-dashboard-source:hover{text-decoration-thickness:2px;}
   .db-block:has(.db-datatable) .db-h2,
   .db-block:has(.db-datatable) .db-lede{color:var(--db-paper-ink);}
 }
+
+/* ---- live corridor blocks: toll-table, traffic-status, interchange-table ---
+   Three tables of records, and almost nothing new to draw. All three reuse
+   .db-table, .db-table-caption, .db-num and .db-scroll-x wholesale, and
+   toll-table also carries .db-datatable so it inherits the zebra banding and
+   the whole print block above — a toll rate card is printed and pinned up in
+   a transport office, and that behaviour was already written for exactly this
+   table. What follows is only what those classes do not already say.
+
+   No new colours. Every value below is a token defined at the top of this
+   file, where the measured contrast ratios are recorded. */
+
+/* The schedule and its gazette citation are ONE figure, so the citation
+   cannot be scrolled away from the rates it certifies or left behind when a
+   block is moved. margin:0 because <figure> carries a UA inline margin that
+   would indent the table away from the heading above it. */
+.db-tollschedule{margin:0;}
+.db-toll-provenance{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;}
+/* The S.R.O. number is the citation's anchor — display type, so it reads as a
+   reference rather than as more caption text. When it is a link it keeps the
+   underline: this points at a government gazette PDF, and a citation a reader
+   cannot tell is clickable is a citation they will not open. */
+.db-toll-sro{font-family:var(--db-font-display);font-weight:700;
+  letter-spacing:.06em;color:var(--db-ink);font-variant-numeric:tabular-nums;}
+/* min-height is --db-tap. A link inside a caption-sized line is otherwise a
+   ~16px target, and this is the link a reader on a phone most needs to hit. */
+a.db-toll-sro{display:inline-flex;align-items:center;min-height:var(--db-tap);
+  color:var(--db-accent);text-decoration:underline;text-underline-offset:3px;}
+.db-toll-srodate{font-variant-numeric:tabular-nums;}
+/* The revision mechanism is a sentence, not a label; it takes the whole line
+   under the number and date rather than running on beside them. */
+.db-toll-revision{flex-basis:100%;max-width:var(--db-measure);}
+
+/* Amounts and chainages are figures read down a column: tabular numerals are
+   what make them comparable. .db-num already sets it for the cells; this
+   covers the toll amount, which has its own display face. */
+.db-toll-amount{font-variant-numeric:tabular-nums;}
+
+/* traffic-status. The condition tag reuses .db-sectiontag from the corridor
+   map's section list — same shape, same ramp — and the timestamp beneath it
+   reuses .db-sectionmeta. Both need is a little room inside a table cell,
+   where they sit stacked rather than side by side in a list row. */
+.db-statustable{margin-top:20px;}
+.db-statustable .db-sectiontag{display:inline-block;}
+.db-statustable .db-sectionmeta{margin-top:5px;white-space:nowrap;}
+/* The legend reuses .db-map-legend/.db-map-swatch, which are drawn for the
+   map's own footprint; inside a block it only needs the vertical rhythm the
+   other blocks use. */
+.db-statuslegend{margin-top:14px;}
+
+/* Active advisories, above the table. Reuses .db-tag for severity — the WORD
+   is the carrier, the colour is the reinforcement — over the same wash the
+   full-width .db-advisory bar uses, so a closure looks like a closure whether
+   a reader meets it in the site header or here. */
+.db-statusnotices{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:2px;}
+.db-statusnotice{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;
+  background:var(--db-surface);padding:12px 16px;}
+.db-statusnotice-msg{flex:1 1 260px;min-width:0;color:var(--db-ink-2);
+  font-size:.94rem;line-height:1.55;}
+
+.db-interchangetable{margin-top:20px;}
+/* Facility chips inside a cell. .db-pin-amenities already resets .db-tag's
+   uppercase for operator-authored, per-locale strings; the top margin it
+   carries is for a card, not a table row. */
+.db-interchangetable .db-pin-amenities{margin-top:0;}
+
+/* ---- print: the live corridor tables --------------------------------------
+   toll-table is the sheet that gets pinned up, and the print block above
+   already handles it through .db-datatable. Two things are added here.
+
+   The citation must not be separated from the schedule it certifies, on paper
+   least of all — a rate card whose second sheet carries an S.R.O. number for
+   a table on the first sheet is worse than one with no citation at all. And
+   the link is printed as a link the reader can type: on paper a coloured
+   underline points at nothing.
+
+   The other two tables get the same header repetition and row-break handling,
+   because a section or interchange list that loses its column headers after
+   page one is unreadable at the second page. */
+@media print{
+  .db-tollschedule{break-inside:avoid;page-break-inside:avoid;}
+  .db-toll-provenance{break-before:avoid;page-break-before:avoid;color:var(--db-paper-ink);}
+  .db-toll-sro,a.db-toll-sro{color:var(--db-paper-ink);min-height:0;}
+  a.db-toll-sro::after{content:" (" attr(href) ")";font-family:var(--db-font-body);
+    font-weight:400;letter-spacing:0;}
+
+  .db-statustable,.db-interchangetable{overflow:visible;max-width:none;}
+  .db-statustable .db-table,.db-interchangetable .db-table{min-width:0;width:100%;
+    font-size:9.5pt;color:var(--db-paper-ink);}
+  .db-statustable th,.db-statustable td,
+  .db-interchangetable th,.db-interchangetable td{
+    background:transparent;color:var(--db-paper-ink);padding:5pt 7pt;}
+  .db-statustable thead,.db-interchangetable thead{display:table-header-group;}
+  .db-statustable thead th,.db-interchangetable thead th{
+    border-bottom:1.5pt solid var(--db-paper-ink);}
+  .db-statustable tr,.db-interchangetable tr{break-inside:avoid;page-break-inside:avoid;}
+}

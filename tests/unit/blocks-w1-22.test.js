@@ -30,7 +30,11 @@ describe('the ten new block types', () => {
       'partner-row', 'toll-preview', 'rich-text', 'stat-row']) {
       expect(getBlock(t)).toBeTruthy();
     }
-    expect(allBlocks()).toHaveLength(19);
+    // 19 after W1.22's ten; 22 after the three live corridor blocks
+    // (toll-table, traffic-status, interchange-table) of build-order item 6.
+    // The number is here as a guard against a type silently disappearing from
+    // lib/blocks/index.js, so it moves with a deliberate addition and only then.
+    expect(allBlocks()).toHaveLength(22);
   });
 
   it.each(NEW_TYPES)('gives %s a default record covering every declared field', (type) => {
