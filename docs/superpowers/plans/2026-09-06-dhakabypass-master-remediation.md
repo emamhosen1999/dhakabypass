@@ -286,8 +286,8 @@ The logo's orange cannot sit on the logo's blue — not for text, not even as a 
 | W1.5 | `corridor-summary` block; remove hero hoisting | A-P1-9, A-HC-5.5 | `app/[locale]/page.jsx:113-135` | Editor order is what renders; corridor section movable and removable |
 | W1.6 | `ui_strings` table + writable `/admin/translations` | A-P1-10, A-HC-5.1, A-HC-5.2 | `lib/i18n/ui.js` (456 strings), `lib/i18n/map-ui.js` (87), `admin/(dash)/translations` (read-only, not in nav) | All 543 strings editable; code values become fallbacks; screen added to nav |
 | W1.7 | `route_meta` per-page SEO for code routes | A-P1-11, A-HC-5.10 | new table; every `generateMetadata` | Title, description, OG image editable per route; JSON-LD logo dimensions derived not literal |
-| W1.8 | Block regions on all six travel pages | A-HC-5.6 | `travel/{status,toll,route,facilities,map,rules}/page.jsx` | Operator can add a paragraph to any travel page; `status` currently has no block region at all |
-| W1.9 | Gallery, news and contact page copy into the CMS | A-HC-5.7, 5.8, 5.9 | `gallery/page.jsx:53-55`, `news/page.jsx:41-48`, `contact/page.jsx:44-57` | Headings, ledes, empty states, form labels all editable |
+| W1.8 | **Every public route becomes a block document** — REWRITTEN, see below | A-HC-5.6, 5.7, 5.8, 5.9 | All of `app/[locale]/**/page.jsx` | No public route has a page-specific React skeleton. `app/[locale]/[...slug]/page.jsx` is the only public renderer. |
+| W1.9 | *(folded into W1.8 — making copy editable inside a fixed page was the wrong target)* | — | — | — |
 | W1.10 | Header/footer branding and logo from settings | A-P2-14, A-HC-5.3, 5.4 | `SiteHeaderV2.jsx:63-66`, `SiteFooterV2.jsx:111-112` | Live header renders the logo image (today a `DB` text monogram); legal name and tagline from `site_settings` |
 | W1.11 | Menus: seed built-ins, incremental edit, drag reorder, `TravelSubnav` menu-driven | A-P2-15, A-P2-16 | `menus/page.jsx:36-39`, `lib/menus/slugs.js`, `TravelSubnav.jsx:7-14` | Adding one nav item no longer replaces the whole menu |
 | W1.12 | Live preview + draft preview URL | A §6 | `pages-v2/[id]` | Operator sees the page before publishing |
@@ -311,12 +311,44 @@ The logo's orange cannot sit on the logo's blue — not for text, not even as a 
 
 ---
 
+## W1.8 (rewritten) — every public route becomes a block document
+
+**The requirement, stated plainly by the client: the block editor is the only way the public site is edited. Every page, every section, every block, authored and previewed in the admin panel. No page-specific React skeletons that a developer has to change later.**
+
+The original W1.8/W1.9 did not meet this. They added a block *region* inside fixed React pages and made the surrounding copy editable — leaving the H1, the lede, the toll table, the map, the traffic strip and the interchange table hardcoded. That is a CMS window cut into a hardcoded wall. Rewritten:
+
+### W1.8a — Convert every public route to a `pages` row
+Today 11 of ~20 routes are block documents. These are not, and must become so: `home`, `travel/status`, `travel/toll`, `travel/route`, `travel/facilities`, `travel/map`, `travel/rules`, `news` (index), `gallery`, `contact`, `not-found`.
+
+### W1.8b — Delete the per-route page files
+Once converted, these stop existing: `app/[locale]/page.jsx`, `app/[locale]/travel/{status,toll,route,facilities,map,rules}/page.jsx`, `app/[locale]/gallery/page.jsx`, `app/[locale]/news/page.jsx`, `app/[locale]/contact/page.jsx`. `app/[locale]/[...slug]/page.jsx` becomes the single public renderer. This is the test of whether the work is real: **if a page file still exists, that page is still hardcoded.**
+
+### W1.30 — Functional block types (the hard part)
+The widgets currently welded into those pages must become blocks an operator places, configures and previews. These are *dynamic* blocks — they read live data from the corridor, news and media tables and take configuration from block fields, rather than storing authored prose:
+
+`corridor-map` · `toll-table` · `traffic-status` · `progress-bar` · `interchange-table` · `corridor-strip` · `news-list` · `gallery-grid` · `contact-form` · `newsletter-form` · `emergency-strip` · `section-subnav`
+
+Each needs: configurable fields (how many items, which section, which columns, sort order), a preview that renders real data in the editor, and graceful empty/error states. Note `news-list` and `gallery-grid` currently carry hardcoded caps (24 items, 200 photos) — those become fields.
+
+### W1.31 — Route behaviour from admin
+`app/[locale]/travel/page.jsx:6` hardcodes `redirect('/travel/status')`. Route-level behaviour — landing targets, redirects, per-page item caps — moves into page settings.
+
+### What genuinely cannot be a pure block document — decide explicitly, do not discover later
+
+1. **`/news/[slug]`** is a *template*, not a document: one layout rendering N articles from `news_updates`. Its chrome can be blocks; the article body comes from the record. This is a template page, and there will be more of them (any future `/projects/[slug]`).
+2. **`app/layout.jsx`** — the root `<html>`/`<head>` shell. Not content.
+3. **The admin panel itself.**
+
+Everything else is a block document. If a fourth exception appears during implementation, it is escalated and written down here — not absorbed silently.
+
+---
+
 ## What "100% admin-editable" means here — and what it deliberately does not
 
 The stated goal is that every pixel, block and section of the public site is editable from the admin panel with preview. W1.1–W1.28 gets there for **all content, copy, media, navigation, SEO, arrangement and brand colour**, with preview (W1.25). Three things stay in code, on purpose:
 
 1. **New *kinds* of section still need a developer.** `lib/blocks/registry.js:24` requires every block type to have a React `Component`. W1.22 ships the ten types W3–W5 need, so an operator composes pages freely from a rich palette — but inventing an eleventh kind of section is a code change. Making block types themselves user-authorable means shipping a template language, which is a product, not a task.
-2. **Interactive apparatus is not content.** The corridor map, toll calculator, traffic strip and progress bar are applications. Their *data*, *labels* and *placement* become editable (W1.5, W1.8, W1.21); their internals do not. Nobody should be able to drag the map's projection logic.
+2. **Interactive apparatus becomes a block, but its internals stay code.** After W1.30 the corridor map, toll table, traffic strip and progress bar are all blocks an operator places, configures, reorders and previews like any other. What stays in code is their *implementation* — the map's projection maths, the toll query. Nobody drags a projection algorithm. The operator controls where it sits, what it shows and what it is called; a developer maintains how it computes.
 3. **The full 75-token design system is not exposed** — W1.16 exposes a curated subset (accent, status colours, shell width). Handing an operator every spacing and colour token is how a considered design system becomes an inconsistent one, and it would silently break the measured contrast ratios the tokens exist to guarantee.
 
 **This is a real limit and it is the right one.** A literal every-pixel drag-and-drop builder produces pages that are off-brand, inaccessible and unmaintainable — it moves the cost from "ask a developer" to "every page is broken differently". If the client wants a general-purpose page builder rather than a governed editor for a concession website, that is a different product and should be decided explicitly, not arrived at by accident.

@@ -1048,3 +1048,404 @@
 .db-map-road-list small{display:block;font-size:.68rem;color:var(--db-ink-3);margin-top:4px;}
 @media(max-width:700px){.db-map-road-card{left:10px;right:10px;bottom:25px;width:auto;z-index:2;}.db-map-road-list ul{grid-template-columns:1fr;}}
 .db-map-road-badge-leader{stroke:#367c9e;stroke-width:1;opacity:.65;fill:none;}
+
+
+/* ==========================================================================
+   W1.22 block types — the ten registered in this pass
+   --------------------------------------------------------------------------
+   person-card · document-list · faq · data-table · timeline · tabs ·
+   contact-directory · map-pin-list · stat-dashboard · logo-row
+
+   Written against the tokens already defined above. One token is added
+   (--db-paper-ink, below) and one shared primitive (.db-ratio-square); every
+   other colour in this section is an existing token in an existing, already
+   measured pairing. The two pairings that are NEW to this file carry their
+   measured ratio at the point of use:
+
+     --db-accent on --db-ground   4.94:1 light / 10.14:1 dark  (timeline date)
+     --db-paper-ink on paper      18.27:1                      (print)
+
+   Nothing here sets text-transform:uppercase on authored content. Every one
+   of these blocks carries operator-typed strings that are Bangla-first and
+   also rendered in Chinese; neither script has case, so uppercasing is at
+   best a no-op and at worst — with a Latin string in a Bangla page — a second
+   typographic voice nobody asked for. Where a shared class this section
+   REUSES already uppercases (.db-tag, .db-stat-label), it is reset locally
+   rather than changed at source, so the nine existing block types keep the
+   treatment they were drawn with.
+   ========================================================================== */
+
+:root{
+  /* Print ink, deliberately theme-invariant — the same rule as --db-plate-fg
+     and --db-plate-accent above: it is defined once and must NOT be redefined
+     in either dark block, because redefining it is precisely the failure it
+     exists to prevent. A driver printing a toll rate card from a browser in
+     dark mode was getting --db-ink = #E6EDF1, which is near-white on white
+     paper (1.13:1) — an empty sheet. This is not a new colour: it is the
+     light --db-ink, already hardcoded five times above as the foreground on
+     --db-accent-bright plates, finally given a name. Measured 18.27:1 against
+     white paper. Used only inside the @media print block at the end of this
+     section, so it changes nothing on screen. */
+  --db-paper-ink:#0B1620;
+}
+
+/* Shared primitive: the fourth aspect box, alongside -wide, -photo and -hero
+   above. Portraits are the one shape the set was missing. */
+.db-ratio-square{aspect-ratio:1/1;}
+
+/* ---- person-card ---------------------------------------------------------
+   Board and senior management. The 2px-gutter mosaic used by .db-cardgrid,
+   .db-partners and .db-tollpreview, because these tiles are a roster read as
+   one object rather than a set of independent cards.
+
+   auto-fit + minmax rather than fixed column counts: unlike .db-figuregrid,
+   whose comment explains that a stranded sixth photograph reads as a mistake,
+   a board is however many directors it has and a short last row is simply the
+   truth about the board. */
+.db-people{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:2px;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));}
+.db-person{background:var(--db-surface);padding:0 0 18px;display:flex;flex-direction:column;
+  min-width:0;}
+/* The photograph is edge-to-edge at the top of the tile; the text is inset.
+   A person with no photograph gets the same inset from the top, so the two
+   cases line up in a row instead of one name floating higher than the rest. */
+.db-person-photo{margin:0 0 14px;}
+.db-person>:not(.db-person-photo){padding-inline:18px;}
+.db-person>:first-child:not(.db-person-photo){margin-top:18px;}
+.db-person-name{font-family:var(--db-font-display);font-size:1.08rem;letter-spacing:.02em;
+  margin:0;color:var(--db-ink);}
+/* Role, not name, is what a reader scans a board list for. Display face and
+   600 weight give it the prominence; no uppercase — "ব্যবস্থাপনা পরিচালক" and
+   "董事总经理" are the authoritative forms of this string. */
+.db-person-role{margin:5px 0 0;font-family:var(--db-font-display);font-weight:600;
+  font-size:.92rem;letter-spacing:.02em;color:var(--db-ink-2);}
+.db-person-affil{margin:3px 0 0;font-size:.85rem;color:var(--db-ink-3);}
+.db-person-bio{margin:10px 0 0;font-size:.9rem;line-height:1.55;}
+
+/* ---- document-list -------------------------------------------------------
+   A dated, rule-separated list rather than a card grid — the same reasoning
+   as .db-newslist above: a downloads page is scanned down a column, and the
+   rule between items is the grouping.
+
+   The whole row is the link, and format and size sit INSIDE it, because the
+   component deliberately puts them there so a screen reader announces "Toll
+   rate card, PDF, 240 KB" as one accessible name. Styling must not visually
+   detach them from the title and make that read as a mistake. */
+.db-doclist{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:0;}
+.db-doc{padding:4px 0;border-top:1px solid var(--db-rule);}
+.db-doc:first-child{border-top:0;}
+.db-doc-link{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;
+  min-height:var(--db-tap,44px);padding:12px 0;margin:0;
+  color:var(--db-ink);text-decoration:none;}
+.db-doc-link:hover .db-doc-title,.db-doc-link:focus-visible .db-doc-title{
+  text-decoration:underline;text-underline-offset:.18em;}
+.db-doc-title{font-family:var(--db-font-display);font-weight:600;font-size:1.02rem;
+  letter-spacing:.02em;line-height:1.3;}
+/* Format chip. Same ground/ink pairing as .db-newscat above, so no new
+   contrast pair. Authored per locale, so not uppercased. */
+.db-doc-type{flex:none;padding:2px 8px;border-radius:2px;
+  background:var(--db-surface-2);color:var(--db-ink-2);
+  font-family:var(--db-font-display);font-weight:700;font-size:.7rem;letter-spacing:.08em;}
+.db-doc-size{flex:none;color:var(--db-ink-3);font-size:.8rem;
+  font-variant-numeric:tabular-nums;white-space:nowrap;}
+/* Announced but not yet uploaded. It must not look clickable: no hover, no
+   underline, and the muted ink says "not live" the way .db-empty-inline does
+   elsewhere. The component already renders it as a <p>, not an <a>, so the
+   difference is real and not only visual. */
+.db-doc-unlinked{color:var(--db-ink-3);cursor:default;}
+.db-doc-unlinked .db-doc-title{font-weight:600;}
+.db-doc-desc{margin:0 0 4px;max-width:var(--db-measure);color:var(--db-ink-2);font-size:.9rem;}
+.db-doc-date{margin:0 0 12px;color:var(--db-ink-3);font-size:.8rem;
+  font-variant-numeric:tabular-nums;}
+
+/* ---- faq -----------------------------------------------------------------
+   <details>/<summary>. The default disclosure triangle is replaced by a
+   chevron because the native marker is inconsistent in size and position
+   across engines and sits badly against a 44px row; list-style:none plus the
+   WebKit pseudo-element covers every engine this project supports.
+
+   The summary is a full-width 44px row so the whole question — not a 12px
+   triangle — is the target. */
+.db-faq{margin:20px 0 0;border-top:1px solid var(--db-rule);}
+.db-faq-item{border-bottom:1px solid var(--db-rule);background:var(--db-surface);}
+.db-faq-q{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  min-height:var(--db-tap,44px);padding:14px 18px;cursor:pointer;list-style:none;
+  font-family:var(--db-font-display);font-weight:600;font-size:1rem;letter-spacing:.01em;
+  line-height:1.35;color:var(--db-ink);}
+.db-faq-q::-webkit-details-marker{display:none;}
+.db-faq-q:hover{background:var(--db-surface-2);}
+/* Chevron drawn from two borders: --db-ink-3 measures 6.44:1 (light) and
+   5.97:1 (dark) on --db-surface, well past the 3:1 that 1.4.11 asks of a
+   non-text control indicator. flex:none so a long question cannot squeeze it
+   to nothing. */
+.db-faq-q::after{content:"";flex:none;width:9px;height:9px;margin-top:-4px;
+  border-right:2px solid var(--db-ink-3);border-bottom:2px solid var(--db-ink-3);
+  transform:rotate(45deg);transition:transform .18s ease;}
+.db-faq-item[open] .db-faq-q::after{transform:rotate(-135deg);margin-top:2px;}
+.db-faq-a{padding:0 18px 18px;max-width:var(--db-measure);font-size:.95rem;line-height:1.6;}
+
+/* ---- data-table ----------------------------------------------------------
+   Reuses .db-table, .db-table-caption, .db-num and .db-scroll-x wholesale;
+   the component already emits all four. What is added here is scoped to
+   .db-datatable so the interchange table and the toll table — both existing
+   blocks — are untouched.
+
+   Numeric columns are right-aligned HERE and not on .db-num itself, which is
+   the note .db-col-right above already makes: InterchangeTable uses .db-num
+   for chainage, and right-aligning that would misalign its column rather
+   than fix it. Because the component puts .db-num on the <th> as well as the
+   cells, one rule aligns the heading over its own figures. */
+.db-datatable{margin-top:20px;}
+.db-datatable .db-num{text-align:right;}
+/* Zebra on the flat ground: even rows lift to --db-surface. A published rate
+   schedule is read across, often 8 columns wide, on a phone, at arm's length,
+   and losing your row is how you quote the wrong price. --db-ink on
+   --db-surface and --db-ink on --db-ground are both base pairings used
+   throughout this file. */
+.db-datatable tbody tr:nth-child(even){background:var(--db-surface);}
+/* The component always emits a <caption> element, empty or not, and an empty
+   one still paints 8px of padding above the header row. */
+.db-datatable .db-table-caption:empty{display:none;}
+.db-table-note{margin:10px 0 0;max-width:var(--db-measure);
+  color:var(--db-ink-3);font-size:.84rem;line-height:1.55;}
+
+/* ---- timeline ------------------------------------------------------------
+   A vertical chronology with a rail and a dot per entry. Deliberately NOT
+   inside .db-scroll-x: this is a single-column list, so there is nothing to
+   scroll sideways — the horizontal risk is a long unbroken string, and that
+   is handled where it actually lives, with min-width:0 on the item (so the
+   grid track may shrink below its content) and the overflow-wrap rule .db-root
+   already applies to p/li/h3. A wide TABLE authored inside a description is
+   caught by `.db-prose table{display:block;overflow-x:auto}` above.
+
+   The rail is ::before and the dot is ::after on the same item, so the two
+   cannot drift apart: rail at left:5px width:2px centres on 6px, dot at
+   left:0 width:12px centres on 6px. */
+.db-timeline{list-style:none;margin:24px 0 0;padding:0;}
+.db-timeline-item{position:relative;min-width:0;padding:0 0 30px 30px;}
+.db-timeline-item:last-child{padding-bottom:0;}
+.db-timeline-item::before{content:"";position:absolute;left:5px;top:8px;bottom:0;
+  width:2px;background:var(--db-rule);}
+.db-timeline-item:last-child::before{display:none;}
+/* The ring is the page ground, so the dot reads as sitting ON the rail rather
+   than behind it — the same construction as .db-marker-pin on the corridor
+   strip above. */
+.db-timeline-item::after{content:"";position:absolute;left:0;top:2px;
+  width:12px;height:12px;border-radius:50%;background:var(--db-accent);
+  box-shadow:0 0 0 3px var(--db-ground);}
+/* The one new text pairing in this section. --db-accent on --db-ground
+   measures 4.94:1 in light (#8A5A00 on #E7EBEE) and 10.14:1 in dark (#FFB000
+   on #0A141D) — both clear 4.5:1, the light one with less headroom than I
+   would like but measured, not guessed. The date carries the accent because
+   it is what a chronology is scanned by, and it ties each entry to its dot. */
+.db-timeline-date{margin:0;font-family:var(--db-font-display);font-weight:700;
+  font-size:.82rem;letter-spacing:.1em;color:var(--db-accent);
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.db-timeline-title{margin:4px 0 0;font-size:clamp(1.05rem,.98rem + .35vw,1.25rem);
+  line-height:1.3;color:var(--db-ink);}
+.db-timeline-figure{margin:12px 0 0;max-width:420px;}
+.db-timeline-body{margin:8px 0 0;font-size:.95rem;line-height:1.6;}
+/* Reuses .db-progress-rail and .db-progress-fill, which already carry the
+   rail ground, the fill colour and the overflow clip; only the width and the
+   spacing are this block's business. */
+.db-timeline-progress{margin-top:12px;max-width:420px;}
+
+/* ---- tabs ----------------------------------------------------------------
+   The tab strip WRAPS rather than scrolling. A horizontal scroller was the
+   obvious choice and is the wrong one here: overflow-x:auto computes
+   overflow-y to auto as well, which would clip the 7px box-shadow half of
+   the focus ring — exactly the bug .db-theme-toggle above documents, where
+   tabbing to a control changed zero pixels and a keyboard user lost their
+   place. Tab labels are short and wrapping costs nothing.
+
+   NOTE: no `display` on .db-tabpanel. The component marks inactive panels
+   `hidden`, and [hidden]{display:none} is a (0,1,0) selector — a display
+   value here would tie on specificity, win on source order, and reveal every
+   panel at once. */
+.db-tabs{margin:20px 0 0;}
+.db-tablist{display:flex;flex-wrap:wrap;gap:2px;border-bottom:2px solid var(--db-rule);}
+.db-tab{min-height:var(--db-tap,44px);padding:10px 16px;border:0;background:transparent;
+  font-family:var(--db-font-display);font-weight:600;font-size:.95rem;letter-spacing:.02em;
+  line-height:1.3;color:var(--db-ink-3);cursor:pointer;
+  transition:color .15s ease,box-shadow .15s ease;}
+.db-tab:hover{color:var(--db-ink);}
+/* Selection is never colour alone: aria-selected carries it programmatically,
+   the label goes to full --db-ink from muted --db-ink-3, and the 2px bar is a
+   shape. --db-accent on --db-ground measures 4.94:1 light / 10.14:1 dark,
+   comfortably past the 3:1 that 1.4.11 asks of a state indicator. */
+.db-tab[aria-selected="true"]{color:var(--db-ink);font-weight:700;
+  box-shadow:inset 0 -2px 0 var(--db-accent);}
+.db-tabpanel{padding-top:20px;}
+.db-tabpanel>.db-prose{max-width:var(--db-measure);}
+
+/* prefers-reduced-motion, stated explicitly for the accordion and the tab
+   strip. The blanket rule near the top of this file already collapses every
+   duration inside .db-root to .01ms; these two are named because they are the
+   only motion this section introduces and a future edit to that blanket rule
+   should not silently reinstate them. */
+@media (prefers-reduced-motion:reduce){
+  .db-faq-q::after,.db-tab{transition:none;}
+}
+
+/* ---- contact-directory ---------------------------------------------------
+   Role numbers, usually with no named individual. Same 2px mosaic as the
+   people roster: a directory is one object.
+
+   Phone and email are stacked, not run together — the component renders both
+   anchors inside a single <p> with no separator, so without this they would
+   read as one string. Each is a 44px row of its own. */
+.db-directory{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:2px;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));}
+.db-directory-item{background:var(--db-surface);padding:18px 20px;min-width:0;}
+.db-directory-dept{margin:0 0 6px;font-family:var(--db-font-display);font-weight:700;
+  font-size:.72rem;letter-spacing:.12em;color:var(--db-ink-3);}
+.db-directory-role{margin:0;font-family:var(--db-font-display);font-size:1.02rem;
+  letter-spacing:.02em;line-height:1.3;color:var(--db-ink);}
+.db-directory-name{margin:4px 0 0;color:var(--db-ink-2);font-size:.9rem;}
+.db-directory-contact{display:flex;flex-direction:column;align-items:flex-start;
+  margin:10px 0 0;}
+.db-directory-link{display:inline-flex;align-items:center;min-height:var(--db-tap,44px);
+  color:var(--db-ink);font-size:.95rem;text-decoration:underline;
+  text-underline-offset:.18em;text-decoration-thickness:1px;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.db-directory-link:hover{text-decoration-thickness:2px;}
+.db-directory-hours{margin:8px 0 0;color:var(--db-ink-3);font-size:.85rem;
+  font-variant-numeric:tabular-nums;}
+.db-directory-notes{margin:6px 0 0;color:var(--db-ink-3);font-size:.85rem;line-height:1.5;}
+
+/* ---- map-pin-list --------------------------------------------------------
+   Offices, plazas, rest areas. The amenity chips REUSE .db-tag rather than
+   inventing a second chip — but with text-transform reset, because .db-tag
+   was drawn for a fixed vocabulary of status words and these are per-locale
+   operator strings. The reset is local so the status tags keep their case. */
+.db-pinlist{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:2px;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+.db-pin{background:var(--db-surface);padding:18px 20px;min-width:0;}
+.db-pin-type{margin:0 0 6px;font-family:var(--db-font-display);font-weight:700;
+  font-size:.72rem;letter-spacing:.12em;color:var(--db-ink-3);}
+.db-pin-name{margin:0;font-family:var(--db-font-display);font-size:1.08rem;
+  letter-spacing:.02em;line-height:1.3;color:var(--db-ink);}
+.db-pin-address{margin:6px 0 0;color:var(--db-ink-2);font-size:.9rem;line-height:1.5;
+  white-space:pre-line;}
+/* .db-num gives this tabular figures, which is what makes a column of
+   coordinates comparable — but it also sets white-space:nowrap, and a full
+   lat/long pair is far wider than a 260px tile. Wrapping is the correct
+   behaviour here and the tabular figures are the part worth keeping. */
+.db-pin-coords{margin:8px 0 0;white-space:normal;overflow-wrap:anywhere;
+  color:var(--db-ink-3);font-family:var(--db-font-display);font-size:.82rem;
+  letter-spacing:.04em;}
+.db-pin-hours{margin:6px 0 0;color:var(--db-ink-2);font-size:.87rem;
+  font-variant-numeric:tabular-nums;}
+.db-pin-amenities{list-style:none;margin:12px 0 0;padding:0;
+  display:flex;flex-wrap:wrap;gap:6px;}
+.db-pin-amenities .db-tag{background:var(--db-surface-2);color:var(--db-ink-2);
+  text-transform:none;letter-spacing:.04em;font-weight:600;}
+.db-pin-notes{margin:10px 0 0;color:var(--db-ink-3);font-size:.85rem;line-height:1.5;}
+.db-pin .db-actions{margin-top:14px;}
+
+/* ---- stat-dashboard ------------------------------------------------------
+   Published statistics, and the whole point is that they are dated and
+   sourced. It reuses .db-statrow-grid / .db-stat / .db-stat-value /
+   .db-stat-unit / .db-stat-label from the decorative stat-row, then differs
+   from it in the three ways that carry the meaning:
+
+     1. Each figure sits on its own --db-surface tile, so it reads as a
+        published record rather than as banner furniture.
+     2. The label is NOT uppercased. stat-row's labels are a fixed Latin
+        vocabulary ("LANES", "KM"); these are authored per locale.
+     3. The provenance line is ruled off beneath, and is not optional
+        typography — a figure without its as-at date is a boast.
+
+   These selectors tie with .db-stat/.db-statrow-grid on specificity and win
+   on source order, which is why the section sits at the end of the file. */
+.db-dashboard-grid{gap:2px;margin-top:20px;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));}
+.db-dashboard-stat{background:var(--db-surface);padding:18px 20px 20px;}
+.db-dashboard-stat .db-stat-value{font-size:clamp(1.6rem,1.15rem + 1.6vw,2.3rem);
+  font-variant-numeric:tabular-nums;}
+.db-dashboard-stat .db-stat-label{text-transform:none;letter-spacing:.04em;
+  font-size:.8rem;font-weight:600;line-height:1.35;color:var(--db-ink-3);}
+/* A qualifier on the figure ("provisional", "12 months to Jun 2025"). Block,
+   not inline: as a span it welded itself onto the end of the number. */
+.db-dashboard-note{display:block;margin-top:6px;font-family:var(--db-font-body);
+  font-size:.76rem;font-weight:400;letter-spacing:0;line-height:1.4;
+  color:var(--db-ink-3);}
+.db-dashboard-prov{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;
+  margin:14px 0 0;padding-top:12px;border-top:1px solid var(--db-rule);
+  font-size:.84rem;color:var(--db-ink-3);}
+.db-dashboard-aslabel{font-family:var(--db-font-display);font-weight:700;
+  letter-spacing:.1em;font-size:.74rem;}
+.db-dashboard-asof{color:var(--db-ink-2);font-variant-numeric:tabular-nums;}
+/* The source sits after the date and is separated by a rule rather than by a
+   punctuation mark this file would have to invent — the label, the date and
+   the source are three authored strings and nothing joins them in code. */
+.db-dashboard-source{color:var(--db-ink-2);padding-left:10px;
+  border-left:1px solid var(--db-rule-2);}
+a.db-dashboard-source{color:var(--db-ink);text-decoration:underline;
+  text-underline-offset:.18em;text-decoration-thickness:1px;
+  display:inline-flex;align-items:center;min-height:var(--db-tap,44px);}
+a.db-dashboard-source:hover{text-decoration-thickness:2px;}
+
+/* ---- logo-row ------------------------------------------------------------
+   Partner and certification marks. The tile is a FIXED light panel in both
+   themes, exactly as the component's own comment requires, and it gets that
+   without a new colour: --db-plate-fg is already declared theme-invariant
+   ("must not be redefined anywhere") as the light half of the signage plate
+   pair. Two measured reasons for a fixed panel, unchanged from UI-8 — the
+   SDIG/SRBG raster carries a hard white panel that would show as a bright
+   rectangle on any dark ground, and the DBEDC blue measures 3.06:1 against
+   the dark plate. Neither is ours to fix: these are other companies' marks
+   and we hold them only as raster.
+
+   --db-rule is the tile's boundary in both themes: pale grey against the
+   light ground, dark navy against the dark one, so the panel edge is visible
+   either way instead of the tile bleeding into a light page. */
+.db-logorow{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+.db-logo-item{margin:0;text-align:center;min-width:0;}
+.db-logo-link{display:block;text-decoration:none;}
+.db-logo-tile{display:flex;align-items:center;justify-content:center;
+  height:clamp(64px,8vw,88px);padding:12px 16px;
+  background:var(--db-plate-fg);border:1px solid var(--db-rule);border-radius:2px;}
+/* .db-root already caps img at max-width:100%; the height cap is what stops a
+   tall mark from bursting the fixed tile, and object-fit:contain is what keeps
+   a partner's proportions intact — a squashed logo is a trademark problem, not
+   a layout one. */
+.db-logo-tile img{max-height:100%;width:auto;object-fit:contain;}
+.db-logo-role{margin:8px 0 0;color:var(--db-ink-3);font-size:.8rem;line-height:1.4;}
+
+/* ---- print: data-table ---------------------------------------------------
+   Toll rate cards are printed and pinned up in transport offices, so the
+   paper version is a real deliverable rather than a courtesy.
+
+   Four things go wrong without this. The scroll box clips the table at the
+   column width instead of letting it flow; .db-table's min-width:560px is a
+   screen minimum that forces a wide schedule off the sheet; a multi-page
+   table loses its column headers after page one; and — the one that produces
+   a genuinely blank sheet — a reader in dark mode prints #E6EDF1 text, which
+   measures 1.13:1 on white paper. --db-paper-ink is the fix for the last of
+   these and measures 18.27:1.
+
+   Backgrounds are dropped rather than forced with print-color-adjust: many
+   printer drivers and default settings discard them anyway, so the row
+   banding is replaced by rules, which always print. */
+@media print{
+  .db-datatable{overflow:visible;max-width:none;}
+  .db-datatable .db-table{min-width:0;width:100%;font-size:9.5pt;
+    color:var(--db-paper-ink);}
+  .db-datatable .db-table th,.db-datatable .db-table td{
+    background:transparent;color:var(--db-paper-ink);padding:5pt 7pt;}
+  .db-datatable tbody tr:nth-child(even){background:transparent;}
+  .db-datatable thead th{border-bottom:1.5pt solid var(--db-paper-ink);}
+  /* display:table-header-group is thead's initial value, but stating it
+     alongside the break hints is what makes engines repeat the header on
+     every sheet of a schedule that runs to two pages. */
+  .db-datatable thead{display:table-header-group;}
+  .db-datatable tr{break-inside:avoid;page-break-inside:avoid;}
+  .db-datatable .db-table-caption,.db-table-note{color:var(--db-paper-ink);}
+  /* The section heading above the table has no class of its own. :has() is
+     progressive enhancement here: where it is unsupported the whole rule is
+     dropped and the table above still prints correctly. */
+  .db-block:has(.db-datatable) .db-h2,
+  .db-block:has(.db-datatable) .db-lede{color:var(--db-paper-ink);}
+}

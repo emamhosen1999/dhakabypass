@@ -358,6 +358,19 @@ These carry extra weight; they are not one auditor's opinion.
 | UI-11 | **Admin doesn't match the brand it manages** — `bg-blue-900` is Tailwind's default blue, not DBEDC `#1172BA`. And admin has no dark mode while the public site ships a full dark palette. | W1.29 | [ ] |
 | UI-12 | **Admin nav naming is confusing and the code admits it.** "Content" vs "Pages" vs "Legacy" — `(dash)/layout.jsx:8-12` carries a comment explaining the workaround. Names things by how the system is built, not by what the operator understands. | 0.11, W1.29 | [ ] |
 
+## Client requirement, restated 2026-09-06: block editor only, full CMS
+
+| ID | Requirement | Task | Status |
+|---|---|---|---|
+| REQ-1 | Every public route is a `pages` row, not a React page file | W1.8a | [ ] |
+| REQ-2 | Per-route page files deleted; `[...slug]/page.jsx` is the only public renderer. **If a page file still exists, that page is still hardcoded.** | W1.8b | [ ] |
+| REQ-3 | Twelve functional widgets become placeable, configurable, previewable blocks | W1.30 | [ ] |
+| REQ-4 | Route behaviour (landing targets, item caps) moves to page settings | W1.31 | [ ] |
+| REQ-5 | Preview renders the real block document at real breakpoints, all three locales, including drafts | W1.25 | [>] agent running |
+| REQ-6 | Three declared exceptions only: `/news/[slug]` template, `app/layout.jsx` root shell, the admin panel. A fourth is escalated and written down, never absorbed silently. | — | [~] Accepted, documented |
+
+**Superseded:** the original W1.8 ("block regions on travel pages") and W1.9 ("page copy into the CMS") were too weak — they left page skeletons hardcoded. Folded into W1.8a/b + W1.30.
+
 **Contrast measurements recorded for OP-1** (so nobody re-litigates this): `#EF8221` on `#1172BA` = 2.64:1 (fails 4.5:1 text and 3:1 UI) · `#EDF2F5` on `#1172BA` = 4.50:1 (no headroom) · white on `#1172BA` = 5.07:1 · `#FFB000` on `#0B1620` = 9.97:1 (today) · **`#EDF2F5` on `#06263D` = 13.76:1** · **`#EF8221` on `#06263D` = 5.83:1** (chosen).
 
 ---
