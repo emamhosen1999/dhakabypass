@@ -45,8 +45,8 @@
 
 | ID | Finding | Task | Status |
 |---|---|---|---|
-| A-HC-5.1 | `lib/i18n/ui.js` — 152 keys × 3 locales = 456 strings, none admin-editable; file's own comment is false | W1.6 | [ ] |
-| A-HC-5.2 | `lib/i18n/map-ui.js` — 29 keys × 3 locales = 87 strings; entire map control panel + legend | W1.6, W1.21 | [ ] |
+| A-HC-5.1 | `lib/i18n/ui.js` — 154 keys × 3 locales = 462 strings, none admin-editable; file's own comment is false | W1.6 | [x] |
+| A-HC-5.2 | `lib/i18n/map-ui.js` — 28 keys × 3 locales = 84 strings; entire map control panel + legend | W1.6, W1.21 | [x] |
 | A-HC-5.3 | `SiteHeaderV2.jsx` — NAV array, `DB` monogram, `DBEDC` name, tagline, untranslated aria-labels, unremovable Contact CTA | W1.10, W1.11 | [ ] |
 | A-HC-5.4 | `SiteFooterV2.jsx` — GROUPS (4 cols/15 links), legal name literal, copyright, **no Privacy/Terms/Sitemap** | W1.10, 0.10 | [ ] |
 | A-HC-5.5 | `app/[locale]/page.jsx` — hero force-hoisting makes editor order a lie; corridor section is unmovable JSX; CTA targets hardcoded; untranslated empty state | W1.5 | [ ] |
@@ -74,7 +74,7 @@
 | A-P1-7 | List fields = raw JSON textarea; richtext = raw HTML textarea | W1.2, W1.3 | [ ] |
 | A-P1-8 | Reordering is ↑/↓ buttons, one page reload per swap | W1.4 | [ ] |
 | A-P1-9 | Homepage corridor section unmovable; hero force-hoisted | W1.5 | [ ] |
-| A-P1-10 | 543 UI strings code-only; `/admin/translations` read-only and not in nav | W1.6 | [ ] |
+| A-P1-10 | 546 UI strings code-only; `/admin/translations` read-only and not in nav | W1.6 | [x] |
 | A-P1-11 | No per-page SEO for any code route | W1.7 | [ ] |
 | A-P1-12 | 13 legacy images unclassified | W2.9 | [ ] |
 | A-P1-13 | `/project/route`, `/project/impact`, `/project/timeline` 404 | 0.12 | [ ] |

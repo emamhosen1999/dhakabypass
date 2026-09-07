@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   STATIC_LOCALISED_PATHS, REDIRECT_LOCALISED_PATHS, DYNAMIC_LOCALISED_PATHS,
-  HOME_PATH, pathForSlug, localisedPath,
+  PRIVATE_LOCALISED_PATHS, HOME_PATH, pathForSlug, localisedPath,
 } from '../../lib/seo/routes.js';
 
 const LOCALE_DIR = path.join(process.cwd(), 'app', '[locale]');
@@ -61,8 +61,23 @@ describe('STATIC_LOCALISED_PATHS', () => {
     // `/[...slug]` is the catch-all that renders `pages` rows; the sitemap gets
     // those from the database, which is why it is listed as accounted for.
     const onDisk = routesOnDisk().filter(isDynamic).sort();
-    const accounted = [...DYNAMIC_LOCALISED_PATHS, '/[...slug]'].sort();
+    const accounted = [
+      ...DYNAMIC_LOCALISED_PATHS, ...PRIVATE_LOCALISED_PATHS, '/[...slug]',
+    ].sort();
     expect(onDisk).toEqual(accounted);
+  });
+
+  it('never lets a staff-only route into the indexable list', () => {
+    // /[locale]/preview/[id] renders UNPUBLISHED drafts to a signed-in admin.
+    // It lives under app/[locale]/ so it inherits the real layout and renders
+    // a draft exactly as the live page will, which means the drift guard above
+    // sees it — and it must be accounted for as private, never as indexable.
+    expect(PRIVATE_LOCALISED_PATHS).toContain('/preview/[id]');
+    for (const p of PRIVATE_LOCALISED_PATHS) {
+      expect(STATIC_LOCALISED_PATHS).not.toContain(p);
+      expect(DYNAMIC_LOCALISED_PATHS).not.toContain(p);
+      expect(REDIRECT_LOCALISED_PATHS).not.toContain(p);
+    }
   });
 
   it('actually found routes to compare against', () => {

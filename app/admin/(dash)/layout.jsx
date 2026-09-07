@@ -9,6 +9,12 @@ export const dynamic = 'force-dynamic';
  * from this list, so the screen that edits every page of the new site was
  * reachable only by typing its URL. It is listed as "Content" to distinguish it
  * from "Pages", which edits the legacy site's sections.
+ *
+ * `/admin/translations` had the same problem and is now listed as "Wording":
+ * it edits the 182 fixed strings — navigation labels, form labels, page
+ * headings, the map legend — that used to be changeable only by a developer.
+ * "Translations" was the wrong word for it, since most visits to that screen
+ * are to change the English.
  */
 const NAV = [
   { href: '/admin', label: 'Dashboard' },
@@ -18,6 +24,7 @@ const NAV = [
   { href: '/admin/corridor', label: 'Corridor' },
   { href: '/admin/messages', label: 'Messages' },
   { href: '/admin/menus', label: 'Navigation' },
+  { href: '/admin/translations', label: 'Wording' },
   { href: '/admin/redirects', label: 'Redirects' },
   { href: '/admin/settings', label: 'Settings' },
   { href: '/admin/pages', label: 'Legacy' },

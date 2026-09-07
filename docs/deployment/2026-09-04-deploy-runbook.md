@@ -117,8 +117,14 @@ cPanel → **MySQL Databases**. Create the database and a user, grant the user A
 Privileges on it. Note the names — cPanel prefixes both with `aeos365_`.
 
 Then cPanel → **phpMyAdmin** → select the database → **Import**:
-`db/sql/01-schema.sql`, then `db/sql/02-seed.sql`. Details and the re-import
-rules are in `db/sql/README.md`.
+`db/sql/01-schema.sql`, then `db/sql/02-seed.sql`, then each later numbered file
+in order — currently `db/sql/09-ui-strings.sql`. Details and the re-import rules
+are in `db/sql/README.md`.
+
+`09-ui-strings.sql` is what makes `/admin/translations` able to save. Skipping it
+does not break the site — every string falls back to the wording compiled into
+the release, in all three languages — but the screen will refuse to store an
+edit and will say so.
 
 ### 3. Clone the release branch
 

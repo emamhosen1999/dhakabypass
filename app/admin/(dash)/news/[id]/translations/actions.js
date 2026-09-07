@@ -26,22 +26,22 @@ export async function saveNewsTranslationAction(formData) {
   const locale = String(formData.get('locale') || '');
   const status = String(formData.get('status') || 'draft');
 
-  if (!Number.isInteger(newsId) || newsId <= 0) validationError('That article no longer exists.');
+  if (!Number.isInteger(newsId) || newsId <= 0) throw validationError('That article no longer exists.');
 
   // A stale form or a forged hidden field could carry a locale outside the
   // supported set. On a non-strict sql_mode — a plausible default on shared
   // MariaDB hosting — that inserts as '' rather than erroring, leaving a row no
   // reader will ever surface and no editor can find.
-  if (!isLocale(locale)) validationError('That is not a language this site publishes.');
+  if (!isLocale(locale)) throw validationError('That is not a language this site publishes.');
 
   // English is the base row on `news_updates`. Storing it here as well would
   // create two places to edit the same text, which drift the first time someone
   // uses the wrong screen.
   if (locale === DEFAULT_LOCALE) {
-    validationError('English is edited on the article itself, not as a translation.');
+    throw validationError('English is edited on the article itself, not as a translation.');
   }
 
-  if (!VALID_STATUSES.includes(status)) validationError('Status must be draft or published.');
+  if (!VALID_STATUSES.includes(status)) throw validationError('Status must be draft or published.');
 
   const title = String(formData.get('title') || '').trim();
   const excerpt = String(formData.get('excerpt') || '').trim();
@@ -51,7 +51,7 @@ export async function saveNewsTranslationAction(formData) {
   // the public list would show the English headline above translated body text,
   // which reads as a bug rather than as a fallback.
   if (status === 'published' && !title) {
-    validationError('A published translation needs a title.');
+    throw validationError('A published translation needs a title.');
   }
 
   try {
@@ -70,9 +70,9 @@ export async function deleteNewsTranslationAction(formData) {
 
   const newsId = Number(formData.get('newsId'));
   const locale = String(formData.get('locale') || '');
-  if (!Number.isInteger(newsId) || newsId <= 0) validationError('That article no longer exists.');
+  if (!Number.isInteger(newsId) || newsId <= 0) throw validationError('That article no longer exists.');
   if (!isLocale(locale) || locale === DEFAULT_LOCALE) {
-    validationError('That is not a translation that can be removed.');
+    throw validationError('That is not a translation that can be removed.');
   }
 
   try {

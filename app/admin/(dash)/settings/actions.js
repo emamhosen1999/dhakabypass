@@ -36,7 +36,7 @@ export async function saveContactSettingsAction(formData) {
   // cost of a rejected valid entry here is that the page keeps saying the detail
   // is unpublished, which is worse than a slightly odd-looking one going up.
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    validationError('That does not look like an email address.');
+    throw validationError('That does not look like an email address.');
   }
   // Digits, spaces and the usual separators, with an optional extension at the
   // end. Written as an anchored pattern rather than a character class: an
@@ -46,7 +46,7 @@ export async function saveContactSettingsAction(formData) {
   const PHONE = /^[\d\s+()./-]+(\s*(?:ext|x)\.?\s*\d+)?$/i;
   for (const [label, value] of [['Telephone', phone], ['Emergency number', emergency]]) {
     if (value && !PHONE.test(value)) {
-      validationError(
+      throw validationError(
         `${label} does not look like a dialable number. Use digits, spaces and + ( ) - only, `
         + 'with an optional "ext 123" at the end.',
       );
@@ -66,7 +66,7 @@ export async function saveContactSettingsAction(formData) {
   for (const name of Object.keys(SOCIAL_KEYS)) {
     const url = text(`social_${name}`);
     if (url && !/^https:\/\//i.test(url)) {
-      validationError(`The ${name} link must be a full https:// URL.`);
+      throw validationError(`The ${name} link must be a full https:// URL.`);
     }
     socials[name] = url;
   }

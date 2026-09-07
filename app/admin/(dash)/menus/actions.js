@@ -11,7 +11,7 @@ import { MENU_SLUGS } from '../../../../lib/menus/slugs';
 const ADMIN = '/admin/menus';
 
 async function menuId(slug) {
-  if (!MENU_SLUGS.includes(slug)) validationError('Unknown menu.');
+  if (!MENU_SLUGS.includes(slug)) throw validationError('Unknown menu.');
   const rows = await query('SELECT id FROM menus WHERE slug = ? LIMIT 1', [slug]);
   if (rows && rows.length) return rows[0].id;
   // Created on first use rather than seeded: an empty `menus` table is the
@@ -44,7 +44,7 @@ export async function saveMenuItemAction(formData) {
   // English is required because it is what every other locale falls back to.
   // An item with only a Bangla label would be invisible on /en and /zh.
   if (!labels[DEFAULT_LOCALE]) {
-    validationError('Give the English label — the other languages fall back to it.');
+    throw validationError('Give the English label — the other languages fall back to it.');
   }
 
   // A heading in the footer legitimately has no link. Everywhere else an empty
@@ -53,7 +53,7 @@ export async function saveMenuItemAction(formData) {
     // Authored links carry no locale prefix — lib/blocks/href.js adds one per
     // reader. A bare path like `travel/toll` is the normal, correct form.
     if (/^(en|bn|zh)(\/|$)/.test(href)) {
-      validationError('Leave the language out of the link — it is added automatically.');
+      throw validationError('Leave the language out of the link — it is added automatically.');
     }
   }
 
@@ -82,7 +82,7 @@ export async function saveMenuItemAction(formData) {
 export async function deleteMenuItemAction(formData) {
   await assertCan('manage_pages');
   const id = Number(formData.get('id'));
-  if (!Number.isInteger(id) || id <= 0) validationError('That item no longer exists.');
+  if (!Number.isInteger(id) || id <= 0) throw validationError('That item no longer exists.');
 
   try {
     // Children first: menu_items has no cascade, and an orphaned child would
@@ -108,7 +108,7 @@ export async function deleteMenuItemAction(formData) {
 export async function resetMenuAction(formData) {
   await assertCan('manage_pages');
   const slug = String(formData.get('menu') || '');
-  if (!MENU_SLUGS.includes(slug)) validationError('Unknown menu.');
+  if (!MENU_SLUGS.includes(slug)) throw validationError('Unknown menu.');
 
   try {
     await query(

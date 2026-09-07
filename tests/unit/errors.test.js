@@ -90,3 +90,58 @@ describe('friendly — allowlist, not a denylist', () => {
     expect(() => friendly(validationError('x'), 'Generic.')).toThrow();
   });
 });
+
+/**
+ * `validationError()` BUILDS an error, it does not throw one.
+ *
+ * That is a deliberate shape — it lets a caller attach fields before throwing —
+ * but it makes `validationError('…');` on its own a statement that does
+ * nothing at all, and it reads exactly like a guard. W1.6 shipped two of them
+ * in app/admin/(dash)/translations/actions.js: the allowlist that is supposed
+ * to stop an arbitrary `ui_strings` key being written was a no-op, and every
+ * unit test around it passed, because a guard that does not fire looks the same
+ * as a request that was allowed.
+ *
+ * So the invariant is checked mechanically across the whole source tree rather
+ * than left to review.
+ */
+describe('every validationError() call actually throws', () => {
+  const ROOTS = ['app', 'lib', 'components', 'scripts', 'middleware.js'];
+  const CALL = /(^|[^a-zA-Z0-9_.])validationError\s*\(/;
+
+  function sourceFiles(dir, out = []) {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    if (!fs.existsSync(dir)) return out;
+    if (fs.statSync(dir).isFile()) { out.push(dir); return out; }
+    for (const name of fs.readdirSync(dir)) {
+      if (name === 'node_modules' || name.startsWith('.')) continue;
+      const full = path.join(dir, name);
+      const stat = fs.statSync(full);
+      if (stat.isDirectory()) sourceFiles(full, out);
+      else if (/\.(js|jsx|mjs)$/.test(name)) out.push(full);
+    }
+    return out;
+  }
+
+  it('is never used as a bare statement', () => {
+    const offenders = [];
+    for (const root of ROOTS) {
+      for (const file of sourceFiles(root)) {
+        const text = require('node:fs').readFileSync(file, 'utf8');
+        if (!CALL.test(text)) continue;
+        text.split('\n').forEach((line, i) => {
+          if (!CALL.test(line)) return;
+          // Prose about the helper is not a call site.
+          if (/^\s*(\*|\/\/|\/\*)/.test(line)) return;
+          // Legitimate uses: thrown, returned, assigned, or the definition and
+          // its imports. Anything else evaluates the error and discards it.
+          if (/\b(throw|return|=>|export function|import)\b/.test(line)) return;
+          if (/(^|[^=!<>])=[^=]/.test(line)) return;
+          offenders.push(`${file}:${i + 1}: ${line.trim()}`);
+        });
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});

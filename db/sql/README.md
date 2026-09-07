@@ -16,6 +16,32 @@ installs. It updates only blocks that still match the former seeded content and
 records the gallery publication once, preserving later editor choices. Its
 sources and remaining gaps are in `docs/source-data/2026-09-06-content-recovery.md`.
 
+## Later numbered files
+
+Files above `03-` are hand-written, single-purpose migrations added by a task
+that needed one. Each carries its own header explaining what it does, states
+that it is idempotent, and says where in the order to run it. They are imported
+the same way, through phpMyAdmin, after `01`/`02` (and `03` on an existing
+install).
+
+```
+09-ui-strings.sql        creates `ui_strings` — the editable UI strings (W1.6)
+```
+
+`09-ui-strings.sql` **creates an empty table and seeds no rows**, on purpose.
+The wording that ships with the site lives in `lib/i18n/ui.js` and
+`lib/i18n/map-ui.js` in all three languages; a row in `ui_strings` means "an
+operator changed this string at /admin/translations". That is what lets the
+admin screen show which strings have been edited and which are still the
+built-in wording, and what makes "use the built-in wording again" a thing it can
+do. Seeding the code values would mark all 182 strings as edited on a database
+nobody had touched, and would silently outrank any later correction to a label.
+
+The site works fully — in English, Bangla and Chinese — whether or not this
+file has ever been imported. Until it is, `/admin/translations` shows every
+string with a notice that saving will fail, and the public site renders the
+code values, which is what it rendered before W1.6.
+
 ## Why these exist
 
 The deploy is a `git pull` on a cPanel account. There is no npm and no practical

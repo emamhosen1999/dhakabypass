@@ -24,24 +24,24 @@ export async function saveRedirectAction(formData) {
   const statusCode = Number(formData.get('statusCode') || 301);
 
   if (!source || source === '/') {
-    validationError('Give the path to redirect FROM, for example /project.');
+    throw validationError('Give the path to redirect FROM, for example /project.');
   }
-  if (!destination) validationError('Give the path or URL to redirect TO.');
+  if (!destination) throw validationError('Give the path or URL to redirect TO.');
   if (!REDIRECT_STATUSES.includes(statusCode)) {
-    validationError('Choose one of the listed redirect types.');
+    throw validationError('Choose one of the listed redirect types.');
   }
 
   // A destination must be a path on this site or a full https URL. A bare word
   // would resolve relative to whatever page the browser came from, which sends
   // people somewhere different depending on where they started.
   if (!destination.startsWith('/') && !/^https:\/\//i.test(destination)) {
-    validationError('The destination must start with / or be a full https:// URL.');
+    throw validationError('The destination must start with / or be a full https:// URL.');
   }
 
   // A redirect to itself is an infinite loop the browser reports as
   // ERR_TOO_MANY_REDIRECTS — a dead page with no clue as to why.
   if (destination.startsWith('/') && normalisePath(destination) === source) {
-    validationError('That redirects the page to itself.');
+    throw validationError('That redirects the page to itself.');
   }
 
   try {
@@ -61,7 +61,7 @@ export async function saveRedirectAction(formData) {
 export async function deleteRedirectAction(formData) {
   await assertCan('manage_pages');
   const id = Number(formData.get('id'));
-  if (!Number.isInteger(id) || id <= 0) validationError('That redirect no longer exists.');
+  if (!Number.isInteger(id) || id <= 0) throw validationError('That redirect no longer exists.');
 
   try {
     await query('DELETE FROM redirects WHERE id = ?', [id]);

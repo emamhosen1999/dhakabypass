@@ -175,3 +175,60 @@ describe('lastModifiedFor', () => {
     expect(lastModifiedFor({ slug: 'home', updatedAt: PAGE_AT }, 'zh')).toEqual(PAGE_AT);
   });
 });
+
+/**
+ * A URL an operator has marked `noindex` must not be listed in the sitemap.
+ *
+ * The two statements contradict each other: a sitemap asks a crawler to index
+ * a URL, and the meta tag on the page tells it not to. Google reports the pair
+ * as "Submitted URL marked noindex" in Search Console — a red error against a
+ * page the operator deliberately hid, which is a confusing way to be told your
+ * own instruction worked.
+ *
+ * This is also the reason app/sitemap.js has to react to a route_meta save at
+ * all: without it, an operator marks a page noindex, the page stops being
+ * indexed, and the sitemap keeps advertising it for up to an hour.
+ */
+describe('buildSitemap and noindex routes', () => {
+  it('drops a code route the operator has marked noindex, in every locale', () => {
+    const got = urls(buildSitemap({ pages: [homeRow], noindex: ['/gallery'] }));
+    expect(got).not.toContain('https://dhakabypass.com/en/gallery');
+    expect(got).not.toContain('https://dhakabypass.com/bn/gallery');
+    expect(got).not.toContain('https://dhakabypass.com/zh/gallery');
+    // and has not taken the rest of the sitemap with it
+    expect(got).toContain('https://dhakabypass.com/en/contact');
+  });
+
+  it('drops a database page marked noindex', () => {
+    const about = {
+      id: 2, slug: 'about', status: 'published', updatedAt: PAGE_AT,
+      translations: LOCALES.map((locale) => ({ locale, status: 'published', updatedAt: TR_AT })),
+    };
+    const got = urls(buildSitemap({ pages: [homeRow, about], noindex: ['/about'] }));
+    expect(got).not.toContain('https://dhakabypass.com/en/about');
+    expect(got).toContain('https://dhakabypass.com/en');
+  });
+
+  it('drops every article when the /news/[slug] template is marked noindex', () => {
+    // One row hides an unbounded set of URLs. Matching only exact paths would
+    // silently leave all of them listed.
+    const news = [{ slug: 'vogra', published_at: PAGE_AT }, { slug: 'toll', published_at: PAGE_AT }];
+    const got = urls(buildSitemap({ pages: [homeRow], news, noindex: ['/news/[slug]'] }));
+    expect(got.filter((u) => u.includes('/news/'))).toEqual([]);
+  });
+
+  it('keeps the home page even when someone marks it noindex', () => {
+    // A sitemap missing the front door is worse than one carrying a
+    // contradiction, and marking the home page noindex is far more likely to
+    // be a mistake than an instruction. The tag on the page still applies —
+    // this only refuses to also delete the site's own root from the sitemap.
+    const got = urls(buildSitemap({ pages: [homeRow], noindex: ['/'] }));
+    expect(got).toContain('https://dhakabypass.com/en');
+  });
+
+  it('is unchanged when the noindex list is missing or empty', () => {
+    const withNone = urls(buildSitemap({ pages: [homeRow] }));
+    expect(urls(buildSitemap({ pages: [homeRow], noindex: [] }))).toEqual(withNone);
+    expect(urls(buildSitemap({ pages: [homeRow], noindex: null }))).toEqual(withNone);
+  });
+});

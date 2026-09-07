@@ -117,7 +117,7 @@ export async function setGalleryVisibilityAction(formData) {
 
   const id = Number(formData.get('id'));
   if (!Number.isInteger(id) || id <= 0) {
-    validationError('That image no longer exists.');
+    throw validationError('That image no longer exists.');
   }
   // The form submits the value it wants, not a toggle. A toggle read from the
   // page's own state double-fires when a request is retried or a button is
@@ -127,7 +127,7 @@ export async function setGalleryVisibilityAction(formData) {
   try {
     const result = await query('UPDATE media SET in_gallery = ? WHERE id = ?', [show, id]);
     if (result && result.affectedRows === 0) {
-      validationError('That image no longer exists.');
+      throw validationError('That image no longer exists.');
     }
   } catch (err) {
     friendly(err, 'The gallery could not be updated. Please try again.');
