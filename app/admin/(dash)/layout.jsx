@@ -15,6 +15,10 @@ export const dynamic = 'force-dynamic';
  * headings, the map legend — that used to be changeable only by a developer.
  * "Translations" was the wrong word for it, since most visits to that screen
  * are to change the English.
+ *
+ * "Search" is /admin/seo — per-page search settings (W1.7). Named for what the
+ * operator is trying to do rather than "SEO", which is jargon for the one thing
+ * most visits here are about: keeping a page out of search results.
  */
 const NAV = [
   { href: '/admin', label: 'Dashboard' },
@@ -26,6 +30,7 @@ const NAV = [
   { href: '/admin/menus', label: 'Navigation' },
   { href: '/admin/translations', label: 'Wording' },
   { href: '/admin/redirects', label: 'Redirects' },
+  { href: '/admin/seo', label: 'Search' },
   { href: '/admin/settings', label: 'Settings' },
   { href: '/admin/pages', label: 'Legacy' },
 ];

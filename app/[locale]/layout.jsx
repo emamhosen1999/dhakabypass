@@ -9,7 +9,7 @@ import DocumentLang from '../../components/chrome/DocumentLang.jsx';
 import FontPreload from '../../components/chrome/FontPreload.jsx';
 import StructuredData from '../../components/chrome/StructuredData.jsx';
 import UiStringsBridge from '../../components/chrome/UiStringsBridge.jsx';
-import { organizationJsonLd } from '../../lib/seo/organization.js';
+import { loadOrganization } from '../../lib/seo/identity.js';
 import { primeUiStrings } from '../../lib/i18n/strings-cache.js';
 
 export function generateStaticParams() {
@@ -76,10 +76,13 @@ export default async function LocaleLayout({ children, params }) {
       {/* Stops the header re-wrapping when the condensed face swaps in. */}
       <FontPreload />
       <ThemeScript />
-      {/* lib/seo/organization.js was written and never wired in. It asserts
-          only what has been verified and omits every field DBEDC has not
-          supplied, which is why it is safe to publish on every page. */}
-      <StructuredData data={organizationJsonLd()} />
+      {/* Asserts only what has been verified and omits every field DBEDC has
+          not supplied, which is why it is safe to publish on every page. The
+          organisation name and the logo are /admin/settings values now, and
+          the logo's dimensions are MEASURED rather than remembered - see
+          lib/seo/identity.js. Both reads degrade to the code constants, so a
+          database outage costs this block nothing. */}
+      <StructuredData data={await loadOrganization()} />
       <AdvisoryBar locale={locale} />
       <SiteHeaderV2 locale={locale} />
       <main id="main">{children}</main>

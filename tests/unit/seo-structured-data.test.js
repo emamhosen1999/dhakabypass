@@ -9,7 +9,8 @@
  * claim.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { organizationJsonLd, newsArticleJsonLd, ORG_NAME } from '../../lib/seo/organization.js';
+import { organizationJsonLd, newsArticleJsonLd, ORG_NAME, DEFAULT_LOGO_PATH } from '../../lib/seo/organization.js';
+import { resolveLogo } from '../../lib/seo/identity.js';
 
 const original = process.env.SITE_URL;
 beforeEach(() => { process.env.SITE_URL = 'https://dhakabypass.com'; });
@@ -36,9 +37,22 @@ describe('organizationJsonLd', () => {
     }
   });
 
-  it('carries a logo big enough for Google to use', () => {
+  it('carries a logo big enough for Google to use', async () => {
     // Google's minimum for an organisation logo is 112x112.
-    const o = organizationJsonLd();
+    //
+    // This used to call organizationJsonLd() bare, because the dimensions were
+    // a literal inside it — `{ path: '/logo.webp', width: 215, height: 204 }`,
+    // a hand-copied assertion about a file that would have stayed behind the
+    // moment somebody replaced the image through /admin/media. They are now
+    // DERIVED by lib/seo/identity.js, so the block emits no dimensions unless
+    // something measured them, and the bare call deliberately carries none
+    // (tests/unit/seo-identity.test.js pins that).
+    //
+    // So the size check now runs against the resolved logo, which makes it a
+    // stronger statement than it was: it proves the real public/logo.webp
+    // clears Google's minimum, rather than proving that a number typed into a
+    // source file is bigger than 112.
+    const o = organizationJsonLd({ logo: await resolveLogo(DEFAULT_LOGO_PATH) });
     expect(o.logo.width).toBeGreaterThanOrEqual(112);
     expect(o.logo.height).toBeGreaterThanOrEqual(112);
     expect(o.logo.url).toMatch(/^https:\/\/dhakabypass\.com\//);

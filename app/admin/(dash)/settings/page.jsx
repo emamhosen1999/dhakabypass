@@ -1,7 +1,8 @@
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { LOCALES, LOCALE_LABELS } from '../../../../lib/i18n/locales';
 import { getSetting, CONTACT_KEYS, SOCIAL_KEYS } from '../../../../lib/settings';
-import { saveContactSettingsAction } from './actions';
+import { getSeoSettings, SEO_DEFAULTS, SEO_KEYS } from '../../../../lib/seo/settings';
+import { saveContactSettingsAction, saveSeoSettingsAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,22 @@ export default async function SettingsPage() {
   for (const [name, key] of Object.entries(SOCIAL_KEYS)) {
     social[name] = await getSetting(key, '');
   }
+
+  // The RAW stored values, not `getSeoSettings()`'s resolved ones, for the two
+  // per-locale fields. The resolved object substitutes the code default for a
+  // blank, which is right for the site and wrong for this form: rendering the
+  // default INTO the box would make an untouched field look edited, and the
+  // next save would store it as an override that outranks any later correction
+  // — the same trap db/sql/09-ui-strings.sql refuses to seed itself into. The
+  // placeholders below show the default instead.
+  const [storedTitle, storedDescription] = await Promise.all([
+    getSetting(SEO_KEYS.siteTitle, {}),
+    getSetting(SEO_KEYS.siteDescription, {}),
+  ]);
+  // The single-valued fields have no such problem: an empty box and the code
+  // default mean the same thing there, and showing the resolved value tells the
+  // operator what the site is actually using right now.
+  const seo = await getSeoSettings('en');
 
   const per = (value, locale) =>
     (value && typeof value === 'object' ? value[locale] : locale === 'en' ? value : '') || '';
@@ -109,6 +126,130 @@ export default async function SettingsPage() {
 
         <button type="submit" className="px-4 py-2 rounded bg-black text-white">
           Save contact details
+        </button>
+      </form>
+
+      <hr className="border-gray-200" />
+
+      <header className="space-y-1">
+        <h1 className="text-2xl font-bold text-blue-900">Search engines and site identity</h1>
+        <p className="text-gray-600">
+          How the site describes itself to Google and to anything that shows a link preview.
+          Every field here has a built-in value that the site uses while the box is empty —
+          shown in grey inside each box. Clearing a field goes back to that built-in value; it
+          does not blank the site.
+        </p>
+        <p className="text-sm text-gray-600">
+          Individual pages set their own title and description on the page editor. These are
+          the fallbacks, used where a page has said nothing.
+        </p>
+      </header>
+
+      <form action={saveSeoSettingsAction} className="space-y-6">
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold">Site title</h2>
+          <p className="text-sm text-gray-600">
+            The browser tab and the blue line in a search result, for pages that do not set
+            their own.
+          </p>
+          {LOCALES.map((l) => (
+            <Text
+              key={l} name={`site_title_${l}`} label={LOCALE_LABELS[l]}
+              defaultValue={per(storedTitle, l)}
+              placeholder={l === 'en' ? SEO_DEFAULTS.siteTitle : 'Falls back to English'}
+            />
+          ))}
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold">Site description</h2>
+          <p className="text-sm text-gray-600">
+            The grey text under the link in a search result. Around 150 characters is what
+            Google shows; longer is not wrong, it is just cut off.
+          </p>
+          {LOCALES.map((l) => (
+            <Textarea
+              key={l} name={`site_description_${l}`} label={LOCALE_LABELS[l]}
+              defaultValue={per(storedDescription, l)} rows={2}
+            />
+          ))}
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold">Images</h2>
+          <Text
+            name="favicon" label="Favicon" defaultValue={seo.favicon}
+            placeholder={SEO_DEFAULTS.favicon}
+            hint="The small icon in the browser tab. Upload it under Media first, then paste
+                  its path here — it looks like /uploads/name.png."
+          />
+          <Text
+            name="og_image" label="Default sharing image" defaultValue={seo.ogImage}
+            placeholder="/uploads/share.webp"
+            hint="Shown when somebody posts a link to this site on Facebook, LinkedIn or
+                  WhatsApp. Leave it empty and no image is claimed, which is better than
+                  claiming one that does not represent the page."
+          />
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold">Organisation</h2>
+          <p className="text-sm text-gray-600">
+            Published as structured data on every page — this is what a search engine may quote
+            back to the public with DBEDC&rsquo;s name on it. Only the company&rsquo;s real,
+            official name belongs here.
+          </p>
+          <Text
+            name="org_name" label="Full name" defaultValue={seo.orgName}
+            placeholder={SEO_DEFAULTS.orgName}
+          />
+          <Text
+            name="org_short_name" label="Short name" defaultValue={seo.orgShortName}
+            placeholder={SEO_DEFAULTS.orgShortName}
+          />
+          <Text
+            name="logo_path" label="Logo" defaultValue={seo.logoPath}
+            placeholder={SEO_DEFAULTS.logoPath}
+            hint="The logo search engines use. Its size is read from the file itself, so
+                  replacing the image is all that is needed. Use a PNG, JPEG or WebP at least
+                  112 pixels on each side — an SVG has no fixed size and will be published
+                  without one."
+          />
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold">Crawling</h2>
+          <div className="space-y-1">
+            <label htmlFor="robots_mode" className="block text-sm font-semibold">
+              Search engine access
+            </label>
+            <select
+              id="robots_mode" name="robots_mode" defaultValue={seo.robotsMode}
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="default">Normal — the public site can be found in search</option>
+              <option value="block_all">Blocked — ask every search engine to skip the whole site</option>
+            </select>
+            <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded p-3">
+              <strong>&ldquo;Blocked&rdquo; hides the entire site from Google.</strong> It is
+              for the period before launch. Turning it off again does not bring the pages back
+              immediately — it can take days or weeks for search engines to re-crawl and list
+              them.
+            </p>
+          </div>
+          <Textarea
+            name="robots_disallow" label="Additional paths to keep out of search"
+            defaultValue={(seo.robotsDisallow || []).join('\n')} rows={4}
+          />
+          <p className="text-sm text-gray-600">
+            One path per line, each starting with &ldquo;/&rdquo;. The admin and the API are
+            already excluded and do not need listing. To hide a single page, use the Search
+            settings on that page under SEO instead — that also removes it from the sitemap.
+          </p>
+        </section>
+
+        <button type="submit" className="px-4 py-2 rounded bg-black text-white">
+          Save SEO settings
         </button>
       </form>
     </div>
