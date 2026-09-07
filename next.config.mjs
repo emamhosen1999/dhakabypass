@@ -87,7 +87,14 @@ const nextConfig = {
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      "frame-ancestors 'none'",
+      // 'self', not 'none': the admin block editor previews a page by framing
+      // /{locale}/preview/{id}, which is a route on this same origin. Under
+      // 'none' that iframe renders blank and the preview pane — the whole
+      // point of the editor — is dead, with the only clue a console line.
+      // Cross-origin framing is still refused, so the clickjacking protection
+      // is unchanged; this also stops the CSP contradicting the
+      // X-Frame-Options: SAMEORIGIN header above, which already allowed it.
+      "frame-ancestors 'self'",
       // No `upgrade-insecure-requests`. The browser IGNORES it in a
       // report-only policy and logs a console error for every page load — which
       // costs a Lighthouse Best Practices point and buries real errors in the
