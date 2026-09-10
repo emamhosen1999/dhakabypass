@@ -1,12 +1,19 @@
 import Link from 'next/link';
 import { listCorridorAction, setIllustrativeAction } from './actions';
+import { listWaypointsForAdmin } from '../../../../lib/corridor/waypoints-admin';
+import { getGeometryOverview } from '../../../../lib/corridor/geometry-admin';
 
 export const dynamic = 'force-dynamic';
 
 export default async function CorridorHub() {
-  const { segments, interchanges, tolls, advisories, illustrative } = await listCorridorAction();
+  const [{ segments, interchanges, tolls, advisories, illustrative }, waypoints, geometry] =
+    await Promise.all([listCorridorAction(), listWaypointsForAdmin(), getGeometryOverview()]);
 
   const areas = [
+    { href: '/admin/corridor/waypoints', name: 'Waypoints', count: waypoints.length,
+      note: 'The surveyed points that name every stretch of road. An unnamed one is published as “Waypoint 4”.' },
+    { href: '/admin/corridor/geometry', name: 'Alignment', count: `${geometry.points} points`,
+      note: 'The centreline the public map draws. Replaced whole, and only when it passes both acceptance tests.' },
     { href: '/admin/corridor/sections', name: 'Section traffic', count: '',
       note: 'Current conditions and average speeds, with deliberate publication controls.' },
     { href: '/admin/corridor/monthly', name: 'Monthly traffic', count: '',

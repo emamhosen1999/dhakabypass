@@ -25,6 +25,11 @@ export default async function SectionsPage() {
         <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
         <h1 className="text-3xl font-bold text-blue-900">Section traffic conditions</h1>
         <p>Update each section after checking the road. Leave speed empty when it has not been measured.</p>
+        <p className="text-sm text-gray-600">
+          A section headed &ldquo;Waypoint 4&rdquo; is a waypoint nobody has named yet.
+          Name it on the <Link className="underline" href="/admin/corridor/waypoints">waypoints</Link> screen
+          and the heading changes here and on the public map at the same time.
+        </p>
         <p className="rounded border border-amber-300 bg-amber-50 p-3">Current traffic source: <strong>{source}</strong>. Saving a measurement does not remove the sample notice.</p>
       </header>
       <div className="grid gap-4 md:grid-cols-2">
