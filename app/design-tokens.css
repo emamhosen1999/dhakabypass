@@ -1566,3 +1566,65 @@ a.db-toll-sro{display:inline-flex;align-items:center;min-height:var(--db-tap);
     border-bottom:1.5pt solid var(--db-paper-ink);}
   .db-statustable tr,.db-interchangetable tr{break-inside:avoid;page-break-inside:avoid;}
 }
+
+
+/* ---- toll calculator (INT.2) ----------------------------------------------
+   Three inputs and ONE answer. The layout job is to keep the answer visually
+   subordinate to nothing: on the matrix a wrong price sits in a grid a reader
+   can sanity-check against, and here it does not, so the provisional notice
+   above it has to carry the same weight as the figure.
+
+   NO NEW COLOURS AND NO NEW PAIRINGS. Every rule below uses tokens already
+   defined at the top of this file, in combinations the toll preview and the
+   contact form already ship. The three that carry text measure, on light:
+   --db-ink on --db-surface 18.26:1, --db-ink-2 on --db-surface 8.17:1,
+   --db-ink-3 on --db-surface 6.44:1 — all past 4.5:1 with room. Dark theme
+   inherits the same pairs, whose ratios are recorded beside the dark tokens
+   above (--db-ink-3 measures 5.97:1 on --db-surface there).
+
+   The form controls are .db-field/.db-label/.db-input/.db-btn from the contact
+   form, unchanged: both .db-input and .db-btn are already min-height:
+   var(--db-tap), which is the 44px target the Bangladesh ICTD Inclusive
+   Accessibility Guideline 2022 and WCAG 2.1 ask for, and both already carry a
+   2px :focus-visible outline. Reusing them rather than restyling a second set
+   of controls is why there is no focus or tap rule in this section at all. */
+.db-tollcalc-form{max-width:none;margin-top:20px;}
+/* auto-fit, so three fields sit in a row on a desktop and stack on a phone
+   without a media query. 220px is the width at which the longest vehicle-class
+   name in the record ("Large Truck (Trailer, 6-axle, 15-25 tons)") stops
+   clipping inside a native select on Android. */
+.db-tollcalc-fields{display:grid;gap:0 clamp(12px,2.5vw,20px);
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+.db-tollcalc-answer{margin-top:20px;max-width:var(--db-measure);}
+/* The notice and the figure are one object: no gap between them, and the
+   figure carries the border so the warning reads as part of the answer rather
+   than as a banner sitting above a separate box. */
+.db-tollcalc-answer .db-illustrative{margin:0;padding-left:14px;}
+.db-tollcalc-result{padding:16px 18px;background:var(--db-surface);
+  border:1px solid var(--db-rule);border-top:0;}
+.db-tollcalc-answer .db-illustrative + .db-tollcalc-result{border-top:0;}
+.db-tollcalc-answer > .db-tollcalc-result:first-child{border-top:1px solid var(--db-rule);}
+/* The fare, and the only display-face figure in the block. Everything else on
+   screen is a label or a supporting number, and there is exactly one price. */
+.db-tollcalc-fare{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:0;}
+.db-tollcalc-amount{font-family:var(--db-font-display);font-weight:700;
+  font-size:clamp(2rem,1.4rem + 2.4vw,2.8rem);line-height:1;color:var(--db-ink);}
+.db-tollcalc-figlabel{font-family:var(--db-font-display);font-size:.74rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--db-ink-3);}
+.db-tollcalc-figures{display:flex;flex-wrap:wrap;gap:10px 28px;
+  margin:14px 0 0;padding:14px 0 0;border-top:1px solid var(--db-rule);}
+.db-tollcalc-figures dd{margin:4px 0 0;color:var(--db-ink-2);font-size:1.05rem;}
+.db-tollcalc-figure{min-width:0;}
+/* The fare changes under the reader when the enhancement is running. A figure
+   that swaps with no transition at all is easy to miss; a figure that animates
+   is worse for anyone who has asked their system for less motion. So the fade
+   lives inside a no-preference query — motion is opt-in from the reader's own
+   setting, not something switched off afterwards by a reduce query.
+
+   It is on the fare line and not on .db-tollcalc-result because that element is
+   the aria-live region: it stays mounted so a screen reader keeps observing it,
+   and only its contents are replaced. */
+@media (prefers-reduced-motion:no-preference){
+  .db-tollcalc-fare{animation:db-tollcalc-in .18s ease-out;}
+  @keyframes db-tollcalc-in{from{opacity:.4;}to{opacity:1;}}
+}

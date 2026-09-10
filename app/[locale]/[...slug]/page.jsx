@@ -58,7 +58,7 @@ export async function generateMetadata({ params }) {
   return applyRouteMeta(base, await routeMetaFor(path, loaded.locale));
 }
 
-export default async function CmsPage({ params }) {
+export default async function CmsPage({ params, searchParams }) {
   const loaded = await load(params);
   // Multi-segment URLs reach here rather than a catch-all, for the same reason
   // as the home route: `[locale]/[...slug]` is preferred over a root catch-all.
@@ -70,5 +70,9 @@ export default async function CmsPage({ params }) {
   }
   if (loaded.page.status !== 'published') notFound();
   const blocks = await getPageBlocksCached(loaded.page.id, loaded.page.slug);
-  return <BlockRenderer blocks={blocks} locale={loaded.locale} />;
+  // Handed on unawaited — see the note in BlockRenderer. A block document
+  // carrying INT.2's toll calculator answers a journey straight out of the
+  // query string, with no JavaScript; every other document ignores this and
+  // renders exactly as it did.
+  return <BlockRenderer blocks={blocks} locale={loaded.locale} searchParams={searchParams} />;
 }

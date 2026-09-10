@@ -21,8 +21,28 @@ import '../../lib/blocks/index.js';
  * exactly like an untranslated one — the same rule lib/media/repo.js's shape()
  * and lib/corridor/geometry.js's usable() already apply to their own rows: a
  * bad row degrades itself and never takes down the page rendering the rest.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY `searchParams` IS PASSED DOWN UNAWAITED
+ * ---------------------------------------------------------------------------
+ * INT.2's toll calculator is a real GET form: the visitor's journey is in the
+ * query string and the FARE IS SERVER-RENDERED FROM IT, so a driver with no
+ * JavaScript still gets an answer and the answer has a shareable address. That
+ * needs the query string down here, in a block.
+ *
+ * It is handed on as the PROMISE the page received, never awaited here. In
+ * Next 15 awaiting `searchParams` is what opts a route out of static
+ * generation, so awaiting it in this dispatcher would make every block
+ * document on the site render per request — for a block almost none of them
+ * carry. Passed unawaited, the cost lands only where it is used: a page with a
+ * toll calculator on it awaits and becomes dynamic; every other page never
+ * touches the promise and stays prerendered exactly as before.
+ *
+ * `blockId` is passed for DOM identity — a <label for> needs an id that is
+ * unique on the page, and two of the same block type on one page must not
+ * collide.
  */
-export default function BlockRenderer({ blocks = [], locale }) {
+export default function BlockRenderer({ blocks = [], locale, searchParams }) {
   return (
     <>
       {blocks.map((block) => {
@@ -32,7 +52,15 @@ export default function BlockRenderer({ blocks = [], locale }) {
         if (!resolved) return null;
         if (!isPlainObject(resolved.data)) return null;
         const Component = def.Component;
-        return <Component key={block.id} data={resolved.data} locale={resolved.locale} />;
+        return (
+          <Component
+            key={block.id}
+            data={resolved.data}
+            locale={resolved.locale}
+            blockId={block.id}
+            searchParams={searchParams}
+          />
+        );
       })}
     </>
   );

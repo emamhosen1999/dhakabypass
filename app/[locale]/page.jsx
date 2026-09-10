@@ -62,7 +62,7 @@ export async function generateMetadata({ params }) {
     : { alternates };
 }
 
-export default async function LocaleHome({ params }) {
+export default async function LocaleHome({ params, searchParams }) {
   const loaded = await load(params);
   // A single-segment URL that is not a locale — /old-economic-impact — lands
   // here rather than in a catch-all, because `[locale]` is a dynamic segment and
@@ -115,7 +115,14 @@ export default async function LocaleHome({ params }) {
 
   return (
     <>
-      <BlockRenderer blocks={heroBlocks} locale={locale} />
+      {/* Unawaited — see BlockRenderer. The home route is prerendered and
+          stays prerendered unless an operator actually places a block that
+          reads the query string on it (INT.2's toll calculator is the only
+          one), at which point Next re-renders this route per request because
+          that block awaited the promise. The peer precedent for putting a
+          calculator on the front page is PLUS Malaysia's; this is what makes
+          it possible without paying for it everywhere else. */}
+      <BlockRenderer blocks={heroBlocks} locale={locale} searchParams={searchParams} />
       {summary.segments.length === 0 ? null : (
         <section className="db-block">
           <h2 className="db-h2">{t(locale, 'homeCorridorHeading')}</h2>
@@ -133,7 +140,7 @@ export default async function LocaleHome({ params }) {
           </p>
         </section>
       )}
-      <BlockRenderer blocks={restBlocks} locale={locale} />
+      <BlockRenderer blocks={restBlocks} locale={locale} searchParams={searchParams} />
     </>
   );
 }

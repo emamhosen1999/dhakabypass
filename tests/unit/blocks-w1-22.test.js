@@ -32,10 +32,10 @@ describe('the ten new block types', () => {
     }
     // 19 after W1.22's ten; 22 after the three live corridor blocks
     // (toll-table, traffic-status, interchange-table) of build-order item 6;
-    // 23 after INT.1's toll-matrix.
+    // 23 after INT.1's toll-matrix; 24 after INT.2's toll-calculator.
     // The number is here as a guard against a type silently disappearing from
     // lib/blocks/index.js, so it moves with a deliberate addition and only then.
-    expect(allBlocks()).toHaveLength(23);
+    expect(allBlocks()).toHaveLength(24);
   });
 
   it.each(NEW_TYPES)('gives %s a default record covering every declared field', (type) => {

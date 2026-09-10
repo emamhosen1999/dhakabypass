@@ -34,7 +34,7 @@ export const metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
-export default async function PreviewPage({ params }) {
+export default async function PreviewPage({ params, searchParams }) {
   const session = await auth();
   if (!session?.user?.isAdmin) redirect('/admin/login');
 
@@ -52,5 +52,8 @@ export default async function PreviewPage({ params }) {
   // Unlike the public route there is NO `page.status !== 'published'` check —
   // previewing an unpublished page is the entire point.
   const blocks = await getPageBlocks(pageId);
-  return <BlockRenderer blocks={withDraftTranslations(blocks)} locale={locale} />;
+  // The preview renders through the same dispatcher as the live page, so a
+  // toll calculator behaves in the operator's preview exactly as it will in
+  // production — including answering from the query string.
+  return <BlockRenderer blocks={withDraftTranslations(blocks)} locale={locale} searchParams={searchParams} />;
 }
