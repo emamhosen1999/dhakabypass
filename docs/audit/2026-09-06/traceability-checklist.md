@@ -375,6 +375,25 @@ These carry extra weight; they are not one auditor's opinion.
 
 ---
 
+## Interactivity audit (added 2026-09-10) — source: `findings-interactivity.md`
+
+Answers the client's question "is our site already interactive, and where should we add more," benchmarked against Agent B §3/§4C and the block catalogue. See that file for full reasoning; this table only traces its findings to tasks.
+
+| ID | Finding | Task | Status |
+|---|---|---|---|
+| INT-1 | **Credit where due:** the corridor map (pan/zoom/select, working no-JS fallback via a parallel accessible section-button list), the block editor's drag-and-drop (full keyboard parity via dnd-kit's KeyboardSensor, live `aria-live` announcements), `TabsBlock`/`FaqBlock` (textbook WAI-ARIA tabs and a deliberately script-free `<details>` FAQ), and `ContactForm.jsx` (`useActionState`, per-outcome `aria-live` messaging) are all already well-built and should not be reworked | — | [~] No action: verified good |
+| INT-2 | **Registry correction:** contrary to `findings-block-catalogue.md`'s 2026-09-06 snapshot, `lib/blocks/index.js` today registers all ten W1.22 types plus `toll-table`/`traffic-status`/`interchange-table` (22 live types against the plan's original 9), and the richtext-in-list-row sanitisation bug it flagged is fixed in `lib/blocks/form.js`. A second, concurrent workstream has closed this gap since the 2026-09-06 audit | — | [~] No action: verified current on 2026-09-10 |
+| INT-3 | Toll calculator (B-C1/W4.1) needs an O–D fare data model that does not exist yet — `toll_rates` has one flat `amount_bdt` per class plus a free-text `section`, no interchange-pair matrix. Corrects W4.1's stated effort from S to M | INT.1 | [ ] |
+| INT-4 | No `toll-calculator` block type exists anywhere on disk; recommend combining the toll fare calculator and the distance/journey-planner into one block rather than two, per PLUS Malaysia/407 ETR precedent (homepage + toll-page placement) | INT.2, W4.1 | [ ] |
+| INT-5 | `map-pin-list` already has `amenities` (nested list) and `hours` fields on disk; only the amenity-filter UI is missing, not a schema extension as the block catalogue assumed | INT.3, W4.9 | [ ] |
+| INT-6 | Vehicle classification guide (B-C2/W4.2) needs `card-grid` to carry an image alongside title/meta/body — same gap the block catalogue already named for awards and ISO certs | INT.4, W4.2 | [ ] |
+| INT-7 | FAQ search, downloads-centre filtering and news category filter/pagination (B-D5, W5.1, W1.30) all need the same shape of fix: a thin, dependency-free client-side visibility filter over content that must stay in the DOM (crawlability, Ctrl+F, print) — one shared pattern, not three bespoke ones | INT.5 | [ ] |
+| INT-8 | Gallery's real cap today is **60** images (`lib/gallery/repo.js:87`), tighter than the 200-photo ceiling already tracked at OP-6/W2.9. Recommend against building a scripted lightbox as the default — the existing native-link-to-native-viewer pattern is a deliberate, correct accessibility decision documented in the page's own comments | INT.6, W2.9 | [ ] |
+| INT-9 | `NewsletterForm.jsx` uses a materially weaker pattern (manual `fetch`/`useState`, no `aria-live`) than `ContactForm.jsx`; relinking it as-is (W2.8) would ship a regression next to a better-built form already in the codebase | INT.7, W2.8 | [ ] |
+| INT-10 | `request-form` block type (grievance, toll dispute, breakdown assistance, lost & found) does not exist; needs a new `service_requests` table with a generated tracking number, reusing `ContactForm.jsx`'s outcome/honeypot/rate-limit pattern rather than inventing a weaker one | INT.8, W3.17, W3.18, W4.6, W4.12 | [ ] |
+| INT-11 | `lib/corridor/tomtom.js`/`traffic-admin.js`/`traffic-refresh.js` are a complete, defensively-written live-traffic pipeline and `TrafficStatusBlock.jsx` is fully built, but no task anywhere schedules the refresh or confirms `TOMTOM_API_KEY` is set — all seven corridor sections read `unknown` today for an operations reason, not a missing-feature reason | INT.9 | [ ] |
+| INT-12 | **Rejected, for the record:** a scripted photo lightbox as the default gallery build; a carousel/slider anywhere on the site; a chatbot/live-chat widget ahead of B-C13's SMS/WhatsApp sequencing; a separate `journey-planner` block distinct from the toll calculator; treating live-CCTV (`video-embed`) as an "add interactivity" task rather than the missing media primitive it already is under W4.7/W5.3/W5.10 | — | [~] Rejected — see `findings-interactivity.md` §5 for reasoning on each |
+
 ## Phase gates
 
 No phase closes until every row assigned to it is `[x]` or `[~]` with a reason.
