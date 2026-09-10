@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { auth } from '../../../../auth';
+import { can } from '../../../../lib/auth/roles';
 import { query, dbEnabled } from '../../../../lib/db';
 import { saveUpload, ALLOWED_MIME_TYPES } from '../../../../lib/media';
 
@@ -28,6 +29,16 @@ export async function POST(request) {
   const session = await auth();
   if (!session?.user?.isAdmin) {
     return NextResponse.json({ ok: false, error: 'Not authorised' }, { status: 401 });
+  }
+  // BOTH checks, exactly as app/admin/api/media/route.js:11,20 does them.
+  // `isAdmin` only means the address is on ADMIN_EMAILS; lib/auth/roles.js is
+  // what separates an editor from a translator, whose permission set is
+  // exactly ['translate']. Checking isAdmin alone let a translator persist an
+  // 8 MB file and — with target=gallery below — insert a gallery_images row,
+  // publishing it to the site. `can()` fails closed, so a missing or unknown
+  // role is denied here rather than waved through.
+  if (!can(session.user.role, 'manage_media')) {
+    return NextResponse.json({ ok: false, error: 'Your role cannot upload media' }, { status: 403 });
   }
 
   try {

@@ -52,6 +52,8 @@ export default async function ContactPage({ params }) {
     sentBody: t(locale, 'formSentBody'),
     errorRequired: t(locale, 'formErrorRequired'),
     errorUnavailable: t(locale, 'formErrorUnavailable'),
+    errorRateLimited: t(locale, 'formErrorRateLimited'),
+    errorTooLong: t(locale, 'formErrorTooLong'),
     privacy: t(locale, 'formPrivacy'),
     honeypot: t(locale, 'formHoneypot'),
   };

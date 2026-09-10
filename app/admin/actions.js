@@ -5,6 +5,13 @@ import { revalidateNews } from '../../lib/revalidate.js';
 import { assertCan } from '../../lib/auth/assert-can';
 import { saveContent, getContent } from '../../lib/content';
 import { query, dbEnabled } from '../../lib/db';
+import { rateLimit, clientIp } from '../../lib/rate-limit.js';
+import {
+  PUBLIC_WRITE_LIMIT, PUBLIC_WRITE_WINDOW_MS, MAX_MESSAGE_CHARS,
+} from '../../lib/public-write-policy.js';
+import { t } from '../../lib/i18n/ui.js';
+import { DEFAULT_LOCALE } from '../../lib/i18n/locales.js';
+import { headers } from 'next/headers';
 
 /**
  * Every action re-checks the session AND the caller's role.
@@ -144,12 +151,47 @@ export async function toggleMessageReadAction(formData) {
   revalidatePath('/admin');
 }
 
+/**
+ * The two intentionally-PUBLIC actions in this file — no session, no
+ * assertCan. They are the site's only unauthenticated write paths, which is
+ * why the limits below exist (C-D16 / C-S4).
+ *
+ * The limit, the window and the message cap are the same policy the localised
+ * contact form uses, read from lib/public-write-policy.js so there is one
+ * declaration rather than two that drift.
+ *
+ * Separate rate-limit BUCKETS from that form, though, so a reader using the
+ * modern contact page cannot exhaust this endpoint's budget or vice versa.
+ */
+
+/** The caller's rate-limit key, degrading to one shared bucket. */
+async function requestIp() {
+  try {
+    return clientIp(await headers());
+  } catch {
+    return 'unknown';
+  }
+}
+
 /** Public contact form submission */
 export async function submitContactAction(formData) {
   const name = String(formData.get('name') || '').trim();
   const email = String(formData.get('email') || '').trim();
   const subject = String(formData.get('subject') || '').trim();
   const message = String(formData.get('message') || '').trim();
+
+  // `message` is longtext and was unbounded: one request could store
+  // megabytes. Checked before the rate limit so a person who pasted a long
+  // document is not also locked out for ten minutes.
+  if (message.length > MAX_MESSAGE_CHARS) {
+    return { ok: false, error: t(DEFAULT_LOCALE, 'formErrorTooLong') };
+  }
+
+  if (!rateLimit('legacy-contact', await requestIp(), {
+    limit: PUBLIC_WRITE_LIMIT, windowMs: PUBLIC_WRITE_WINDOW_MS,
+  }).ok) {
+    return { ok: false, error: t(DEFAULT_LOCALE, 'formErrorRateLimited') };
+  }
 
   if (!name || !email || !message) {
     return { ok: false, error: 'Please fill in all required fields (Name, Email, Message).' };
@@ -169,8 +211,19 @@ export async function submitContactAction(formData) {
       revalidatePath('/admin/messages');
       revalidatePath('/admin');
     } catch (err) {
-      console.error('Failed to save contact message to DB:', err);
-      // Still return success to user so public UX doesn't crash
+      /**
+       * C-D17. This used to log and `return { ok: true }` anyway, with the
+       * comment "Still return success to user so public UX doesn't crash" —
+       * thanking the sender for a message that does not exist. Not crashing
+       * the page is the right instinct and is preserved: the throw is still
+       * caught. What changes is that the sender is now TOLD, so a person
+       * reporting a hazard or making a compensation claim knows to use
+       * another route instead of waiting for a reply that cannot come.
+       *
+       * Logged without the parameters: they contain the sender's own data.
+       */
+      console.error('Failed to save contact message to DB:', err && err.code);
+      return { ok: false, error: t(DEFAULT_LOCALE, 'formErrorUnavailable') };
     }
   }
 
@@ -180,6 +233,13 @@ export async function submitContactAction(formData) {
 /** Public newsletter subscription */
 export async function subscribeNewsletterAction(formData) {
   const email = String(formData.get('email') || '').trim().toLowerCase();
+
+  if (!rateLimit('legacy-newsletter', await requestIp(), {
+    limit: PUBLIC_WRITE_LIMIT, windowMs: PUBLIC_WRITE_WINDOW_MS,
+  }).ok) {
+    return { ok: false, error: t(DEFAULT_LOCALE, 'formErrorRateLimited') };
+  }
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     return { ok: false, error: 'Please enter a valid email address.' };
@@ -192,7 +252,11 @@ export async function subscribeNewsletterAction(formData) {
         [email]
       );
     } catch (err) {
-      console.error('Failed to save newsletter subscriber:', err);
+      // Same correction as the contact action above. INSERT IGNORE means a
+      // duplicate address is NOT an error and still reports success, so a
+      // throw reaching here is a real failure and is reported as one.
+      console.error('Failed to save newsletter subscriber:', err && err.code);
+      return { ok: false, error: t(DEFAULT_LOCALE, 'formErrorUnavailable') };
     }
   }
 

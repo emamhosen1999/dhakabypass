@@ -10,6 +10,8 @@
     "db:setup": "node scripts/db-setup.mjs",
     "db:seed": "node scripts/db-seed.mjs",
     "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:db": "vitest run tests/db",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:setup:v2": "node scripts/db-setup-v2.mjs",

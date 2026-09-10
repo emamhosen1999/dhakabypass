@@ -292,6 +292,26 @@
 .db-prose table{display:block;overflow-x:auto;max-width:100%;}
 .db-empty{max-width:var(--db-shell);margin:0 auto;padding:60px clamp(12px,3vw,20px);color:var(--db-ink-3);}
 
+/* ---- Error boundaries ---------------------------------------------------
+   app/[locale]/error.jsx and app/global-error.jsx. No new colours and no new
+   values: this is .db-block with breathing room and one chip, built from the
+   same tokens as everything else, because a failure page that looks like a
+   different website reads as a phishing page rather than as our own.
+   .db-html-error paints the ground on <html> itself — global-error replaces
+   the root layout, so nothing else is there to paint it and the browser's
+   own white would show through above and below. */
+.db-html-error{background:var(--db-ground);}
+.db-error{padding-top:clamp(48px,9vw,96px);padding-bottom:clamp(48px,9vw,96px);}
+.db-error-ref{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;
+  margin-top:22px;padding:10px 14px;max-width:max-content;
+  border-left:3px solid var(--db-ink-3);background:var(--db-surface-2);}
+.db-error-ref-label{font-family:var(--db-font-display);font-weight:700;font-size:.72rem;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--db-ink-3);}
+/* Selectable and wrappable: this gets read down a phone line and pasted into
+   an email, and a digest that overflows its box cannot be copied whole. */
+.db-error-digest{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.92rem;color:var(--db-ink);user-select:all;overflow-wrap:anywhere;}
+
 /* Status is never colour alone: this carries a text tag as well. */
 .db-illustrative{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;
   max-width:var(--db-shell);margin:0 auto;padding:10px clamp(12px,3vw,20px);

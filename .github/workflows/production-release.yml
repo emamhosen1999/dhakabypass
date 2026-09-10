@@ -45,7 +45,13 @@ jobs:
           node scripts/translate-media-alt.mjs
           node scripts/apply-content-recovery.mjs
           node scripts/import-corridor-geometry.mjs --source osm --file public/maps/corridor-alignment.geojson
-      - run: npm test
+      # Split so a red X says WHICH kind of failure it was (C-D20). The unit
+      # suite needs nothing but the checkout; tests/db/** needs the MariaDB
+      # service above and the database prepared by the step before this one.
+      # Run as one step and a service that failed to come up looks identical
+      # to a broken assertion.
+      - run: npm run test:unit
+      - run: npm run test:db
       - run: node scripts/verify-release-sql.mjs --database=dhakabypass_sql_test
       - run: npm run build
       - name: Publish Linux artifact

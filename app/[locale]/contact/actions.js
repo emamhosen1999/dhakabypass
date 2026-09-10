@@ -1,30 +1,74 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { query, dbEnabled } from '../../../lib/db.js';
+import { rateLimit, clientIp } from '../../../lib/rate-limit.js';
+import {
+  PUBLIC_WRITE_LIMIT, PUBLIC_WRITE_WINDOW_MS, MAX_MESSAGE_CHARS,
+} from '../../../lib/public-write-policy.js';
 
 /**
  * The localised contact form's submit handler.
  *
  * Deliberately NOT `submitContactAction` from app/admin/actions.js. That one
- * serves the legacy site, which is live and on the do-not-touch list, and it
- * carries a decision this page should not inherit: when the database write
- * throws, it logs and returns `{ ok: true }` anyway, so the sender is thanked
- * for a message that no longer exists. Its comment says the reason — not
- * crashing the public page — and that instinct is right; the conclusion is not.
- * Someone reporting a hazard on an expressway, or a landowner making a
- * compensation claim, needs to know their message was not delivered so they can
- * use another route. Silence is the failure mode with the highest cost here.
+ * serves the legacy site and it carried a decision this page should not
+ * inherit: when the database write threw, it logged and returned `{ ok: true }`
+ * anyway, so the sender was thanked for a message that no longer existed. Its
+ * comment said the reason — not crashing the public page — and that instinct is
+ * right; the conclusion was not. Someone reporting a hazard on an expressway,
+ * or a landowner making a compensation claim, needs to know their message was
+ * not delivered so they can use another route. Silence is the failure mode with
+ * the highest cost here. (That action has since been fixed too — C-D17.)
  *
  * So this one degrades honestly: it tells the sender the message could not be
  * recorded and to use another channel.
  *
  * Returns a plain object rather than throwing, because it drives useActionState.
  */
+
+/**
+ * The limit, the window and the message cap live in
+ * lib/public-write-policy.js, with the reasoning for each number. They cannot
+ * live here: this is a `'use server'` module, which may export async functions
+ * only, and ContactForm needs the cap for the textarea's maxLength.
+ */
+
 export async function submitContactMessage(_prev, formData) {
   const name = String(formData.get('name') || '').trim();
   const email = String(formData.get('email') || '').trim();
   const subject = String(formData.get('subject') || '').trim();
   const message = String(formData.get('message') || '').trim();
+
+  /**
+   * Length first, and it does NOT spend the sender's budget.
+   *
+   * Nothing is stored on this path, so it costs the host nothing to answer;
+   * charging it against the limit would mean a person who pasted a long
+   * document is locked out for ten minutes for a mistake the form has just
+   * told them how to fix.
+   */
+  if (message.length > MAX_MESSAGE_CHARS) return { status: 'too_long' };
+
+  /**
+   * Then the rate limit — BEFORE the honeypot, so a bot tripping the honeypot
+   * still spends its budget. That traffic is exactly what is being limited,
+   * and making honeypot hits free would leave the cheapest flood unbounded.
+   *
+   * `headers()` can only be read inside a request; it cannot fail here, but a
+   * throw would take down a form submission for a defence that is meant to
+   * protect it, so it degrades to the shared 'unknown' bucket.
+   */
+  let ip = 'unknown';
+  try {
+    ip = clientIp(await headers());
+  } catch {
+    ip = 'unknown';
+  }
+  if (!rateLimit('contact', ip, {
+    limit: PUBLIC_WRITE_LIMIT, windowMs: PUBLIC_WRITE_WINDOW_MS,
+  }).ok) {
+    return { status: 'ratelimited' };
+  }
 
   // A field no human sees and no assistive technology announces. Bots fill it;
   // people do not. Returning success rather than an error means a bot gets no

@@ -2,6 +2,9 @@
 
 import { useActionState } from 'react';
 import { submitContactMessage } from './actions.js';
+// Not from ./actions.js: that is a `'use server'` module and may export async
+// functions only.
+import { MAX_MESSAGE_CHARS } from '../../../lib/public-write-policy.js';
 
 /**
  * The contact form.
@@ -39,6 +42,18 @@ export default function ContactForm({ labels }) {
         {state.status === 'unavailable' ? (
           <p className="db-form-error">{labels.errorUnavailable}</p>
         ) : null}
+        {/* The server refuses these two as well. The textarea's maxLength stops
+            a real person reaching `too_long` at all, and `ratelimited` is only
+            ever seen after five sends inside ten minutes — both are stated
+            plainly rather than as a generic failure, because a person
+            reporting a hazard needs to know whether to wait or to use another
+            route. */}
+        {state.status === 'ratelimited' ? (
+          <p className="db-form-error">{labels.errorRateLimited}</p>
+        ) : null}
+        {state.status === 'too_long' ? (
+          <p className="db-form-error">{labels.errorTooLong}</p>
+        ) : null}
       </div>
 
       <div className="db-field">
@@ -72,8 +87,12 @@ export default function ContactForm({ labels }) {
         <label htmlFor="cf-message" className="db-label">
           {labels.message} <span className="db-required" aria-hidden="true">*</span>
         </label>
+        {/* Same number the server enforces, imported rather than repeated, so
+            the browser stops an over-long paste before it becomes a rejected
+            round trip. The server still checks: maxLength is a courtesy, not
+            a control. */}
         <textarea
-          id="cf-message" name="message" rows={7} required
+          id="cf-message" name="message" rows={7} required maxLength={MAX_MESSAGE_CHARS}
           className="db-input db-textarea" aria-invalid={invalid('message') || undefined}
         />
       </div>
