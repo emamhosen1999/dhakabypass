@@ -26,7 +26,26 @@ install).
 
 ```
 09-ui-strings.sql        creates `ui_strings` — the editable UI strings (W1.6)
+12-toll-od-matrix.sql    creates `toll_od_rates` — the O–D fare matrix (INT.1)
 ```
+
+`12-toll-od-matrix.sql` **does** seed rows, and is the deliberate exception to
+the rule below. It is not an override table: there is no code-side fallback
+matrix for a row to outrank, and an empty table means no toll calculator, which
+is the thing being built. The 270 seeded fares are computed from the toll
+formula DBEDC published on the previous website (reconstructed in
+`lib/corridor/toll-formula.js`, checked against their own published figures in
+`tests/unit/toll-formula.test.js`), and every one of them is marked provisional
+**by the schema, not by a note**: `is_provisional` is a stored generated column
+over `sro_number`, so no `UPDATE` can set it and a fare becomes authoritative
+only by acquiring the S.R.O. citation that makes it so. The seed's column list
+omits the citation fields, so every seeded row is provisional on arrival.
+Re-importing is safe: `INSERT IGNORE` leaves a fare an operator has confirmed
+alone.
+
+It requires the toll-plaza rows from `02-seed.sql` — the fares reference
+`interchanges` by foreign key and are skipped rather than orphaned if those are
+missing.
 
 `09-ui-strings.sql` **creates an empty table and seeds no rows**, on purpose.
 The wording that ships with the site lives in `lib/i18n/ui.js` and

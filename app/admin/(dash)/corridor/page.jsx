@@ -2,12 +2,20 @@ import Link from 'next/link';
 import { listCorridorAction, setIllustrativeAction } from './actions';
 import { listWaypointsForAdmin } from '../../../../lib/corridor/waypoints-admin';
 import { getGeometryOverview } from '../../../../lib/corridor/geometry-admin';
+import { listTollMatrixAction } from './toll-matrix-actions';
+import { isProvisional } from '../../../../lib/corridor/toll-matrix';
 
 export const dynamic = 'force-dynamic';
 
 export default async function CorridorHub() {
-  const [{ segments, interchanges, tolls, advisories, illustrative }, waypoints, geometry] =
-    await Promise.all([listCorridorAction(), listWaypointsForAdmin(), getGeometryOverview()]);
+  const [{ segments, interchanges, tolls, advisories, illustrative }, waypoints, geometry, matrix] =
+    await Promise.all([
+      listCorridorAction(), listWaypointsForAdmin(), getGeometryOverview(), listTollMatrixAction(),
+    ]);
+  // Counted here rather than shown as a bare total: "270 fares" reads as work
+  // finished, and the number that matters on this hub is how many of them are
+  // still computed figures awaiting a gazette citation.
+  const tollMatrixProvisional = matrix.fares.filter(isProvisional).length;
 
   const areas = [
     { href: '/admin/corridor/waypoints', name: 'Waypoints', count: waypoints.length,
@@ -24,6 +32,8 @@ export default async function CorridorHub() {
       note: 'Entry and exit points, toll plazas and service areas.' },
     { href: '/admin/corridor/tolls', name: 'Toll rates', count: tolls.length,
       note: 'Rates by vehicle class. The public page shows only the rate in force today.' },
+    { href: '/admin/corridor/toll-matrix', name: 'Toll fare matrix', count: `${tollMatrixProvisional} provisional`,
+      note: 'Entry-to-exit fares by plaza pair, direction and vehicle class. Seeded from DBEDC’s own published formula; a fare is confirmed by entering its S.R.O. citation.' },
     { href: '/admin/corridor/advisories', name: 'Advisories', count: advisories.length,
       note: 'Closures and notices. The most severe active one appears site-wide.' },
   ];
