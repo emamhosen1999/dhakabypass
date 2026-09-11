@@ -391,6 +391,30 @@
   font-family:var(--db-font-display);font-weight:700;font-size:.72rem;
   letter-spacing:.12em;text-transform:uppercase;color:var(--db-build);}
 
+/* The callout BLOCK. Same visual grammar as the inline .db-pending marker
+   above — a left rule, a wash, a small uppercase tag — so a callout placed as
+   a block and a marker typed inside a body read as the same thing. Four tones,
+   none of them colour alone: every tone carries its tag as text.
+
+   Contrast, measured against each wash:
+     pending / warning  --db-ink-2 on --db-build-wash   ≥ 7:1 (dark ink on a
+                        pale wash; --db-build itself measures 6.01:1 flat)
+     legacy / info      --db-ink-2 on --db-surface-2     8.9:1
+   The tag colours are the status inks the corridor already uses, each
+   recorded above with its own measurement. */
+.db-callout-block{padding-top:0;padding-bottom:0;}
+.db-callout{margin:20px 0;padding:14px 16px;border-left:3px solid var(--db-rule-2);
+  background:var(--db-surface-2);color:var(--db-ink-2);font-size:.94rem;}
+.db-callout-tag{margin:0 0 6px;font-family:var(--db-font-display);font-weight:700;
+  font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--db-ink-3);}
+.db-callout-body>:first-child{margin-top:0;}
+.db-callout-body>:last-child{margin-bottom:0;}
+.db-callout-pending,.db-callout-warning{border-left-color:var(--db-build);background:var(--db-build-wash);}
+.db-callout-pending .db-callout-tag,.db-callout-warning .db-callout-tag{color:var(--db-build);}
+.db-callout-legacy{border-left-color:var(--db-rule-2);}
+.db-callout-info{border-left-color:var(--db-rule-2);}
+@media print{.db-callout{border-left-width:4px;background:none;}}
+
 /* Prose lists inside rich-text bodies. The blocks that existed before this
    point were all headline-and-paragraph, so ul/ol had never appeared in a
    .db-prose body and inherited the reset's list-style:none — every bullet list
