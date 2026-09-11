@@ -50,7 +50,7 @@
 | A-HC-5.3 | `SiteHeaderV2.jsx` — NAV array, `DB` monogram, `DBEDC` name, tagline, untranslated aria-labels, unremovable Contact CTA | W1.10, W1.11 | [ ] |
 | A-HC-5.4 | `SiteFooterV2.jsx` — GROUPS (4 cols/15 links), legal name literal, copyright, **no Privacy/Terms/Sitemap** | W1.10, 0.10 | [ ] |
 | A-HC-5.5 | `app/[locale]/page.jsx` — hero force-hoisting makes editor order a lie; corridor section is unmovable JSX; CTA targets hardcoded; untranslated empty state | W1.5 | [x] file deleted; corridor section = progress-bar + corridor-strip + interchange-table(limit 5, link) blocks (18-home-corridor.sql); empty state is ui `homeNotCreated` |
-| A-HC-5.6 | Six travel pages — every H1, lede, caption, column header in code; `status` has no block region at all; `TravelSubnav` not menu-driven; `/travel` redirect target fixed | W1.8, W1.11 | [ ] |
+| A-HC-5.6 | Six travel pages — every H1, lede, caption, column header in code; `status` has no block region at all; `TravelSubnav` not menu-driven; `/travel` redirect target fixed | W1.8, W1.11 | [x] six page files deleted (16-travel-pages.sql); `section-subnav` reads the `travel` menu at /admin/menus with the code list as outage fallback (browser-verified override); `/travel` is a `redirects` row (21) |
 | A-HC-5.7 | Gallery page — copy in code, no lightbox/pagination/albums, hard 200-photo ceiling | W1.9, W2.9 | [ ] |
 | A-HC-5.8 | Contact page — address/email hardcoded English-only fallbacks, all 12 form labels in code, field set fixed | W1.20, W1.9 | [ ] |
 | A-HC-5.9 | News — eyebrow/H1/lede/empty state in code, no category filter, no pagination, 24-item cap | W1.9 | [ ] |

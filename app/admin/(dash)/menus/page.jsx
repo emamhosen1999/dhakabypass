@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 const TITLES = {
   main: 'Main navigation (top of every page)',
   footer: 'Footer navigation',
+  travel: 'Travel section menu (the "Travel section menu" block)',
 };
 
 /**
