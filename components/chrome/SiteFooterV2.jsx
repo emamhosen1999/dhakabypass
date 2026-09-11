@@ -109,6 +109,17 @@ export default async function SiteFooterV2({ locale }) {
       </nav>
       <div className="db-footer-inner">
         <p className="db-footer-brand">Dhaka Bypass Expressway Development Company</p>
+        {/* The legacy footer carried these three and the rebuild dropped them,
+            which left the site running Google Analytics behind a consent banner
+            with no policy to consent to. They sit in the bottom bar rather than
+            a nav column because that is where a reader looks for them, and
+            because the columns above are operator-editable while these must not
+            quietly disappear. */}
+        <ul className="db-footer-legal-links">
+          <li><Link href={localeHref('privacy', locale)}>{t(locale, 'footerPrivacy')}</Link></li>
+          <li><Link href={localeHref('terms', locale)}>{t(locale, 'footerTerms')}</Link></li>
+          <li><Link href={localeHref('accessibility', locale)}>{t(locale, 'footerAccessibility')}</Link></li>
+        </ul>
         <p className="db-footer-legal">© {year} DBEDC. {t(locale, 'allRights')}</p>
       </div>
     </footer>

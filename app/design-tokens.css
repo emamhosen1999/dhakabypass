@@ -313,6 +313,14 @@
 .db-footer-inner{max-width:var(--db-shell);margin:0 auto;padding:24px clamp(12px,3vw,20px);
   display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;
   color:var(--db-ink-3);font-size:.86rem;}
+/* Privacy, terms and accessibility. --db-ink-3 is the measured muted ink
+   (4.96:1 on --db-surface-2, 5.37 on --db-ground, 6.44 on --db-surface), so
+   these clear 4.5:1 on every ground the footer sits on. Underlined rather than
+   colour-only: these are the links a reader goes looking for deliberately. */
+.db-footer-legal-links{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 18px;}
+.db-footer-legal-links a{color:var(--db-ink-3);text-decoration:underline;
+  text-underline-offset:2px;display:inline-block;padding:4px 0;}
+.db-footer-legal-links a:hover{color:var(--db-ink);}
 .db-block{max-width:var(--db-shell);margin:0 auto;padding:clamp(28px,5vw,40px) clamp(12px,3vw,20px);}
 .db-prose{max-width:var(--db-measure);color:var(--db-ink-2);}
 .db-prose p+p{margin-top:1em;}
