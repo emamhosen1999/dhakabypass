@@ -35,7 +35,7 @@ describe('the ten new block types', () => {
     // 23 after INT.1's toll-matrix; 24 after INT.2's toll-calculator.
     // The number is here as a guard against a type silently disappearing from
     // lib/blocks/index.js, so it moves with a deliberate addition and only then.
-    expect(allBlocks()).toHaveLength(34);
+    expect(allBlocks()).toHaveLength(37);
   });
 
   it.each(NEW_TYPES)('gives %s a default record covering every declared field', (type) => {

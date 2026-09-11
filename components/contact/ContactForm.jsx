@@ -1,10 +1,10 @@
 'use client';
 
 import { useActionState } from 'react';
-import { submitContactMessage } from './actions.js';
+import { submitContactMessage } from '../../lib/contact/actions.js';
 // Not from ./actions.js: that is a `'use server'` module and may export async
 // functions only.
-import { MAX_MESSAGE_CHARS } from '../../../lib/public-write-policy.js';
+import { MAX_MESSAGE_CHARS } from '../../lib/public-write-policy.js';
 
 /**
  * The contact form.

@@ -125,10 +125,11 @@ describe('buildSitemap', () => {
     expect(en.lastModified).toEqual(TR_AT);
   });
 
-  it('omits lastModified on code routes rather than inventing "now"', () => {
+  it('omits lastModified on the outage fallback rather than inventing "now"', () => {
+    // No code route carries content any more. When the database returns no
+    // row for an essential path, the fallback entry carries no date — a
+    // fabricated "now" would tell a crawler the page changed when nothing did.
     const entries = buildSitemap({ pages: [homeRow] });
-    // /contact is still a code route. /travel/toll used to be the example
-    // here; it is a content route now (W1.8) and carries the row's date.
     const contact = entries.find((e) => e.url === 'https://dhakabypass.com/en/contact');
     expect('lastModified' in contact).toBe(false);
   });
@@ -146,7 +147,7 @@ describe('buildSitemap', () => {
     // A slug listed as essential without a row behind it would emit a URL that
     // 404s. Read the seed files rather than trusting the list.
     const sql = [
-      'db/sql/13-travel-rules.sql', 'db/sql/16-travel-pages.sql',
+      'db/sql/13-travel-rules.sql', 'db/sql/16-travel-pages.sql', 'db/sql/17-news-gallery-contact.sql',
     ].map((f) => fs.readFileSync(path.join(root, f), 'utf8')).join('\n');
     for (const p of ESSENTIAL_CONTENT_PATHS) {
       const slug = p.replace(/^\//, '');

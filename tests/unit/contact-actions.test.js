@@ -14,7 +14,7 @@ vi.mock('next/headers', () => ({
 }));
 
 import { query, dbEnabled } from '../../lib/db.js';
-import { submitContactMessage } from '../../app/[locale]/contact/actions.js';
+import { submitContactMessage } from '../../lib/contact/actions.js';
 import { MAX_MESSAGE_CHARS } from '../../lib/public-write-policy.js';
 import { submitContactAction, subscribeNewsletterAction } from '../../app/admin/actions.js';
 import { resetRateLimits } from '../../lib/rate-limit.js';
