@@ -330,8 +330,8 @@ The widgets currently welded into those pages must become blocks an operator pla
 
 Each needs: configurable fields (how many items, which section, which columns, sort order), a preview that renders real data in the editor, and graceful empty/error states. Note `news-list` and `gallery-grid` currently carry hardcoded caps (24 items, 200 photos) — those become fields.
 
-### W1.31 — Route behaviour from admin
-`app/[locale]/travel/page.jsx:6` hardcodes `redirect('/travel/status')`. Route-level behaviour — landing targets, redirects, per-page item caps — moves into page settings.
+### W1.31 — Route behaviour from admin — DONE
+`app/[locale]/travel/page.jsx:6` hardcoded `redirect('/travel/status')`. The file is deleted; `/en|bn|zh/travel` are rows in `redirects` (21-travel-redirect.sql), editable at /admin/redirects and resolved by the catch-all on the 404 path. Per-page item caps are block fields (`news-list.limit`, `gallery-grid.limit`, `interchange-table.limit`).
 
 ### What genuinely cannot be a pure block document — decide explicitly, do not discover later
 

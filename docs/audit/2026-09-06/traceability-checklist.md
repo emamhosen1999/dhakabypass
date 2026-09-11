@@ -362,10 +362,10 @@ These carry extra weight; they are not one auditor's opinion.
 
 | ID | Requirement | Task | Status |
 |---|---|---|---|
-| REQ-1 | Every public route is a `pages` row, not a React page file | W1.8a | [x] home was the last (18-home-corridor.sql); remaining code routes are the three declared exceptions (`/news/[slug]` template, `/travel` redirect → W1.31, `/preview/[id]` staff) |
+| REQ-1 | Every public route is a `pages` row, not a React page file | W1.8a | [x] home was the last (18-home-corridor.sql); remaining code routes are the two declared exceptions (`/news/[slug]` template, `/preview/[id]` staff); `/travel` is a `redirects` row (W1.31) |
 | REQ-2 | Per-route page files deleted; `[...slug]/page.jsx` is the only public renderer. **If a page file still exists, that page is still hardcoded.** | W1.8b | [x] `app/[locale]/[[...slug]]/page.jsx` (optional catch-all) is the only public renderer; drift guard `seo-routes.test.js` fails on any new page.jsx under `app/[locale]` |
 | REQ-3 | Twelve functional widgets become placeable, configurable, previewable blocks | W1.30 | [ ] |
-| REQ-4 | Route behaviour (landing targets, item caps) moves to page settings | W1.31 | [ ] |
+| REQ-4 | Route behaviour (landing targets, item caps) moves to page settings | W1.31 | [x] `/travel` redirect is three `redirects` rows (21-travel-redirect.sql, editable at /admin/redirects), page file deleted; item caps are block fields (`news-list.limit`, `gallery-grid.limit`, `interchange-table.limit`); `REDIRECT_LOCALISED_PATHS` empty — only dynamic page files remain under app/[locale] |
 | REQ-5 | Preview renders the real block document at real breakpoints, all three locales, including drafts | W1.25 | [>] agent running |
 | REQ-6 | Three declared exceptions only: `/news/[slug]` template, `app/layout.jsx` root shell, the admin panel. A fourth is escalated and written down, never absorbed silently. | — | [~] Accepted, documented |
 

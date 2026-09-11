@@ -45,12 +45,15 @@ describe('STATIC_LOCALISED_PATHS', () => {
   });
 
   it('excludes the redirect-only routes from the indexable list', () => {
-    // /[locale]/travel is a bare redirect() to travel/status. A sitemap entry
-    // for it is a "Page with redirect" error in Search Console.
+    // A sitemap entry for a URL that answers 3xx is a "Page with redirect"
+    // error in Search Console. /[locale]/travel used to be the one such code
+    // route; it is a `redirects` row now (21-travel-redirect.sql), so the
+    // list is empty — and the guard above fails if a redirect-only page.jsx
+    // reappears without being listed here.
     for (const p of REDIRECT_LOCALISED_PATHS) {
       expect(STATIC_LOCALISED_PATHS).not.toContain(p);
     }
-    expect(REDIRECT_LOCALISED_PATHS).toContain('/travel');
+    expect(REDIRECT_LOCALISED_PATHS).toEqual([]);
   });
 
   it('accounts for the dynamic routes too', () => {
@@ -85,8 +88,12 @@ describe('STATIC_LOCALISED_PATHS', () => {
 
   it('actually found routes to compare against', () => {
     // Guards the guard: a walker that silently returns [] would make the test
-    // above pass against an empty list forever.
-    expect(routesOnDisk().length).toBeGreaterThan(3);
+    // above pass against an empty list forever. Exactly three page.jsx files
+    // remain under app/[locale]/ — the catch-all, the news template and the
+    // staff preview — and every one of them is dynamic, which is the point.
+    const found = routesOnDisk();
+    expect(found.length).toBe(3);
+    expect(found.every(isDynamic)).toBe(true);
   });
 
   it('holds locale-less paths only', () => {

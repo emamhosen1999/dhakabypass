@@ -23,9 +23,11 @@ import BlockRenderer from '../../../components/blocks/BlockRenderer.jsx';
  * and the file is gone — which is what makes "no content is hardcoded" a
  * property of the tree rather than a promise.
  *
- * The three routes that remain as code under app/[locale]/ are the declared
+ * The two routes that remain as code under app/[locale]/ are the declared
  * exceptions in the plan ("W1.8 (rewritten)"): /news/[slug] is a template,
- * /travel is a bare redirect, /preview/[id] is staff-only.
+ * /preview/[id] is staff-only. /travel, once a bare redirect() file, is a
+ * `redirects` row (21-travel-redirect.sql) that lands in redirectOrNotFound
+ * below like any other operator-configured move.
  */
 
 /**
