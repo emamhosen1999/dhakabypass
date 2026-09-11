@@ -36,14 +36,21 @@ const nextConfig = {
   /**
    * Security headers.
    *
-   * SCOPING MATTERS HERE. The legacy site at `app/(site)/` is LIVE and on the
-   * do-not-modify list, and it embeds third-party iframes (the build log shows
-   * `allowfullscreen` on them). A Content-Security-Policy strict enough to be
-   * worth having would break those embeds on a site that is currently serving
-   * the public — so the enforcing CSP is applied only to the localised tree and
-   * the admin, both of which are ours and are tested. The legacy tree gets the
-   * same policy in REPORT-ONLY form, which changes nothing about how it renders
-   * while still surfacing what a future enforcing policy would block.
+   * SCOPING. This split was made when the legacy site at `app/(site)/` was
+   * still serving the public and embedded third-party iframes that a strict
+   * policy would have broken — so the enforcing CSP covered only the localised
+   * tree and the admin, and everything else got the same policy in REPORT-ONLY
+   * form.
+   *
+   * THAT JUSTIFICATION NO LONGER HOLDS. The `redirects()` below 308s every
+   * legacy path to `/en/*`, so no route under `app/(site)/` can be reached and
+   * there are no third-party embeds left to protect. The report-only header now
+   * applies to essentially nothing but 404s and `/uploads/*`.
+   *
+   * The enforcing policy should be promoted to `/:path*` and the report-only
+   * line deleted — it costs nothing and removes a permanent asterisk. That is a
+   * behaviour change, so it belongs to the task that deletes the dead tree
+   * rather than to a comment correction.
    *
    * The headers that cannot break a page — nosniff, referrer policy, frame
    * options, HSTS, permissions policy — are applied everywhere.
@@ -148,47 +155,30 @@ const nextConfig = {
         ['/latest-updates', '/en/news'],
         ['/gallery', '/en/gallery'],
         ['/contact', '/en/contact'],
+        // Linked from the old /project/overview page and unreachable since the
+        // cutover — these returned a hard 404, not a redirect.
+        ['/project/route', '/en/travel/route'],
+        ['/project/impact', '/en/project'],
+        ['/project/timeline', '/en/project'],
+        /**
+         * These four pointed at ANOTHER legacy path, which then 308'd again —
+         * /about-project → /project/overview → /en/project. A browser follows a
+         * chain, but each hop dilutes the link equity the old inbound links
+         * carry, and a chain is one broken link away from a dead end. They now
+         * name their final destination directly, and each keeps its
+         * trailing-slash twin because the old site linked both forms.
+         */
+        ['/about-project', '/en/project'],
+        ['/about-project/', '/en/project'],
+        ['/expressway-route', '/en/travel/map'],
+        ['/expressway-route/', '/en/travel/map'],
+        ['/project/technology', '/en/project'],
+        ['/project/technology/', '/en/project'],
+        // '/' is rewritten to /en, so naming /en here avoids a redirect into a
+        // rewrite.
+        ['/virtual-tour', '/en'],
+        ['/virtual-tour/', '/en'],
       ].map(([source, destination]) => ({ source, destination, permanent: true })),
-      {
-        source: '/about-project',
-        destination: '/project/overview',
-        permanent: true,
-      },
-      {
-        source: '/expressway-route',
-        destination: '/routes-facilities',
-        permanent: true,
-      },
-      {
-        source: '/virtual-tour',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/project/technology',
-        destination: '/project/overview',
-        permanent: true,
-      },
-      {
-        source: '/about-project/',
-        destination: '/project/overview',
-        permanent: true,
-      },
-      {
-        source: '/expressway-route/',
-        destination: '/routes-facilities',
-        permanent: true,
-      },
-      {
-        source: '/virtual-tour/',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/project/technology/',
-        destination: '/project/overview',
-        permanent: true,
-      },
     ];
   },
 };
