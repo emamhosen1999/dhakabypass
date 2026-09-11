@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import BrandMark from './BrandMark.jsx';
 import LocaleSwitch from './LocaleSwitch.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { t } from '../../lib/i18n/ui.js';
@@ -60,7 +61,7 @@ export default async function SiteHeaderV2({ locale }) {
       <a href="#main" className="db-skip">{t(locale, 'skipToContent')}</a>
       <div className="db-header-inner">
         <Link href={`/${locale}`} className="db-brand">
-          <span className="db-brand-mark" aria-hidden="true">DB</span>
+          <BrandMark className="db-brand-mark" />
           <span>
             <b className="db-brand-name">DBEDC</b>
             <small className="db-brand-tag">Dhaka Bypass Expressway</small>

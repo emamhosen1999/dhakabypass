@@ -39,15 +39,38 @@
   --db-alert:#93231A;
 
   /* Signage plates keep their signage CHARACTER in both themes — a dark
-     ground with the amber accent, never inverting to a light plate — but
-     --db-plate-bg lifts slightly in dark mode (see the dark blocks below)
-     so the plate still separates from the page ground instead of nearly
-     vanishing into it (#0B1620 on #0A141D is two near-blacks). --db-plate-fg
-     and --db-plate-accent are genuinely theme-invariant and must not be
-     redefined anywhere. */
-  --db-plate-bg:#0B1620;
+     ground with a warm accent, never inverting to a light plate — but
+     --db-plate-bg lifts slightly in dark mode (see the dark blocks below) so
+     the plate still separates from the page ground instead of nearly vanishing
+     into it. --db-plate-fg and --db-plate-accent are genuinely theme-invariant
+     and must not be redefined anywhere.
+
+     The dark lift sits in a narrow window, so do not nudge it by eye. Lighter
+     and the accent falls under 4.5:1 on the plate; darker and the plate
+     disappears into #0A141D. #0C3656 measures:
+
+       --db-plate-accent on it   4.70:1  (floor is 4.5)
+       --db-plate-fg on it      11.10:1
+       against the page ground   1.48    (the old #162835 gave only 1.23) */
+  /* The plate is DBEDC's own blue driven to plate depth, and the accent is the
+     orange from the logo — both sampled from public/logo.webp (#1172BA and
+     #EF8221). It was a neutral near-black with a generic highway amber that
+     appears nowhere in the company's identity.
+
+     The logo's own blue CANNOT be the plate. #EF8221 on #1172BA measures
+     2.64:1 — under both the 4.5:1 text floor and the 3:1 component floor — so
+     a literal brand-blue header would force white-only text and destroy the
+     accent entirely. Driving the blue darker keeps both brand colours usable:
+
+       --db-plate-fg on --db-plate-bg      13.76:1  (was 9.97:1)
+       --db-plate-accent on --db-plate-bg   5.83:1
+       #0B1620 on --db-plate-accent         6.86:1  (was 9.97:1)
+
+     Every one of those clears 4.5:1, and the accent is still legible as a
+     border and as a filled button label. */
+  --db-plate-bg:#06263D;
   --db-plate-fg:#EDF2F5;
-  --db-plate-accent:#FFB000;
+  --db-plate-accent:#EF8221;
 
   /* Status washes are explicit values, NOT color-mix(): color-mix is unsupported
      before Chrome 111 / Safari 16.2, and an unsupported value drops the whole
@@ -95,7 +118,7 @@
     --db-build-wash:#331A0C;
     --db-alert-wash:#331411;
     --db-accent-wash:#332405;
-    --db-plate-bg:#162835;
+    --db-plate-bg:#0C3656;
   }
 }
 
@@ -116,7 +139,7 @@
   --db-build-wash:#331A0C;
   --db-alert-wash:#331411;
   --db-accent-wash:#332405;
-  --db-plate-bg:#162835;
+  --db-plate-bg:#0C3656;
 }
 
 /* Scoped to the new tree only — the live site must not change. */
@@ -227,8 +250,17 @@
 .db-skip{position:absolute;left:-9999px;}
 .db-skip:focus{position:static;display:inline-block;padding:8px 12px;background:var(--db-accent-bright);color:#0B1620;}
 .db-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;}
-.db-brand-mark{width:34px;height:34px;border-radius:2px;background:var(--db-plate-accent);color:#0B1620;
-  font-family:var(--db-font-display);font-weight:700;display:flex;align-items:center;justify-content:center;}
+/* Was a filled amber square containing the letters "DB". It now holds the real
+   mark (components/chrome/BrandMark.jsx), which takes its ring from
+   currentColor — so it inherits --db-plate-fg here and stays legible, where the
+   logo's own blue would measure 3.06:1 on the plate and nearly disappear.
+   Height-driven so the glyph keeps its 212:156 proportions at any type size. */
+/* BOTH dimensions are stated. `width:auto` looks tidier but does not work on an
+   <svg> that carries only a viewBox: the browser resolves the auto width from
+   the default object size first, then derives the height from the ratio and
+   discards the explicit height — the mark rendered 141x104 instead of 41x30.
+   41px is 30px at the glyph's 212:156 ratio. */
+.db-brand-mark{height:30px;width:41px;display:block;flex:none;}
 .db-brand-name{font-family:var(--db-font-display);font-size:1.02rem;letter-spacing:.06em;display:block;line-height:1.1;}
 .db-brand-tag{font-size:.68rem;opacity:.6;}
 /* Visible from md so the nav never disappears on a landscape tablet.
