@@ -769,6 +769,15 @@
 .db-form-note{margin:0 0 16px;color:var(--db-ink-3);font-size:.86rem;}
 .db-form-result{max-width:34rem;margin-top:20px;padding:16px 18px;
   border-left:3px solid var(--db-open);background:var(--db-open-wash);}
+/* The tracking number a service request returns. Large, monospace and
+   selectable — it will be read off a phone screen at a toll plaza. */
+.db-tracking{margin:12px 0 8px;font-size:1rem;}
+.db-tracking-label{color:var(--db-ink-3);font-size:.86rem;}
+.db-tracking-no{display:inline-block;margin-left:6px;padding:4px 10px;
+  font-family:var(--db-font-mono,ui-monospace,Menlo,Consolas,monospace);font-size:1.25rem;
+  letter-spacing:.06em;background:var(--db-surface);border:1px solid var(--db-rule);
+  border-radius:3px;user-select:all;}
+.db-request-block .db-form{max-width:34rem;}
 /* Off-screen rather than display:none — a hidden input is not submitted by
    every browser when display:none, and the honeypot has to reach the server. */
 .db-honeypot{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}

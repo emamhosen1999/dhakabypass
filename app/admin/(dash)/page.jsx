@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FileText, Image as ImageIcon, Mail, LayoutGrid, Newspaper, Map, Type } from 'lucide-react';
+import { FileText, Image as ImageIcon, Mail, LayoutGrid, Newspaper, Map, Type, ClipboardList } from 'lucide-react';
 import { listPages } from '../../../lib/content/pages';
 import { listMedia } from '../../../lib/media/repo';
 import { getNewsUpdates } from '../../../lib/news';
@@ -37,12 +37,13 @@ async function countRows(sql) {
 }
 
 export default async function AdminDashboard() {
-  const [pages, media, unread, news, blocks] = await Promise.all([
+  const [pages, media, unread, news, blocks, openRequests] = await Promise.all([
     listPages().catch(() => []),
     listMedia().catch(() => []),
     countRows('SELECT COUNT(*) AS c FROM contact_messages WHERE read_at IS NULL'),
     getNewsUpdates(false).catch(() => []),
     countRows('SELECT COUNT(*) AS c FROM blocks'),
+    countRows("SELECT COUNT(*) AS c FROM service_requests WHERE status IN ('new','in_progress')"),
   ]);
 
   const stats = [
@@ -51,6 +52,7 @@ export default async function AdminDashboard() {
     { icon: ImageIcon, label: 'Images', value: media.length, href: '/admin/media' },
     { icon: Newspaper, label: 'News articles', value: news.length, href: '/admin/news' },
     { icon: Mail, label: 'Unread messages', value: unread, href: '/admin/messages' },
+    { icon: ClipboardList, label: 'Open service requests', value: openRequests, href: '/admin/requests' },
   ];
 
   const hubs = [
@@ -89,6 +91,12 @@ export default async function AdminDashboard() {
       title: 'Contact messages',
       icon: Mail,
       body: 'Enquiries received through the public contact form.',
+    },
+    {
+      href: '/admin/requests',
+      title: 'Service requests',
+      icon: ClipboardList,
+      body: 'Grievances, toll disputes, breakdown calls and lost & found reports, each with a tracking number and a deadline.',
     },
   ];
 

@@ -35,6 +35,7 @@ const NAV = [
   { href: '/admin/media', label: 'Media' },
   { href: '/admin/corridor', label: 'Corridor' },
   { href: '/admin/messages', label: 'Messages' },
+  { href: '/admin/requests', label: 'Requests' },
   { href: '/admin/menus', label: 'Navigation' },
   { href: '/admin/translations', label: 'Wording' },
   { href: '/admin/redirects', label: 'Redirects' },
