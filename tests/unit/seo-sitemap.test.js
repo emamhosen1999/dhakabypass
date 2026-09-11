@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { ESSENTIAL_CONTENT_PATHS } from '../../lib/seo/routes.js';
+import fs from 'node:fs';
+import path from 'node:path';
 import { buildSitemap, lastModifiedFor } from '../../lib/seo/sitemap.js';
 import { STATIC_LOCALISED_PATHS } from '../../lib/seo/routes.js';
 import { LOCALES } from '../../lib/i18n/locales.js';
+
+const root = path.resolve(import.meta.dirname, '../..');
 
 const original = process.env.SITE_URL;
 
@@ -95,11 +100,14 @@ describe('buildSitemap', () => {
     const got = urls(buildSitemap({ pages: [] }));
     expect(got).toContain('https://dhakabypass.com/en');
     expect(got).toContain('https://dhakabypass.com/bn/travel/toll');
-    // home + every code route in STATIC_LOCALISED_PATHS, in each locale.
-    // Asserted against the list rather than a literal, so adding a route
-    // updates this with it instead of failing for the wrong reason — the
-    // drift guard in seo-routes.test.js is what keeps that list honest.
-    expect(got.length).toBe(LOCALES.length * (STATIC_LOCALISED_PATHS.length + 1));
+    // home + every code route + every essential content route, in each
+    // locale. Asserted against the lists rather than a literal, so adding a
+    // route updates this with it instead of failing for the wrong reason — the
+    // drift guard in seo-routes.test.js keeps the code list honest and the
+    // seed check below keeps the essential list honest.
+    expect(got.length).toBe(
+      LOCALES.length * (STATIC_LOCALISED_PATHS.length + ESSENTIAL_CONTENT_PATHS.length + 1),
+    );
   });
 
   it('survives being called with no argument at all', () => {
@@ -119,8 +127,31 @@ describe('buildSitemap', () => {
 
   it('omits lastModified on code routes rather than inventing "now"', () => {
     const entries = buildSitemap({ pages: [homeRow] });
-    const toll = entries.find((e) => e.url === 'https://dhakabypass.com/en/travel/toll');
-    expect('lastModified' in toll).toBe(false);
+    // /contact is still a code route. /travel/toll used to be the example
+    // here; it is a content route now (W1.8) and carries the row's date.
+    const contact = entries.find((e) => e.url === 'https://dhakabypass.com/en/contact');
+    expect('lastModified' in contact).toBe(false);
+  });
+
+  it('keeps every essential content route in the sitemap when the database gave nothing', () => {
+    // The travel pages are content now, but the toll page is the most-searched
+    // page on the site and must not vanish from the sitemap during an outage.
+    const got = urls(buildSitemap({ pages: [] }));
+    for (const p of ESSENTIAL_CONTENT_PATHS) {
+      expect(got, p).toContain(`https://dhakabypass.com/en${p}`);
+    }
+  });
+
+  it('every essential content route is actually seeded as a pages row', () => {
+    // A slug listed as essential without a row behind it would emit a URL that
+    // 404s. Read the seed files rather than trusting the list.
+    const sql = [
+      'db/sql/13-travel-rules.sql', 'db/sql/16-travel-pages.sql',
+    ].map((f) => fs.readFileSync(path.join(root, f), 'utf8')).join('\n');
+    for (const p of ESSENTIAL_CONTENT_PATHS) {
+      const slug = p.replace(/^\//, '');
+      expect(sql, `no pages row seeded for ${slug}`).toContain(`'${slug}'`);
+    }
   });
 
   it('declares all three locales plus x-default on every entry', () => {

@@ -175,7 +175,21 @@ describe('links', () => {
     };
     walk(path.join(ROOT, 'app', '[locale]'), '');
 
-    const known = new Set([...slugs, ...codeRoutes]);
+    // Pages seeded by the numbered SQL files are content routes too — the six
+    // travel pages moved here in W1.8 (16-travel-pages.sql), and the legal
+    // pages in 14. They are neither institutional pages nor code routes, so
+    // read them out of the seed rather than pretending they do not exist.
+    const seededSlugs = new Set();
+    for (const f of fs.readdirSync(path.join(ROOT, 'db', 'sql'))) {
+      if (!/\.sql$/.test(f)) continue;
+      const sql = fs.readFileSync(path.join(ROOT, 'db', 'sql', f), 'utf8');
+      const block = sql.match(/INSERT IGNORE INTO `pages`[\s\S]*?;/g) || [];
+      for (const stmt of block) {
+        for (const m of stmt.matchAll(/\(\d+,'([^']+)'/g)) seededSlugs.add(m[1]);
+      }
+    }
+
+    const known = new Set([...slugs, ...codeRoutes, ...seededSlugs]);
     const unresolved = [];
     for (const { page, h } of internal) {
       if (/^([a-z][a-z0-9+.-]*:|\/\/|#|\?|\/)/i.test(h)) continue; // absolute or literal
