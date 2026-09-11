@@ -916,6 +916,8 @@
   .db-map-layout{grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr);align-items:start;}
 }
 .db-map-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 0;padding:0;list-style:none;}
+/* The block's legend wrapper: both halves stacked, matching the page. */
+.db-map-legends{margin-top:12px;}
 .db-map-legend li{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--db-ink-2);}
 .db-map-swatch{width:22px;height:6px;border-radius:3px;flex:none;}
 .db-panel{border:1px solid var(--db-rule);border-radius:4px;background:var(--db-surface);
