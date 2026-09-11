@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { swapMediaPath } from '../../lib/media/references.js';
+import { swapMediaPath, referencesMediaPath } from '../../lib/media/references.js';
 
 describe('swapMediaPath', () => {
   it('swaps a top-level image field', () => {
@@ -145,5 +145,48 @@ describe('swapMediaPath inside richtext markup', () => {
     swapMediaPath(input, '/a.webp', '/b.webp');
     expect(input.body).toBe('<img src="/a.webp">');
     expect(input.items[0].body).toBe('<img src="/a.webp">');
+  });
+});
+
+/**
+ * `referencesMediaPath` answers "does this block show that picture?" using the
+ * SAME matching rules as the rewriter above — whole-value equality plus
+ * delimiter-anchored `src` attributes. It exists so that editing a picture's
+ * alt text can revalidate exactly the pages that show it, and it is built on
+ * swapMediaPath rather than beside it so the two can never drift apart: a
+ * substring match here would revalidate pages that merely mention a filename,
+ * and a narrower one would leave a stale description on a real page.
+ */
+describe('referencesMediaPath', () => {
+  it('finds a whole-value image field', () => {
+    expect(referencesMediaPath({ image: '/bg-hero.webp' }, '/bg-hero.webp')).toBe(true);
+  });
+
+  it('finds one nested in a list', () => {
+    expect(referencesMediaPath({ items: [{ image: '/a.webp' }, { image: '/b.webp' }] }, '/b.webp')).toBe(true);
+  });
+
+  it('finds one pasted into a richtext body', () => {
+    expect(referencesMediaPath({ body: '<p>x</p><img src="/photo/18.webp" alt="y">' }, '/photo/18.webp')).toBe(true);
+  });
+
+  it('does not match a longer path that merely starts the same way', () => {
+    expect(referencesMediaPath({ image: '/photo/20.webp' }, '/photo/2.webp')).toBe(false);
+    expect(referencesMediaPath({ body: '<img src="/photo/20.webp">' }, '/photo/2.webp')).toBe(false);
+  });
+
+  it('does not match a filename merely mentioned in prose', () => {
+    expect(referencesMediaPath({ body: '<p>see /photo/18.webp for the original</p>' }, '/photo/18.webp')).toBe(false);
+  });
+
+  it('returns false for an empty path rather than matching everything', () => {
+    expect(referencesMediaPath({ image: '/a.webp' }, '')).toBe(false);
+    expect(referencesMediaPath({ image: '/a.webp' }, null)).toBe(false);
+  });
+
+  it('leaves the block it was handed untouched', () => {
+    const input = { image: '/a.webp' };
+    referencesMediaPath(input, '/a.webp');
+    expect(input.image).toBe('/a.webp');
   });
 });

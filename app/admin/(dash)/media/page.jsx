@@ -1,6 +1,7 @@
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { listMedia, mediaAlt } from '../../../../lib/media/repo';
-import { replaceMediaAction, setGalleryVisibilityAction } from './actions';
+import { replaceMediaAction, setGalleryVisibilityAction, updateMediaAltAction } from './actions';
+import { LOCALES, LOCALE_LABELS, LOCALE_HTML_LANG } from '../../../../lib/i18n/locales';
 import GuideNotice from './GuideNotice';
 
 export const dynamic = 'force-dynamic';
@@ -21,11 +22,11 @@ const SOFT_WIDTH = 1600;
 
 function Row({ row }) {
   const soft = row.width > 0 && row.width < SOFT_WIDTH;
-  // Replacing a picture resets its description, because the old sentence
-  // describes a photograph that is no longer there (see lib/media/replace.js).
-  // An empty alt is therefore its own review flag, and it is shown as one:
-  // resetting silently would leave a screen-reader user hearing nothing where
-  // they used to hear something, with no sign of it on this screen.
+  // Replacing a picture now KEEPS its description (lib/media/replace.js).
+  // Swapping the file is not the same act as discarding the sentence that
+  // describes it, and the reset used to happen silently — a screen-reader user
+  // heard nothing where they used to hear something, with no sign of it here.
+  // Clearing all three boxes below is the deliberate way to empty it.
   const described = Boolean(mediaAlt(row, 'en'));
   return (
     <li className="border-b py-4 grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-start">
@@ -49,17 +50,46 @@ function Row({ row }) {
             </span>
           ) : null}
         </p>
-        {described ? (
-          <p className="text-sm text-gray-600">{mediaAlt(row, 'en')}</p>
-        ) : (
+        {described ? null : (
           <p className="text-sm text-amber-900">
             <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold">
               No description
             </span>{' '}
-            Nobody using a screen reader is told what this picture shows. Send us one
-            sentence describing what is in the frame.
+            Nobody using a screen reader is told what this picture shows.
           </p>
         )}
+
+        {/* One submit writes all three languages. An empty box DROPS that
+            language rather than storing an empty string: mediaAlt() falls back
+            to English for a missing key, and a stored '' would satisfy the
+            lookup and defeat the fallback — a Bangla reader would get silence
+            where they should have got the English sentence. */}
+        <form action={updateMediaAltAction} className="space-y-2 pt-1">
+          <input type="hidden" name="id" value={row.id} />
+          <p className="text-xs text-gray-500">
+            Describe what is in the frame, not the file. A reader who cannot see it
+            should learn what they are missing.
+          </p>
+          {LOCALES.map((locale) => (
+            <label key={locale} className="flex items-center gap-2">
+              <span className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {LOCALE_LABELS[locale]}
+              </span>
+              <input
+                type="text"
+                name={`alt_${locale}`}
+                defaultValue={row.alt?.[locale] ?? ''}
+                maxLength={300}
+                lang={LOCALE_HTML_LANG[locale]}
+                placeholder={locale === 'en' ? 'Traffic on the open carriageway at Vogra' : ''}
+                className="w-full rounded border px-2 py-1 text-sm"
+              />
+            </label>
+          ))}
+          <button type="submit" className="px-3 py-1.5 rounded border text-sm">
+            Save description
+          </button>
+        </form>
         {row.credit ? <p className="text-sm text-gray-500">{row.credit}</p> : null}
         {soft ? (
           <p className="text-sm text-gray-500">
