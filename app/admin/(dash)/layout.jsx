@@ -7,8 +7,16 @@ export const dynamic = 'force-dynamic';
 /**
  * `/admin/pages-v2` — the block builder for the localised site — was missing
  * from this list, so the screen that edits every page of the new site was
- * reachable only by typing its URL. It is listed as "Content" to distinguish it
- * from "Pages", which edits the legacy site's sections.
+ * reachable only by typing its URL. It is listed as "Content".
+ *
+ * `/admin/pages` ("Legacy"), `/admin/section/[key]` and `/admin/gallery` are
+ * NO LONGER LISTED. They edit the `content` and `gallery_images` tables, which
+ * feed the retired `app/(site)/` tree that `redirects()` in `next.config.mjs`
+ * now 308s away — and in the gallery's case, a table no public page reads at
+ * all. An operator could work in them all afternoon and change nothing a
+ * visitor can see. The routes still resolve, because `app/not-found.jsx` still
+ * reads the `content` table; they are simply not advertised. Deleting them is
+ * W6.1.
  *
  * `/admin/translations` had the same problem and is now listed as "Wording":
  * it edits the 182 fixed strings — navigation labels, form labels, page
@@ -32,7 +40,6 @@ const NAV = [
   { href: '/admin/redirects', label: 'Redirects' },
   { href: '/admin/seo', label: 'Search' },
   { href: '/admin/settings', label: 'Settings' },
-  { href: '/admin/pages', label: 'Legacy' },
 ];
 
 /**
