@@ -92,6 +92,16 @@ const nextConfig = {
       `connect-src 'self'${isDev ? ' ws: http://localhost:* http://127.0.0.1:*' : ''}`
         + ' https://www.google-analytics.com https://region1.google-analytics.com https://api.tomtom.com',
       "object-src 'none'",
+      // The video block, and ONLY the video block. Every other frame is
+      // refused, and lib/html/sanitize.js strips <iframe> from every rich-text
+      // field, so these two hosts are the whole surface. youtube-nocookie is
+      // the privacy-enhanced host — no tracking cookie until play — and the
+      // block does not load either frame until a person presses play. Keep
+      // this list in step with VIDEO_FRAME_HOSTS in lib/blocks/video.js; a
+      // test asserts they match.
+      "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com",
+      // Hosted video files are same-origin only, enforced in lib/blocks/video.js.
+      "media-src 'self'",
       "base-uri 'self'",
       "form-action 'self'",
       // 'self', not 'none': the admin block editor previews a page by framing
