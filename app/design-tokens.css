@@ -391,6 +391,26 @@
   font-family:var(--db-font-display);font-weight:700;font-size:.72rem;
   letter-spacing:.12em;text-transform:uppercase;color:var(--db-build);}
 
+/* Pull quote. Set apart by a rule in the accent and display type, not by a
+   giant decorative glyph — the opening mark is drawn once in CSS so it never
+   appears twice and never in the wrong script for Bengali or Chinese. Text
+   is --db-ink on the page ground, so contrast is the body's own. */
+.db-pullquote{margin:0;padding:6px 0 6px 22px;border-left:4px solid var(--db-plate-accent);
+  max-width:var(--db-measure);}
+.db-pullquote blockquote{margin:0;}
+.db-pullquote-text{font-family:var(--db-font-display);font-size:clamp(1.15rem,1rem + .6vw,1.45rem);
+  line-height:1.35;color:var(--db-ink);font-weight:500;}
+.db-pullquote-text>:first-child{margin-top:0;}
+.db-pullquote-text>:last-child{margin-bottom:0;}
+.db-pullquote-text>p:first-child::before{content:"\201C";color:var(--db-plate-accent);
+  font-weight:700;margin-right:.08em;}
+.db-pullquote-cite{margin-top:10px;font-size:.9rem;color:var(--db-ink-3);
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;}
+.db-pullquote-cite cite{font-style:normal;font-weight:600;color:var(--db-ink-2);}
+.db-pullquote-source{color:var(--db-ink-3);text-decoration:none;min-width:var(--db-tap);
+  min-height:var(--db-tap);display:inline-flex;align-items:center;}
+.db-pullquote-source:hover,.db-pullquote-source:focus-visible{color:var(--db-ink);}
+
 /* Video. A 16:9 frame the player fills; the facade shows a poster (or the
    plate) and a play glyph until the visitor presses it, and is a real link to
    the watch page, so it works with scripting off. The play glyph is drawn
