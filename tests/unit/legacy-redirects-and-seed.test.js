@@ -74,3 +74,51 @@ describe('legacy redirects resolve in a single hop', () => {
     expect(redirects.every((r) => r.permanent === true)).toBe(true);
   });
 });
+
+describe('13-travel-rules.sql fills a page that three links already point at', () => {
+  // app/[locale]/travel/rules/page.jsx looks for the slug `travel/rules`.
+  // 02-seed.sql seeds eleven pages and none is it, so the page shipped its
+  // empty state while TravelSubnav, the homepage CTA and the safety hero all
+  // linked to it.
+  const sql = read('db/sql/13-travel-rules.sql');
+
+  it('seeds the slug the route actually looks for', () => {
+    expect(sql).toMatch(/'travel\/rules'/);
+  });
+
+  it('gives it blocks in all three locales', () => {
+    for (const locale of ['en', 'bn', 'zh']) {
+      expect(sql, `no ${locale} translation`).toMatch(new RegExp(`,'${locale}','`));
+    }
+  });
+
+  it('is re-importable, like every other numbered file', () => {
+    expect(sql).toMatch(/INSERT IGNORE/);
+    expect(sql).not.toMatch(/\bDROP\b|\bTRUNCATE\b/);
+  });
+
+  it('marks the unsourced rules as pending rather than inventing them', () => {
+    // Speed limits, breakdown rules and lane discipline are not sourced. The
+    // house convention is a visible db-pending callout naming what DBEDC owes,
+    // used in 129 other places — not a plausible-looking number.
+    expect(sql).toMatch(/db-pending/);
+  });
+
+  it('never publishes the design speed as a limit', () => {
+    // The legacy site printed "design speed 80 km/h". A design speed is the
+    // engineering basis for the geometry and is routinely higher than the
+    // posted limit, so publishing it would tell drivers they may lawfully do
+    // 80 where the gazette may say 60. It may appear only inside a callout
+    // that says exactly that.
+    //
+    // Comments are stripped first: the file's own header explains the
+    // design-speed trap and quotes the figure, and that documentation must not
+    // be what trips the assertion.
+    const published = sql.replace(/^\s*--.*$/gm, '');
+    const claims = published.match(/[^<>"]{0,80}80\s*km\/h[^<>"]{0,80}/g) || [];
+    for (const claim of claims) {
+      expect(claim, `80 km/h stated without the design-speed caveat: ${claim}`)
+        .toMatch(/design/i);
+    }
+  });
+});
