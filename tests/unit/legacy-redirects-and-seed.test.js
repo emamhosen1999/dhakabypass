@@ -29,10 +29,19 @@ describe('02-seed.sql populates the gallery on its own', () => {
     expect(mediaRows.length).toBeGreaterThan(0);
   });
 
-  it('flags at least one of them for the gallery', () => {
+  it('flags every legacy corridor photograph for the gallery', () => {
     // `in_gallery` is the last column in the INSERT, so the row ends `,1);`.
+    //
+    // The first fix flagged four rows and left the twenty /photo/*.webp
+    // legacy corridor photographs at 0 — the SQL export had been taken before
+    // scripts/db-setup-v8.mjs (which flags `origin='legacy' AND path LIKE
+    // '/photo/%'`) ran, so a development database showed 24 gallery images
+    // and a fresh import showed 4. The seed now carries what v8 intended.
+    const photos = mediaRows.filter((l) => l.includes("'/photo/"));
+    expect(photos.length).toBeGreaterThanOrEqual(20);
+    for (const l of photos) expect(l, l.slice(0, 120)).toMatch(/,1\);\s*$/);
     const shown = mediaRows.filter((l) => /,1\);\s*$/.test(l));
-    expect(shown.length).toBeGreaterThan(0);
+    expect(shown.length).toBeGreaterThanOrEqual(24);
   });
 
   it('keeps the recovery import idempotent rather than duplicating the flags', () => {

@@ -38,7 +38,7 @@
 | ID | Finding | Task | Status |
 |---|---|---|---|
 | A-MED-1 | 13 legacy images in neither AUDITED nor REJECTED: `/photo/4`, `/photo/26`–`36`, `/DSC02396`, `/translate.png` | W2.9 | [ ] |
-| A-MED-2 | 24 of 28 registered `media` rows have `in_gallery=0`; gallery empty without manual SQL import | 0.8 | [ ] |
+| A-MED-2 | 24 of 28 registered `media` rows have `in_gallery=0`; gallery empty without manual SQL import | 0.8 | [x] 02-seed.sql flags 24 (traced to db-setup-v8's `/photo/%` rule); test pins every `/photo/` row |
 | A-MED-3 | `redirects` table has zero seeded rows; `/project/route`, `/project/impact`, `/project/timeline` 404 | 0.12 | [ ] |
 
 ### A.3 Hardcoded content hit list (15) — §5

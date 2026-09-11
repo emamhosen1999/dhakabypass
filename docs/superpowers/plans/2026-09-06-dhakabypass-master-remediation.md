@@ -140,6 +140,8 @@ Zero `error.jsx` or `global-error.jsx` exist (verified). Any uncaught throw show
 
 Every `media` row seeds `in_gallery=0` (`02-seed.sql:545-572`); only `03-content-recovery.sql:38` flips four on, and that is a separate manual phpMyAdmin step. Import the main seed alone and `/en/gallery` is blank.
 
+**Resolved 2026-09-12.** The 24-vs-4 discrepancy traced to `scripts/db-setup-v8.mjs:60`, which flags `origin='legacy' AND path LIKE '/photo/%'` (20 rows) and had run on the development database after the SQL export was taken. `02-seed.sql` now flags all 24 (20 corridor photographs + the 4 from recovery); the test asserts every `/photo/` row is flagged.
+
 - [ ] **Step 1:** Test asserting `02-seed.sql` alone yields `COUNT(*) WHERE in_gallery=1 > 0`
 - [ ] **Step 2:** Run, confirm fail
 - [ ] **Step 3:** Move the four flags into `02-seed.sql`; keep `03-content-recovery.sql` idempotent
