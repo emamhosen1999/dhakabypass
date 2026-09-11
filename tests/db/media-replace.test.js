@@ -69,26 +69,55 @@ const replace = (opts) =>
       width: 2400, height: 1350, bytes: 900000, mime: 'image/webp', notFound, ...opts,
     }));
 
-describe('applyMediaReplacement — alt text and the focal point describe the bytes', () => {
-  it('clears the alt text in every language rather than carrying it to a different photograph', async () => {
+/**
+ * These two tests used to assert the OPPOSITE — that Replace cleared the alt
+ * text and reset the focal point, on the reasoning that a description belongs
+ * to the bytes and the bytes are gone. That was sound as far as it went, and
+ * it was reversed deliberately in the alt-text work (task 0.9), for three
+ * reasons this file should carry so nobody flips it back:
+ *
+ *   1. The documented use of Replace on this site — stated on the Media
+ *      screen itself — is swapping the small web copies inherited from the old
+ *      site for the ORIGINAL camera files of the SAME photographs. Thirty
+ *      images, three languages. Clearing alt on each would destroy ninety
+ *      correct descriptions and leave every picture undescribed by default.
+ *
+ *   2. When the old behaviour was written there was no way to write alt text
+ *      back — no input existed anywhere in the admin. "Clear" therefore meant
+ *      "lose forever, and email a developer". Now the alt fields sit on the
+ *      same screen as the Replace button; an operator swapping in a genuinely
+ *      different photograph can see the old sentence and change it.
+ *
+ *   3. A silently undescribed image is an accessibility regression by default,
+ *      and Bangladesh's ICTD guideline treats WCAG 2.1 as the floor. Discarding
+ *      the description must be a deliberate act — emptying the three boxes —
+ *      not a side effect of a file upload.
+ *
+ * The unit test tests/unit/media-replace-preserves-alt.test.js asserts the
+ * same contract against a mocked database; this one proves it against real
+ * rows. CI caught the two disagreeing on its first ever run.
+ */
+describe('applyMediaReplacement — swapping the file keeps the description', () => {
+  it('keeps the alt text in every language — replacing a file is not discarding its description', async () => {
     const id = await seedRow();
+    const before = await read(id);
+    const altBefore = typeof before.alt === 'string' ? JSON.parse(before.alt) : before.alt;
+    expect(Object.keys(altBefore).length).toBeGreaterThan(0);
+
     await replace({ id, oldPath: '/old.webp', newPath: '/uploads/new.webp' });
 
     const row = await read(id);
     const alt = typeof row.alt === 'string' ? JSON.parse(row.alt) : row.alt;
-    expect(alt).toEqual({});
-    // The point of the whole thing: nothing describing the OLD frame survives.
-    expect(JSON.stringify(alt)).not.toContain('paver');
-    expect(JSON.stringify(alt)).not.toContain('摊铺机');
+    expect(alt).toEqual(altBefore);
   });
 
-  it('returns the focal point to dead centre, the value a fresh upload starts at', async () => {
+  it('keeps the focal point — the same photograph at a higher resolution has the same subject in the same place', async () => {
     const id = await seedRow({ focal_x: 0.2, focal_y: 0.8 });
     await replace({ id, oldPath: '/old.webp', newPath: '/uploads/new.webp' });
 
     const row = await read(id);
-    expect(Number(row.focal_x)).toBe(0.5);
-    expect(Number(row.focal_y)).toBe(0.5);
+    expect(Number(row.focal_x)).toBe(0.2);
+    expect(Number(row.focal_y)).toBe(0.8);
   });
 
   it('keeps the id and takes the new path, size and origin', async () => {
