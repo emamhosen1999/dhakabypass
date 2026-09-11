@@ -28,7 +28,7 @@
 | A-LEG-05 | `/stakeholders` — 6 partner outbound links, 4-tab UI, 3 header stats, ৳224cr→৳674cr VGF revision, ৳1,614cr CDB loan, ৳1,075cr BIFFL loan, ৳42.5cr first instalment, Governance Structure panel | W2.5, W3.6 | [ ] |
 | A-LEG-06 | `/chinese-contribution` — 6 contribution cards, $412M/60%/1000+ counters, pavement case study, Belt & Road section, Knowledge Transfer (50+ engineers), 3 CSR cards, 5 images | W2.6 | [ ] |
 | A-LEG-07 | `/economic-impact` — **everything**; content is seeded and editable but the route 308s away | W2.7, W5.11 | [ ] |
-| A-LEG-08 | `/latest-updates` — embedded 36-photo grid, newsletter subscribe form | W2.8, W2.9 | [ ] |
+| A-LEG-08 | `/latest-updates` — embedded 36-photo grid, newsletter subscribe form | W2.8, W2.9 | [~] `gallery-grid` and `newsletter-form` blocks exist for an operator to place on /news; authoring is W2 |
 | A-LEG-09 | `/gallery` — **32 of 36 photos**, "Load More" pagination | W2.9, 0.8 | [ ] |
 | A-LEG-10 | `/contact` — phone number dropped as placeholder; address/email hardcoded not seeded | W2.10, W1.20 | [ ] |
 | A-LEG-11 | `/404` — renders unstyled, English, no chrome on `/bn` and `/zh` | W1.19 | [ ] |

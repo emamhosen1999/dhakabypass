@@ -328,6 +328,8 @@ The widgets currently welded into those pages must become blocks an operator pla
 
 `corridor-map` · `toll-table` · `traffic-status` · `progress-bar` · `interchange-table` · `corridor-strip` · `news-list` · `gallery-grid` · `contact-form` · `newsletter-form` · `emergency-strip` · `section-subnav`
 
+**All twelve built** (plus `request-form`, `sitemap-list`, `toll-matrix`, `toll-calculator`: 41 registered types, `tests/unit/blocks-w1-22.test.js` asserts the count and `blocks-registry-coverage.test.js` that every component on disk is registered). `newsletter-form` writes to `newsletter_subscribers` with honeypot + shared rate limit and has an admin list at `/admin/subscribers`; `emergency-strip` reads the footer's setting; `sitemap-list` is live from `pages`.
+
 Each needs: configurable fields (how many items, which section, which columns, sort order), a preview that renders real data in the editor, and graceful empty/error states. Note `news-list` and `gallery-grid` currently carry hardcoded caps (24 items, 200 photos) — those become fields.
 
 ### W1.31 — Route behaviour from admin — DONE

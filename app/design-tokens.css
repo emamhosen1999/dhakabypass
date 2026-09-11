@@ -778,6 +778,19 @@
   letter-spacing:.06em;background:var(--db-surface);border:1px solid var(--db-rule);
   border-radius:3px;user-select:all;}
 .db-request-block .db-form{max-width:34rem;}
+/* newsletter-form: one row on wide screens, stacked at phone width. */
+.db-newsletter-form{max-width:34rem;}
+.db-newsletter-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;}
+.db-newsletter-field{flex:1 1 220px;margin:0;}
+/* emergency-strip: the footer strip, inset to the page column. */
+.db-emergency-strip{border-radius:3px;}
+.db-emergency-note{margin-top:8px;}
+/* sitemap-list */
+.db-sitemap-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:24px 32px;}
+.db-sitemap-list{list-style:none;margin:0;padding:0;}
+.db-sitemap-list li{padding:6px 0;border-bottom:1px solid var(--db-rule);}
+.db-sitemap-list a,.db-sitemap-group .db-h3 a{color:var(--db-ink);text-decoration:none;}
+.db-sitemap-list a:hover,.db-sitemap-list a:focus-visible,.db-sitemap-group .db-h3 a:hover{text-decoration:underline;}
 /* Off-screen rather than display:none — a hidden input is not submitted by
    every browser when display:none, and the honeypot has to reach the server. */
 .db-honeypot{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
