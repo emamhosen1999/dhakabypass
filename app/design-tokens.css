@@ -313,6 +313,23 @@
 .db-footer-inner{max-width:var(--db-shell);margin:0 auto;padding:24px clamp(12px,3vw,20px);
   display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;
   color:var(--db-ink-3);font-size:.86rem;}
+/* The emergency strip. On the plate, not in the muted footer grey: this is the
+   one line on the page that a stressed person on a phone, on the hard
+   shoulder, has to be able to find without reading anything else. Numbers are
+   large, tabular, and real tel: links. --db-plate-fg on --db-plate-bg measures
+   13.76:1 and --db-plate-accent 5.83:1 (see the token comments above). */
+.db-footer-emergency{background:var(--db-plate-bg);color:var(--db-plate-fg);}
+.db-footer-emergency-inner{max-width:var(--db-shell);margin:0 auto;padding:12px clamp(12px,3vw,20px);
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;}
+.db-footer-emergency-label{font-family:var(--db-font-display);font-size:.78rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--db-plate-accent);}
+.db-footer-emergency-number{font-family:var(--db-font-display);font-size:1.25rem;font-weight:700;
+  color:var(--db-plate-fg);text-decoration:none;font-variant-numeric:tabular-nums;
+  letter-spacing:.04em;padding:6px 0;min-height:var(--db-tap);display:inline-flex;align-items:center;
+  margin-right:10px;}
+.db-footer-emergency-number:hover,.db-footer-emergency-number:focus-visible{text-decoration:underline;
+  text-underline-offset:4px;}
+
 /* Privacy, terms and accessibility. --db-ink-3 is the measured muted ink
    (4.96:1 on --db-surface-2, 5.37 on --db-ground, 6.44 on --db-surface), so
    these clear 4.5:1 on every ground the footer sits on. Underlined rather than

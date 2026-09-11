@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { t } from '../../lib/i18n/ui.js';
 import { getMenuCached } from '../../lib/menus/cache.js';
 import { localeHref } from '../../lib/blocks/href.js';
+import { getSetting, CONTACT_KEYS } from '../../lib/settings.js';
 
 /**
  * The footer carries the statutory pages.
@@ -73,6 +74,22 @@ export default async function SiteFooterV2({ locale }) {
     menu = [];
   }
 
+  /**
+   * The emergency number sits on every page, in the footer, because that is
+   * where a person on the hard shoulder with a phone will look: the bottom of
+   * whatever page they landed on. NHAI publishes a helpline in the same place;
+   * PLUS Malaysia puts its 1-800 line in the footer of every page. It is read
+   * from the setting the operator edits at /admin/settings, so a change there
+   * reaches every page at once. An empty setting renders nothing rather than a
+   * placeholder — a number nobody answers is worse than no number.
+   */
+  let emergency = '';
+  try {
+    emergency = String((await getSetting(CONTACT_KEYS.emergency, '')) || '').trim();
+  } catch {
+    emergency = '';
+  }
+
   const groups = menu.length
     ? menu.map((g) => ({
         key: g.id,
@@ -107,6 +124,18 @@ export default async function SiteFooterV2({ locale }) {
           </div>
         ))}
       </nav>
+      {emergency ? (
+        <div className="db-footer-emergency">
+          <div className="db-footer-emergency-inner">
+            <span className="db-footer-emergency-label">{t(locale, 'emergency')}</span>
+            <a className="db-footer-emergency-number" href={`tel:${emergency.replace(/[^\d+]/g, '')}`}>
+              {emergency}
+            </a>
+            <span className="db-footer-emergency-label">{t(locale, 'emergencyNational')}</span>
+            <a className="db-footer-emergency-number" href="tel:999">999</a>
+          </div>
+        </div>
+      ) : null}
       <div className="db-footer-inner">
         <p className="db-footer-brand">Dhaka Bypass Expressway Development Company</p>
         {/* The legacy footer carried these three and the rebuild dropped them,
