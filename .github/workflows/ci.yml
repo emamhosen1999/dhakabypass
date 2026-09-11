@@ -1,0 +1,124 @@
+# Continuous integration — runs on every push and every pull request.
+#
+# Until this file existed, the only workflow was production-release.yml, and
+# it ran on workflow_dispatch alone. So the test suite executed exactly when a
+# human clicked "Run workflow" to cut a production release, and at no other
+# time. Every commit in between was unverified; a regression was found at
+# deploy time, by the person trying to ship.
+#
+# This does everything the release workflow does EXCEPT build the standalone
+# artifact and publish it. The MariaDB service, the database preparation and
+# the two test steps are the same, on purpose: a green CI run means the same
+# thing as a green release run, and the release workflow can stay narrow.
+#
+# The unit suite runs FIRST and on its own, because it needs nothing but the
+# checkout. If it is red, the database steps are wasted minutes and the
+# failure is obviously in code. The DB suite runs second and only if unit
+# passed, so a service that failed to come up cannot be mistaken for a broken
+# assertion — that was the whole point of splitting test:unit from test:db.
+name: CI
+on:
+  push:
+    # Every branch except the deploy branches. A release commit is the built
+    # artifact, not source; testing it re-runs the suite against files the
+    # deploy branch has already been built from. (GitHub rejects `branches`
+    # and `branches-ignore` together on one event; ignore alone means "all
+    # but these".)
+    branches-ignore: ['deploy/**']
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  # One run per branch. A newer push supersedes the older run rather than
+  # queuing behind it, which is what you want for CI and NOT what you want for
+  # a release (compare production-release.yml, which never cancels).
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.2'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:unit
+      # Production dependencies only. Dev-only advisories (the vitest mocker
+      # path traversal, for one) never reach the artifact and would turn every
+      # run red for something a visitor can never touch.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+  database:
+    name: Database tests
+    needs: unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: local-ci-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: local-ci-only
+      DB_NAME: dhakabypass
+      DB_NAME_TEST: dhakabypass_test
+      SITE_URL: https://dhakabypass.com
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.2'
+          cache: npm
+      - run: npm ci
+      - name: Prepare database
+        run: |
+          npm run db:migrate
+          npm run db:seed
+          npm run db:seed:all
+          node scripts/import-legacy-media.mjs
+          node scripts/translate-media-alt.mjs
+          node scripts/apply-content-recovery.mjs
+          node scripts/import-corridor-geometry.mjs --source osm --file public/maps/corridor-alignment.geojson
+      - run: npm run test:db
+      # Proves the committed SQL matches the migration chain. Without this, the
+      # hand-imported db/sql/*.sql files can drift from scripts/db-setup-v*.mjs
+      # and nothing notices until a phpMyAdmin import fails on the live host.
+      - run: node scripts/verify-release-sql.mjs --database=dhakabypass_sql_test
+
+  build:
+    name: Production build
+    needs: unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SITE_URL: https://dhakabypass.com
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.2'
+          cache: npm
+      - run: npm ci
+      # No database. The build must succeed in no-DB mode: every reader
+      # degrades to its code fallback, and this is the configuration the
+      # standalone artifact is later run in if the host's MySQL is down. A
+      # build that only passes with a database is a build that will fail at
+      # the worst moment.
+      - run: npm run build
