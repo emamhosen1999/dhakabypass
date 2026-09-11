@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { localeHref } from '../../lib/blocks/href.js';
 import { getInterchangesCached } from '../../lib/corridor/cache';
 import { localeName } from '../../lib/corridor/interchanges';
 import { formatChainage } from '../../lib/corridor/chainage';
@@ -38,6 +40,8 @@ export default async function InterchangeTableBlock({ data, locale }) {
   const heading = text(data.heading);
   const intro = text(data.intro);
   const caption = text(data.caption) || t(locale, 'interchangeCaption');
+  const linkLabel = text(data.linkLabel);
+  const linkHref = text(data.linkHref);
 
   return (
     <section className="db-block">
@@ -99,6 +103,11 @@ export default async function InterchangeTableBlock({ data, locale }) {
           </table>
         </div>
       )}
+      {linkLabel && linkHref ? (
+        <p className="db-actions">
+          <Link href={localeHref(linkHref, locale)} className="db-btn db-btn-secondary">{linkLabel}</Link>
+        </p>
+      ) : null}
     </section>
   );
 }

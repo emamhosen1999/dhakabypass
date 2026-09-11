@@ -466,7 +466,7 @@ if (pageRows.length) {
 /**
  * The browser tab and the search result, per locale.
  *
- * app/[locale]/page.jsx's generateMetadata reads page.translations, runs them
+ * app/[locale]/[[...slug]]/page.jsx's generateMetadata reads page.translations, runs them
  * through resolveTranslation(), and uses `seo_title || title` for the title and
  * `seo_description` for the description. resolveTranslation only accepts a row
  * whose status is 'published', and falls back to en otherwise — so until these

@@ -10,8 +10,10 @@ const LOCALE_DIR = path.join(process.cwd(), 'app', '[locale]');
 
 /**
  * Walks app/[locale]/ and returns every locale-less route path that a
- * `page.jsx` actually serves, excluding the two that are database-driven:
- * the locale root (the `home` row) and the `[...slug]` catch-all.
+ * `page.jsx` actually serves. The locale root has no file of its own any more:
+ * the `[[...slug]]` optional catch-all renders the `home` row for an empty
+ * slug, so a page.jsx appearing directly under app/[locale]/ again would be a
+ * hardcoded home page and is reported as HOME_PATH so the guard below fails.
  */
 function routesOnDisk(dir = LOCALE_DIR, prefix = '') {
   const found = [];
@@ -36,7 +38,7 @@ describe('STATIC_LOCALISED_PATHS', () => {
     // means that page silently never appears in the sitemap, which is a bug
     // nobody notices for months. This test is the noticing.
     const onDisk = routesOnDisk()
-      .filter((p) => p !== HOME_PATH && !isDynamic(p))
+      .filter((p) => !isDynamic(p))
       .sort();
     const accounted = [...STATIC_LOCALISED_PATHS, ...REDIRECT_LOCALISED_PATHS].sort();
     expect(onDisk).toEqual(accounted);
@@ -58,11 +60,12 @@ describe('STATIC_LOCALISED_PATHS', () => {
     // are now walked and matched against their own list, so adding one without
     // deciding how its URLs reach the sitemap fails here.
     //
-    // `/[...slug]` is the catch-all that renders `pages` rows; the sitemap gets
-    // those from the database, which is why it is listed as accounted for.
+    // `/[[...slug]]` is the optional catch-all that renders `pages` rows —
+    // the home row for an empty slug; the sitemap gets those from the
+    // database, which is why it is listed as accounted for.
     const onDisk = routesOnDisk().filter(isDynamic).sort();
     const accounted = [
-      ...DYNAMIC_LOCALISED_PATHS, ...PRIVATE_LOCALISED_PATHS, '/[...slug]',
+      ...DYNAMIC_LOCALISED_PATHS, ...PRIVATE_LOCALISED_PATHS, '/[[...slug]]',
     ].sort();
     expect(onDisk).toEqual(accounted);
   });

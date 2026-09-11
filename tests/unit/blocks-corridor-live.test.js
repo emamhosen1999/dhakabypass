@@ -11,7 +11,7 @@ import {
   selectSections, conditionsPresent, waypointNames, sectionCode, SECTION_SORTS,
 } from '../../lib/blocks/trafficStatus.js';
 import {
-  selectInterchanges, visibleColumns, OPTIONAL_COLUMNS, INTERCHANGE_SORTS,
+  selectInterchanges, visibleColumns, OPTIONAL_COLUMNS, INTERCHANGE_SORTS, rowLimit,
 } from '../../lib/blocks/interchangeTable.js';
 import { conditionKey, conditionColour, conditionLabelKey, CONDITIONS } from '../../lib/corridor/conditions.js';
 
@@ -292,5 +292,36 @@ describe('the traffic condition ramp', () => {
 
   it('uses no literal colour anywhere — every value is a design token', () => {
     for (const c of CONDITIONS) expect(conditionColour(c)).not.toMatch(/#[0-9a-f]/i);
+  });
+});
+
+describe('selectInterchanges limit', () => {
+  // The home page shows the first five interchanges and links to the route
+  // page for the rest. The cut is applied AFTER the sort, so "first five"
+  // follows the order the operator chose.
+  const PLACES3 = [
+    { id: 1, kind: 'interchange', chainage_m: 3000 },
+    { id: 2, kind: 'toll_plaza', chainage_m: 1000 },
+    { id: 3, kind: 'waypoint', chainage_m: 500 },
+    { id: 4, kind: 'bridge', chainage_m: 9000 },
+  ];
+  const nameOf3 = (r) => `P${r.id}`;
+
+  it('cuts after sorting', () => {
+    expect(selectInterchanges(PLACES3, { limit: 2 }, nameOf3).map((r) => r.id)).toEqual([2, 1]);
+    expect(selectInterchanges(PLACES3, { limit: 2, sort: 'chainage-desc' }, nameOf3).map((r) => r.id)).toEqual([4, 1]);
+  });
+
+  it('treats 0, blank, negative and garbage as "all"', () => {
+    for (const limit of [0, '', -3, 'five', undefined, null]) {
+      expect(selectInterchanges(PLACES3, { limit }, nameOf3), String(limit)).toHaveLength(3);
+    }
+    expect(rowLimit({ limit: '2.9' })).toBe(2);
+  });
+
+  it('never counts a survey waypoint toward the limit', () => {
+    // The waypoint is dropped before the cut, so limit 3 still yields three
+    // usable rows rather than two rows and a hole.
+    expect(selectInterchanges(PLACES3, { limit: 3 }, nameOf3)).toHaveLength(3);
   });
 });

@@ -215,7 +215,7 @@ try {
   //
   // This setting IS live. lib/settings.js getPublishedLengthKm() reads it,
   // lib/corridor/cache.js wraps that as getPublishedLengthKmCached(), and
-  // both the home page (app/[locale]/page.jsx) and /travel/status pass the
+  // both the home page (the `home` document, app/[locale]/[[...slug]]/page.jsx) and /travel/status pass the
   // result into <ProgressBar publishedLengthKm={...}>, where it is the
   // DENOMINATOR of the "x km / 48 km" note. Only the denominator: the
   // percentage and the open-length numerator still come from the measured

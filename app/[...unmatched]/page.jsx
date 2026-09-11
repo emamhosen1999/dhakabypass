@@ -9,7 +9,7 @@ import { redirectOrNotFound } from '../../lib/redirects/resolve.js';
  * requests that were about to 404.
  *
  * In practice it sees very little: `app/[locale]/` is a dynamic segment, so it
- * wins over this catch-all for any single-segment URL, and `[locale]/[...slug]`
+ * wins over this catch-all for any single-segment URL, and `[locale]/[[...slug]]`
  * wins for anything deeper. Those two routes call the same helper, so a redirect
  * resolves wherever the request lands. This remains for the paths that genuinely
  * reach it — a request with an empty first segment, or a future tree that does

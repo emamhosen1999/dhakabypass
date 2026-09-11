@@ -49,7 +49,7 @@
 | A-HC-5.2 | `lib/i18n/map-ui.js` — 28 keys × 3 locales = 84 strings; entire map control panel + legend | W1.6, W1.21 | [x] |
 | A-HC-5.3 | `SiteHeaderV2.jsx` — NAV array, `DB` monogram, `DBEDC` name, tagline, untranslated aria-labels, unremovable Contact CTA | W1.10, W1.11 | [ ] |
 | A-HC-5.4 | `SiteFooterV2.jsx` — GROUPS (4 cols/15 links), legal name literal, copyright, **no Privacy/Terms/Sitemap** | W1.10, 0.10 | [ ] |
-| A-HC-5.5 | `app/[locale]/page.jsx` — hero force-hoisting makes editor order a lie; corridor section is unmovable JSX; CTA targets hardcoded; untranslated empty state | W1.5 | [ ] |
+| A-HC-5.5 | `app/[locale]/page.jsx` — hero force-hoisting makes editor order a lie; corridor section is unmovable JSX; CTA targets hardcoded; untranslated empty state | W1.5 | [x] file deleted; corridor section = progress-bar + corridor-strip + interchange-table(limit 5, link) blocks (18-home-corridor.sql); empty state is ui `homeNotCreated` |
 | A-HC-5.6 | Six travel pages — every H1, lede, caption, column header in code; `status` has no block region at all; `TravelSubnav` not menu-driven; `/travel` redirect target fixed | W1.8, W1.11 | [ ] |
 | A-HC-5.7 | Gallery page — copy in code, no lightbox/pagination/albums, hard 200-photo ceiling | W1.9, W2.9 | [ ] |
 | A-HC-5.8 | Contact page — address/email hardcoded English-only fallbacks, all 12 form labels in code, field set fixed | W1.20, W1.9 | [ ] |
@@ -73,7 +73,7 @@
 | A-P1-6 | Block editor has no image picker — paths typed from memory | W1.1 | [ ] |
 | A-P1-7 | List fields = raw JSON textarea; richtext = raw HTML textarea | W1.2, W1.3 | [ ] |
 | A-P1-8 | Reordering is ↑/↓ buttons, one page reload per swap | W1.4 | [ ] |
-| A-P1-9 | Homepage corridor section unmovable; hero force-hoisted | W1.5 | [ ] |
+| A-P1-9 | Homepage corridor section unmovable; hero force-hoisted | W1.5 | [x] home rendered by `[[...slug]]` in editor order; no hoisting |
 | A-P1-10 | 546 UI strings code-only; `/admin/translations` read-only and not in nav | W1.6 | [x] |
 | A-P1-11 | No per-page SEO for any code route | W1.7 | [ ] |
 | A-P1-12 | 13 legacy images unclassified | W2.9 | [ ] |
@@ -362,8 +362,8 @@ These carry extra weight; they are not one auditor's opinion.
 
 | ID | Requirement | Task | Status |
 |---|---|---|---|
-| REQ-1 | Every public route is a `pages` row, not a React page file | W1.8a | [ ] |
-| REQ-2 | Per-route page files deleted; `[...slug]/page.jsx` is the only public renderer. **If a page file still exists, that page is still hardcoded.** | W1.8b | [ ] |
+| REQ-1 | Every public route is a `pages` row, not a React page file | W1.8a | [x] home was the last (18-home-corridor.sql); remaining code routes are the three declared exceptions (`/news/[slug]` template, `/travel` redirect → W1.31, `/preview/[id]` staff) |
+| REQ-2 | Per-route page files deleted; `[...slug]/page.jsx` is the only public renderer. **If a page file still exists, that page is still hardcoded.** | W1.8b | [x] `app/[locale]/[[...slug]]/page.jsx` (optional catch-all) is the only public renderer; drift guard `seo-routes.test.js` fails on any new page.jsx under `app/[locale]` |
 | REQ-3 | Twelve functional widgets become placeable, configurable, previewable blocks | W1.30 | [ ] |
 | REQ-4 | Route behaviour (landing targets, item caps) moves to page settings | W1.31 | [ ] |
 | REQ-5 | Preview renders the real block document at real breakpoints, all three locales, including drafts | W1.25 | [>] agent running |

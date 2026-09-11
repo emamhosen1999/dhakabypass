@@ -2,7 +2,7 @@
  * `route_meta` — the per-route SEO layer, and the boundary it must not cross.
  *
  * The site is moving to a world where every ordinary public page is a block
- * document: a `pages` row rendered by `app/[locale]/[...slug]/page.jsx`, whose
+ * document: a `pages` row rendered by `app/[locale]/[[...slug]]/page.jsx`, whose
  * title and description already live on `page_translations.seo_title` /
  * `seo_description`. A second table that ALSO carried a title for those URLs
  * would be a second source of truth for the same fact, and the operator would
