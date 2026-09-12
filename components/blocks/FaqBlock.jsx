@@ -1,4 +1,7 @@
 import { listItems, text } from '../../lib/blocks/items.js';
+import ListFilter from './ListFilter.jsx';
+import { filterText, wantsFilter } from '../../lib/blocks/filter.js';
+import { t } from '../../lib/i18n/ui.js';
 
 /**
  * Questions and answers, built on <details>/<summary>.
@@ -11,7 +14,7 @@ import { listItems, text } from '../../lib/blocks/items.js';
  * of those things, and this block exists to hold statutory and toll-dispute
  * answers that people arrive at from a search engine.
  */
-export default function FaqBlock({ data }) {
+export default function FaqBlock({ data, locale, blockId }) {
   const items = listItems(data.items).filter((item) => text(item.question));
   if (items.length === 0) return null;
 
@@ -19,9 +22,15 @@ export default function FaqBlock({ data }) {
     <section className="db-block">
       {data.heading ? <h2 className="db-h2">{data.heading}</h2> : null}
       {data.intro ? <p className="db-lede">{data.intro}</p> : null}
-      <div className="db-faq">
+      {wantsFilter(data) ? (
+        <ListFilter
+          scope={`faq-${blockId}`} label={t(locale, 'filterLabel')} placeholder={t(locale, 'filterPlaceholder')}
+          countLabel={t(locale, 'filterCount')}
+        />
+      ) : null}
+      <div className="db-faq" id={`faq-${blockId}`}>
         {items.map((item, i) => (
-          <details key={i} className="db-faq-item">
+          <details key={i} className="db-faq-item" data-filter-text={filterText(item.question, item.answer)}>
             <summary className="db-faq-q">{text(item.question)}</summary>
             {text(item.answer) ? (
               /* Sanitised on save: lib/blocks/form.js runs every declared

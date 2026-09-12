@@ -1,4 +1,7 @@
 import { localeHref } from '../../lib/blocks/href.js';
+import { t } from '../../lib/i18n/ui.js';
+import ListFilter from './ListFilter.jsx';
+import { filterText, wantsFilter } from '../../lib/blocks/filter.js';
 import { listItems, text } from '../../lib/blocks/items.js';
 
 /**
@@ -17,7 +20,7 @@ import { listItems, text } from '../../lib/blocks/items.js';
  * A plain <a>, not next/link: these targets are files under /uploads and
  * external gazette PDFs, never in-app routes.
  */
-export default function DocumentListBlock({ data, locale }) {
+export default function DocumentListBlock({ data, locale, blockId }) {
   const documents = listItems(data.documents).filter((doc) => text(doc.title));
   if (documents.length === 0) return null;
 
@@ -25,7 +28,13 @@ export default function DocumentListBlock({ data, locale }) {
     <section className="db-block">
       {data.heading ? <h2 className="db-h2">{data.heading}</h2> : null}
       {data.intro ? <p className="db-lede">{data.intro}</p> : null}
-      <ul className="db-doclist">
+      {wantsFilter(data) ? (
+        <ListFilter
+          scope={`docs-${blockId}`} label={t(locale, 'filterLabel')} placeholder={t(locale, 'filterPlaceholder')}
+          countLabel={t(locale, 'filterCount')}
+        />
+      ) : null}
+      <ul className="db-doclist" id={`docs-${blockId}`}>
         {documents.map((doc, i) => {
           const href = localeHref(text(doc.file), locale);
           const title = <span className="db-doc-title">{text(doc.title)}</span>;
@@ -36,7 +45,7 @@ export default function DocumentListBlock({ data, locale }) {
             </>
           );
           return (
-            <li key={i} className="db-doc">
+            <li key={i} className="db-doc" data-filter-text={filterText(doc.title, doc.description, doc.fileType, doc.date)}>
               {href ? (
                 <a className="db-doc-link" href={href}>{title}{meta}</a>
               ) : (

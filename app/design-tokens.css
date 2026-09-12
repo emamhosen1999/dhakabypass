@@ -844,6 +844,16 @@
   border-radius:3px;font-family:var(--db-font-display);font-weight:700;text-decoration:none;color:var(--db-ink);}
 .db-paging-link:hover,.db-paging-link:focus-visible{border-color:var(--db-ink);}
 .db-paging-current{background:var(--db-plate-bg);color:var(--db-plate-fg);border-color:var(--db-plate-bg);}
+/* The shared list filter (INT.5): a search box, optional tag checkboxes,
+   and a live count. Rendered only once script has run. */
+.db-listfilter{margin:16px 0 20px;max-width:34rem;}
+.db-listfilter-input{margin-top:6px;}
+.db-listfilter-tags{border:0;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px;}
+.db-listfilter-legend{width:100%;margin-bottom:6px;color:var(--db-ink-3);font-size:.86rem;}
+.db-listfilter-tag{cursor:pointer;text-transform:none;letter-spacing:0;gap:6px;}
+.db-listfilter-tag input{margin:0;accent-color:var(--db-plate-accent);}
+.db-listfilter-tag.is-on{background:var(--db-plate-bg);color:var(--db-plate-fg);}
+.db-listfilter-count{margin:8px 0 0;color:var(--db-ink-3);font-size:.86rem;}
 /* sitemap-list */
 .db-sitemap-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:24px 32px;}
 .db-sitemap-list{list-style:none;margin:0;padding:0;}

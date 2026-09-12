@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import ListFilter from './ListFilter.jsx';
+import { filterText, wantsFilter, tagUnion, tagValue } from '../../lib/blocks/filter.js';
 import { t } from '../../lib/i18n/ui.js';
 import { listNewsCached } from '../../lib/newsroom/cache.js';
 import { formatNewsDate, newsDateISO } from '../../lib/newsroom/format.js';
@@ -6,7 +8,7 @@ import { formatNewsDate, newsDateISO } from '../../lib/newsroom/format.js';
 const text = (v) => (typeof v === 'string' ? v.trim() : '');
 
 /** What /news rendered, reading the same cache the same way. */
-export default async function NewsListBlock({ data, locale }) {
+export default async function NewsListBlock({ data, locale, blockId }) {
   const limit = Math.min(Math.max(Number(data?.limit) || 24, 1), 200);
   const category = text(data?.category);
   let items = [];
@@ -26,9 +28,17 @@ export default async function NewsListBlock({ data, locale }) {
       {items.length === 0 ? (
         <p className="db-empty">{empty}</p>
       ) : (
-        <ul className="db-newslist">
+        <>
+        {wantsFilter(data) ? (
+          <ListFilter
+            scope={`news-${blockId}`} label={t(locale, 'filterLabel')} placeholder={t(locale, 'filterPlaceholder')}
+            countLabel={t(locale, 'filterCount')}
+            tags={tagUnion(items.map((i) => (i.category ? [i.category] : [])))}
+          />
+        ) : null}
+        <ul className="db-newslist" id={`news-${blockId}`}>
           {items.map((item) => (
-            <li key={item.id} className="db-newsitem">
+            <li key={item.id} className="db-newsitem" data-filter-text={filterText(item.title, item.excerpt, item.category)} data-filter-tags={item.category ? tagValue(item.category) : ''}>
               <p className="db-newsmeta">
                 <time dateTime={newsDateISO(item.published_at)}>{formatNewsDate(item.published_at, locale)}</time>
                 {item.category ? <span className="db-newscat">{item.category}</span> : null}
@@ -42,6 +52,7 @@ export default async function NewsListBlock({ data, locale }) {
             </li>
           ))}
         </ul>
+        </>
       )}
     </section>
   );

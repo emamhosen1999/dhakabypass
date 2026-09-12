@@ -1,4 +1,7 @@
 import { localeHref } from '../../lib/blocks/href.js';
+import { t } from '../../lib/i18n/ui.js';
+import ListFilter from './ListFilter.jsx';
+import { filterText, wantsFilter, tagUnion, tagValue } from '../../lib/blocks/filter.js';
 import { formatCoordinates } from '../../lib/blocks/coords.js';
 import { listItems, text } from '../../lib/blocks/items.js';
 
@@ -21,7 +24,7 @@ const tags = (value) => (Array.isArray(value) ? value.map(text).filter(Boolean) 
  * visitors actually want — and a coordinate that is not a real place on earth
  * prints as nothing rather than as NaN.
  */
-export default function MapPinListBlock({ data, locale }) {
+export default function MapPinListBlock({ data, locale, blockId }) {
   const items = listItems(data.items).filter((pin) => text(pin.name));
   if (items.length === 0) return null;
 
@@ -29,14 +32,27 @@ export default function MapPinListBlock({ data, locale }) {
     <section className="db-block">
       {data.heading ? <h2 className="db-h2">{data.heading}</h2> : null}
       {data.intro ? <p className="db-lede">{data.intro}</p> : null}
-      <ul className="db-pinlist">
+      {wantsFilter(data) ? (
+        /* INT.3: the amenity tags become checkboxes; a stop must carry every
+           ticked one. With script off, the full directory renders as always. */
+        <ListFilter
+          scope={`pins-${blockId}`} label={t(locale, 'filterLabel')} placeholder={t(locale, 'filterPlaceholder')}
+          countLabel={t(locale, 'filterCount')}
+          tags={tagUnion(items.map((pin) => tags(pin.amenities))).map((tg, n) => (n === 0 ? { ...tg, legend: t(locale, 'filterAmenities') } : tg))}
+        />
+      ) : null}
+      <ul className="db-pinlist" id={`pins-${blockId}`}>
         {items.map((pin, i) => {
           const coords = formatCoordinates(pin.lat, pin.lng);
           const amenities = tags(pin.amenities);
           const href = localeHref(text(pin.mapHref), locale);
           const linkLabel = text(pin.mapLabel);
           return (
-            <li key={i} className="db-pin">
+            <li
+              key={i} className="db-pin"
+              data-filter-text={filterText(pin.name, pin.type, pin.address, pin.hours, pin.notes, amenities.join(' '))}
+              data-filter-tags={amenities.map(tagValue).join('|')}
+            >
               {text(pin.type) ? <p className="db-pin-type">{text(pin.type)}</p> : null}
               <h3 className="db-pin-name">{text(pin.name)}</h3>
               {text(pin.address) ? <p className="db-pin-address">{text(pin.address)}</p> : null}
