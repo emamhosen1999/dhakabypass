@@ -31,13 +31,21 @@
 -- toll-preview at 1 without renumbering anything. The editor renumbers the
 -- whole page on the operator's next drag.
 --
--- Idempotent: INSERT IGNORE throughout. ID map: blocks 356-358 on page 1.
+-- Idempotent: INSERT IGNORE throughout. ID map: blocks 356-358 on the `home` page.
+
+-- The home page is resolved by SLUG, never by id: 02-seed.sql and a
+-- development database that has been re-seeded can number the same page
+-- differently, and a block inserted against the wrong page id is either a
+-- foreign-key failure or, worse, a corridor section on somebody else's page.
+SET @home = (SELECT `id` FROM `pages` WHERE `slug` = 'home' LIMIT 1);
 
 /*!40000 ALTER TABLE `blocks` DISABLE KEYS */;
-INSERT IGNORE INTO `blocks` (`id`, `page_id`, `type`, `sort_order`, `settings`, `status`) VALUES
-  (356,1,'progress-bar',0,NULL,'published'),
-  (357,1,'corridor-strip',0,NULL,'published'),
-  (358,1,'interchange-table',0,NULL,'published');
+INSERT IGNORE INTO `blocks` (`id`, `page_id`, `type`, `sort_order`, `settings`, `status`)
+  SELECT 356, @home, 'progress-bar', 0, NULL, 'published' FROM DUAL WHERE @home IS NOT NULL;
+INSERT IGNORE INTO `blocks` (`id`, `page_id`, `type`, `sort_order`, `settings`, `status`)
+  SELECT 357, @home, 'corridor-strip', 0, NULL, 'published' FROM DUAL WHERE @home IS NOT NULL;
+INSERT IGNORE INTO `blocks` (`id`, `page_id`, `type`, `sort_order`, `settings`, `status`)
+  SELECT 358, @home, 'interchange-table', 0, NULL, 'published' FROM DUAL WHERE @home IS NOT NULL;
 /*!40000 ALTER TABLE `blocks` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `block_translations` DISABLE KEYS */;
