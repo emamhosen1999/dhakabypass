@@ -2,7 +2,9 @@ import { assertCan } from '../../../../lib/auth/assert-can';
 import { LOCALES, LOCALE_LABELS } from '../../../../lib/i18n/locales';
 import { getSetting, CONTACT_KEYS, SOCIAL_KEYS } from '../../../../lib/settings';
 import { getSeoSettings, SEO_DEFAULTS, SEO_KEYS } from '../../../../lib/seo/settings';
-import { saveContactSettingsAction, saveSeoSettingsAction } from './actions';
+import { saveContactSettingsAction, saveSeoSettingsAction, saveBrandSettingsAction } from './actions';
+import { BRAND_KEYS, BRAND_DEFAULTS, SHELL_MIN, SHELL_MAX } from '../../../../lib/brand/tokens';
+import ColorField from '../../../../components/admin/ColorField';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +49,11 @@ export default async function SettingsPage() {
   // default mean the same thing there, and showing the resolved value tells the
   // operator what the site is actually using right now.
   const seo = await getSeoSettings('en');
+  const brand = {
+    plateBg: String((await getSetting(BRAND_KEYS.plateBg, '')) || ''),
+    plateAccent: String((await getSetting(BRAND_KEYS.plateAccent, '')) || ''),
+    shell: Number(await getSetting(BRAND_KEYS.shell, 0)) || '',
+  };
 
   const per = (value, locale) =>
     (value && typeof value === 'object' ? value[locale] : locale === 'en' ? value : '') || '';
@@ -144,6 +151,27 @@ export default async function SettingsPage() {
           the fallbacks, used where a page has said nothing.
         </p>
       </header>
+
+      <form action={saveBrandSettingsAction} className="space-y-6">
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold">Brand</h2>
+          <p className="text-sm text-gray-600">
+            The three tokens that are the brand. Every other colour in the stylesheet is a measured
+            relationship — a status tag on a table row, a caption on a card — and stays as shipped.
+            A colour is refused, with the measured ratio, if the light text or the accent would fall
+            under 4.5:1 on the chosen plate. Blank restores the shipped value.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <ColorField name="plate_bg" label="Plate (header, footer, dark bands)" defaultValue={brand.plateBg} placeholder={BRAND_DEFAULTS.plateBg} />
+            <ColorField name="plate_accent" label="Accent on the plate" defaultValue={brand.plateAccent} placeholder={BRAND_DEFAULTS.plateAccent} />
+            <Text
+              name="shell" label={`Page width in pixels (${SHELL_MIN}–${SHELL_MAX})`} defaultValue={brand.shell}
+              placeholder={String(BRAND_DEFAULTS.shell)} type="number"
+            />
+          </div>
+          <button type="submit" className="px-4 py-2 rounded bg-black text-white text-sm">Save brand</button>
+        </section>
+      </form>
 
       <form action={saveSeoSettingsAction} className="space-y-6">
         <section className="space-y-4">

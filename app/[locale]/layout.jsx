@@ -8,6 +8,7 @@ import AdvisoryBar from '../../components/corridor/AdvisoryBar.jsx';
 import Analytics from '../../components/chrome/Analytics.jsx';
 import DocumentLang from '../../components/chrome/DocumentLang.jsx';
 import FontPreload from '../../components/chrome/FontPreload.jsx';
+import BrandTokens from '../../components/chrome/BrandTokens.jsx';
 import StructuredData from '../../components/chrome/StructuredData.jsx';
 import UiStringsBridge from '../../components/chrome/UiStringsBridge.jsx';
 import { loadOrganization } from '../../lib/seo/identity.js';
@@ -85,6 +86,8 @@ export default async function LocaleLayout({ children, params }) {
           ahead of the page's own styles. */}
       {locale === 'zh' ? <link rel="stylesheet" href="/fonts/noto-sans-sc.css" precedence="high" /> : null}
       <ThemeScript />
+      {/* The operator's brand colours and page width, when changed (W1.16). */}
+      <BrandTokens />
       {/* Asserts only what has been verified and omits every field DBEDC has
           not supplied, which is why it is safe to publish on every page. The
           organisation name and the logo are /admin/settings values now, and

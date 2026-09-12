@@ -5,6 +5,7 @@ import { runAction } from '../../../../lib/admin/run-action';
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { setSetting, CONTACT_KEYS, SOCIAL_KEYS } from '../../../../lib/settings';
+import { BRAND_KEYS, validateBrand } from '../../../../lib/brand/tokens';
 import { LOCALES } from '../../../../lib/i18n/locales';
 import { revalidateSettings, revalidateSeo } from '../../../../lib/revalidate';
 import { SEO_KEYS, ROBOTS_MODES, parseDisallowList, publishablePath } from '../../../../lib/seo/settings';
@@ -183,10 +184,38 @@ async function saveSeoSettingsAction$inner(formData) {
 // becomes a redirect back to the form with the sentence in `?notice=`, which
 // is the only way a message survives a production build. See
 // lib/admin/run-action.js. The bodies above are unchanged.
+/**
+ * Brand tokens (W1.16): the plate blue, the accent orange and the page
+ * width. Refused, with the measured ratio, when the plate's light text or
+ * the accent would fall under WCAG AA on the chosen plate — the stylesheet's
+ * own floor. Blank fields restore the shipped value.
+ */
+async function saveBrandSettingsAction$inner(formData) {
+  await assertCan('manage_pages');
+  const checked = validateBrand({
+    plateBg: formData.get('plate_bg'), plateAccent: formData.get('plate_accent'), shell: formData.get('shell'),
+  });
+  if (!checked.ok) throw validationError(checked.errors.join(' '));
+  try {
+    await setSetting(BRAND_KEYS.plateBg, checked.value.plateBg || '');
+    await setSetting(BRAND_KEYS.plateAccent, checked.value.plateAccent || '');
+    await setSetting(BRAND_KEYS.shell, checked.value.shell || 0);
+  } catch (err) {
+    friendly(err, 'The brand settings could not be saved. Please try again.');
+  }
+  revalidateSettings();
+  // Every public page carries the override; the layout cache must drop it.
+  revalidatePath('/', 'layout');
+  revalidatePath(ADMIN);
+}
+
 // ---------------------------------------------------------------------------
 export async function saveContactSettingsAction(formData) {
   return runAction(() => saveContactSettingsAction$inner(formData));
 }
 export async function saveSeoSettingsAction(formData) {
   return runAction(() => saveSeoSettingsAction$inner(formData));
+}
+export async function saveBrandSettingsAction(formData) {
+  return runAction(() => saveBrandSettingsAction$inner(formData));
 }
