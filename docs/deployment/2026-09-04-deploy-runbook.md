@@ -235,7 +235,7 @@ away from being an outage, and the release script blocks it.
 ### On the server
 
 ```bash
-cd ~/apps/dhakabypass-staging
+cd ~/apps/dhakabypass-live        # production; staging would be apps/dhakabypass-staging
 /usr/local/cpanel/3rdparty/lib/path-bin/git pull
 node preflight.mjs        # exit 0 means it will boot
 touch tmp/restart.txt
@@ -281,6 +281,37 @@ prevent. Look at the page, do not just check the status code — a 200 with no
 stylesheet is exactly what a missing `.next/static` produces.
 
 ---
+
+## If the app will not pick up a new release (learned 12 September 2026)
+
+LiteSpeed keeps the Node.js process for a domain **detached**. On the first
+production release after cutover the 5 September process kept serving even
+after `tmp/restart.txt`, Stop/Start/Restart in Setup Node.js App, deleting
+and re-creating the app, a new app root, and a document-root change — every
+one reported success; the app's passenger log showed no new process for
+two days. Only the host could end it: Namecheap support **reset CageFS for
+the account**, which terminates the account's processes; LiteSpeed then
+spawned the current build within a minute. Namecheap's own guide for
+terminating processes from cPanel:
+https://www.namecheap.com/support/knowledgebase/article.aspx/10656/103/managing-active-processes-on-shared-and-reseller-hosting/
+— try that first, then chat support with "please reset CageFS / kill the
+Node.js process for dhakabypass.com under aeos365".
+
+How to tell it has happened: a never-requested asset of the new build
+answers 200 at the origin —
+`curl -sk --resolve dhakabypass.com:443:209.74.67.113 -o /dev/null -w "%{http_code}
+" https://dhakabypass.com/_next/static/chunks/<a chunk from the new build-manifest>`.
+
+The production app root is now **`/home/aeos365/apps/dhakabypass-live`**
+(moved from `apps/dhakabypass-production` during that incident; the Node.js
+App registration and `.htaccess` point there).
+
+**The document root must hold nothing but `.htaccess`, `.well-known/`,
+`cgi-bin/` and `tmp/`.** LiteSpeed serves a real file or directory in the
+document root BEFORE handing the request to the app: the old static
+export left in `~/dhakabypass.com/` meant `/` itself and every legacy path
+(`/project`, `/stakeholders`, …) served the May 2025 pages until they were
+moved to `~/backups/old-static-site/`.
 
 ## Rollback
 
