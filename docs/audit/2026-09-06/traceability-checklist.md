@@ -59,7 +59,7 @@
 | A-HC-5.12 | `app/design-tokens.css` — 75 tokens, all code; no colour, type, breakpoint or status colour is admin-editable | W1.16 | [ ] |
 | A-HC-5.13 | Corridor/map data — 100 KB `map-context.json`, `public/maps/*`, label geometry and zoom regex all code | W1.21 | [ ] |
 | A-HC-5.14 | `app/not-found.jsx` reads the dead `content` table; legacy Tailwind; no chrome | W1.19 || [x] 404 is the `not-found` block document (23-not-found.sql), localised with 404 status; `app/not-found.jsx` re-exports it |
-| A-HC-5.15 | Roles in code, **no `/admin/users` screen**; adding an editor needs SSH or SQL | W1.17 | [ ] |
+| A-HC-5.15 | Roles in code, **no `/admin/users` screen**; adding an editor needs SSH or SQL | W1.17 || [x] /admin/users (Staff): add, remove, re-role, reset password; no SSH/SQL; browser-verified add → editor sign-in → removal enforced on next request |
 
 ### A.4 Ranked gap list (22) — §8
 
@@ -81,7 +81,7 @@
 | A-P2-14 | Header/footer branding literal; logo never rendered in live header | W1.10 | [ ] |
 | A-P2-15 | Menus all-or-nothing; footer headings must pre-exist; numeric position | W1.11 | [ ] |
 | A-P2-16 | `TravelSubnav` not menu-driven (`lib/menus/slugs.js` knows only main/footer) | W1.11 | [ ] |
-| A-P2-17 | No user management screen | W1.17 | [ ] |
+| A-P2-17 | No user management screen | W1.17 || [x] /admin/users (Staff): add, remove, re-role, reset password; no SSH/SQL; browser-verified add → editor sign-in → removal enforced on next request |
 | A-P2-18 | `revisions` table never written — no undo, no history | W1.13 | [ ] |
 | A-P2-19 | No colour/typography control | W1.16 | [ ] |
 | A-P2-20 | Contact address/email hardcoded English-only fallbacks | W1.20 | [ ] |

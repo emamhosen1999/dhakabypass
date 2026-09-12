@@ -42,6 +42,7 @@ const NAV = [
   { href: '/admin/redirects', label: 'Redirects' },
   { href: '/admin/seo', label: 'Search' },
   { href: '/admin/settings', label: 'Settings' },
+  { href: '/admin/users', label: 'Staff' },
 ];
 
 /**

@@ -4,13 +4,26 @@ import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { query, dbEnabled } from './lib/db';
 import { resolveUserRole } from './lib/auth/resolve-role';
+import { listUserEmailsCached } from './lib/auth/users-repo';
 
 /**
  * Admin auth: Google OAuth + email/password, JWT sessions (no session table).
  *
- * Access is gated by an explicit ADMIN_EMAILS allowlist — signing in with Google
- * is NOT enough on its own, otherwise anyone with a Google account could reach
- * the admin. Both providers are checked against the same list.
+ * Access is gated by an allowlist — signing in with Google is NOT enough on
+ * its own, otherwise anyone with a Google account could reach the admin. Both
+ * providers are checked against the same list.
+ *
+ * The list has two halves (W1.17):
+ *
+ *   1. ADMIN_EMAILS — the BOOTSTRAP addresses, from the environment. They can
+ *      always sign in and cannot be removed from /admin/users, which is what
+ *      makes it impossible to lock every administrator out through the admin.
+ *   2. the `users` table — everyone added at /admin/users. This is what lets
+ *      an administrator add or remove an editor without SSH, an .env edit and
+ *      a restart, which was the only way before.
+ *
+ * Fail closed: an address on neither list is refused, and a database that
+ * will not answer leaves only the bootstrap list in force.
  */
 
 export function allowedAdmins() {
@@ -20,12 +33,29 @@ export function allowedAdmins() {
     .filter(Boolean);
 }
 
+/** The bootstrap half only — synchronous, environment-backed. */
 export function isAllowedAdmin(email) {
   if (!email) return false;
   const list = allowedAdmins();
   // Fail closed: an empty allowlist grants nobody access.
   if (list.length === 0) return false;
   return list.includes(String(email).toLowerCase());
+}
+
+/**
+ * Both halves. Re-derived on every admin request (jwt callback), so a person
+ * removed at /admin/users is refused on their next request — revalidateUsers
+ * drops the cached list — rather than at their next sign-in.
+ */
+export async function isPermitted(email) {
+  if (!email) return false;
+  if (isAllowedAdmin(email)) return true;
+  if (!dbEnabled()) return false;
+  try {
+    return (await listUserEmailsCached()).includes(String(email).toLowerCase());
+  } catch {
+    return false;
+  }
 }
 
 const providers = [
@@ -39,8 +69,10 @@ const providers = [
       const email = String(creds?.email || '').toLowerCase().trim();
       const password = String(creds?.password || '');
       if (!email || !password) return null;
-      if (!isAllowedAdmin(email)) return null;
       if (!dbEnabled()) return null;
+      // No allowlist pre-check: a users row with a password hash IS the
+      // second half of the allowlist, and the bootstrap half also needs a row
+      // to have a password to compare.
 
       const rows = await query(
         'SELECT id, email, name, password_hash, role FROM users WHERE email = ? LIMIT 1',
@@ -87,10 +119,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     // The allowlist is enforced here for EVERY provider.
     async signIn({ user }) {
-      return isAllowedAdmin(user?.email);
+      return isPermitted(user?.email);
     },
     async jwt({ token, user }) {
-      token.isAdmin = isAllowedAdmin(token.email);
+      token.isAdmin = await isPermitted(token.email);
       // The role is resolved once, at sign-in (when `user` is present), for
       // EVERY provider — not just Credentials — so a Google sign-in cannot
       // inherit a stronger role than the matching `users` row grants. It
@@ -98,8 +130,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // re-query on every request, since that would put a DB hit on every
       // page view on a memory-limited shared host. A role change in `users`
       // only takes effect the next time the user signs in. `isAdmin` is the
-      // immediate revocation path instead — it is re-derived from
-      // ADMIN_EMAILS on every request, independent of the cached role.
+      // immediate revocation path instead — it is re-derived from the
+      // allowlist (ADMIN_EMAILS plus the cached, tagged `users` list) on
+      // every request, independent of the cached role.
       // If no `users` row matches, token.role is left undefined; can()
       // already fails closed on an undefined role.
       if (user) {

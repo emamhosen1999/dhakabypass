@@ -165,7 +165,7 @@ Then add the environment variables in the same screen:
 | `DB_USER` | `aeos365_…` | **App refuses to start.** |
 | `DB_PASSWORD` | the user's password | site renders empty |
 | `AUTH_SECRET` | 32 random bytes, base64 | admin 500s; public site fine |
-| `ADMIN_EMAILS` | comma-separated addresses | nobody can sign in |
+| `ADMIN_EMAILS` | comma-separated bootstrap addresses (always able to sign in; further staff are added at `/admin/users`) | only staff added at `/admin/users` can sign in; on a fresh install, nobody |
 | `MEDIA_ROOT` | *optional* — see below | uploads land in `var/uploads` |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | optional | Google button hidden |
 | `ANALYTICS_PROVIDER` | *leave unset on staging* | nothing measured — correct for staging |
