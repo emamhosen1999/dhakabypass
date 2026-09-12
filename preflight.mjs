@@ -59,7 +59,7 @@ if (!result.problems.some((p) => String(p.key).startsWith('DB')) && env.DB_HOST 
   const { readAppliedMigrations, missingMigrations, migrationProblem, MIGRATIONS } = await import('./deploy/migrations.js');
   let ledger;
   try {
-    const mysql = await import('mysql2/promise');
+    const mysql = await import('./deploy/node_modules/mysql2/promise.js');
     const conn = await mysql.createConnection({
       host: env.DB_HOST, port: Number(env.DB_PORT) || 3306, user: env.DB_USER,
       password: env.DB_PASSWORD || '', database: env.DB_NAME, connectTimeout: 8000,
