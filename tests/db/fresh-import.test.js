@@ -72,7 +72,7 @@ describe('a database built from db/sql/*.sql alone', () => {
     expect(rows.map((r) => r.name)).toEqual([...MIGRATIONS]);
   });
 
-  it('carries no inline provenance marker after 22-callout-migration.sql', async () => {
+  it('carries no provenance marker or pending notice after 22, 29 and 30', async () => {
     const r = await one(`SELECT COUNT(*) AS c FROM block_translations
       WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.body')) LIKE '%db-pending%'
          OR JSON_UNQUOTE(JSON_EXTRACT(data, '$.body')) LIKE '%db-archive%'`);
@@ -86,7 +86,9 @@ describe('a database built from db/sql/*.sql alone', () => {
     const framed = await one(`SELECT COUNT(*) AS c FROM block_translations
       WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.body')) LIKE '%previous website%' OR JSON_UNQUOTE(JSON_EXTRACT(data, '$.heading')) LIKE '%previously published%'`);
     expect(framed.c).toBe(0);
-    expect((await one("SELECT COUNT(*) AS c FROM blocks WHERE type = 'callout'")).c).toBe(9);
+    // 30-pending-drafts: every "Not yet published" notice is content now.
+    expect((await one(`SELECT COUNT(*) AS c FROM block_translations WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.tone')) = 'pending'`)).c).toBe(0);
+    expect((await one("SELECT COUNT(*) AS c FROM blocks WHERE type = 'callout'")).c).toBe(0);
     expect((await one('SELECT COUNT(*) AS c FROM blocks WHERE id BETWEEN 400 AND 432')).c).toBe(26);
   });
 
