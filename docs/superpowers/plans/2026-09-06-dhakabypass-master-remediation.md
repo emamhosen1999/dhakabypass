@@ -426,8 +426,8 @@ Source of truth is `old_dhakabypass/*/index.txt` (text) plus `index.html` (image
 
 # W6 — Tech debt & hardening
 
-- **W6.1** — Delete the legacy tree: `app/(site)/**`, 7 legacy components, 4 legacy admin routes, 3 legacy admin components, `lib/gallery.js` — **6,485 lines** (C-D2, C-DEL-1..4,6). Requires 0.1 committed and 0.5 CI watching. Keep `FieldInput.jsx` and `NewsForm.jsx`.
-- **W6.2–W6.3** — Port `not-found` and the dashboard off `lib/content.js`, then delete it and `lib/admin-sections.js` (C-DEL-5); port the news admin off `lib/news.js` to `newsroom/repo.js`, then delete (C-DEL-7)
+- **W6.1 — DONE 2026-09-12** — Delete the legacy tree: `app/(site)/**`, 7 legacy components, 4 legacy admin routes, 3 legacy admin components, `lib/gallery.js` — **6,485 lines** (C-D2, C-DEL-1..4,6). Requires 0.1 committed and 0.5 CI watching. Keep `FieldInput.jsx` and `NewsForm.jsx`.
+- **W6.2–W6.3** — ~~Port `not-found` and the dashboard off `lib/content.js`, then delete it and `lib/admin-sections.js` (C-DEL-5)~~ **done with W1.19/W6.1**; port the news admin off `lib/news.js` to `newsroom/repo.js`, then delete (C-DEL-7)
 - **W6.4–W6.5** — Promote the CSP to enforcing on `/:path*` once its stated justification is gone (C-S5); simplify `DocumentLang` via a route-group root layout, replacing a JS-dependent WCAG 3.1.1 workaround with a server-rendered `lang` (C-P1.5)
 - **W6.6** — **Real migrations**: a `schema_migrations` table, numbered idempotent files that record their own application, and a `preflight.mjs` version gate that refuses to boot when the DB is behind (C-D9, C-R1..R3, C-R6). Turns a silent 500 into a refused boot.
 - **W6.7–W6.9** — ESLint + Prettier + CI lint gate (C-D13); structured logging wired into the boundaries and `lib/errors.js:43` (C-D8); admin e2e coverage — sign-in, create page, add block, save translation, upload, replace (C-T1, C-P2.4)

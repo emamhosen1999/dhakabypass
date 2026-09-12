@@ -12,10 +12,10 @@ import { can, ROLES } from '../../lib/auth/roles.js';
  * closed, so a typo'd permission denies everyone and a REMOVED one denies
  * nobody, and only one of those is visible without a test.
  */
+// saveSectionAction, saveGalleryAction and deleteGalleryImageAction were
+// deleted with the legacy tree (W6.1); the four that remain in
+// app/admin/actions.js serve the messages inbox and the news admin.
 const LEGACY_ACTION_PERMISSIONS = {
-  saveSectionAction: 'manage_pages',
-  saveGalleryAction: 'manage_media',
-  deleteGalleryImageAction: 'manage_media',
   deleteMessageAction: 'manage_users',
   toggleMessageReadAction: 'manage_users',
   saveNewsAction: 'publish',

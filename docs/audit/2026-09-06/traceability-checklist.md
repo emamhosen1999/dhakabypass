@@ -205,7 +205,7 @@
 | ID | Finding | Sev | Task | Status |
 |---|---|---|---|---|
 | C-D1 | **Redirects, `03-content-recovery.sql`, `apply-content-recovery.mjs` all uncommitted** — repo cannot ship its own behaviour | Critical | 0.1 | [ ] |
-| C-D2 | `app/(site)/**` — 5,225 lines unreachable | High | W6.1 | [ ] |
+| C-D2 | `app/(site)/**` — 5,225 lines unreachable | High | W6.1 || [x] W6.1: `app/(site)`, 7 legacy components, `/admin/pages`, `/admin/section`, `/admin/gallery`, `lib/gallery.js`, `lib/content.js`, `lib/admin-sections.js` deleted; legacy contact/newsletter/section/gallery actions removed |
 | C-D3 | Second content model: `content` table + legacy admin, still in nav | High | 0.11, W6.2 | [ ] |
 | C-D4 | Third content model: `content/*.json`, `.extract/`, `old_dhakabypass/` tracked (13 MB) | Medium | W6.16, W6.14, W6.15 | [ ] |
 | C-D5 | `next@15.2.3` + `@auth/core` + `mysql2` + `nanoid` — 7 vulns, 3 critical | Critical | 0.2 | [ ] |
@@ -246,12 +246,12 @@
 
 | ID | Target | Blocked by | Task | Status |
 |---|---|---|---|---|
-| C-DEL-1 | `app/(site)/` — 5,225 lines | C-D1 must be committed | W6.1 | [ ] |
-| C-DEL-2 | 7 legacy components — 737 lines | with DEL-1 | W6.1 | [ ] |
-| C-DEL-3 | 4 legacy admin routes — 154 lines | nav entry removal | W6.1 | [ ] |
-| C-DEL-4 | 3 legacy admin components — 347 lines (**keep** `FieldInput`, `NewsForm`) | DEL-3 | W6.1 | [ ] |
-| C-DEL-5 | `lib/content.js`, `lib/admin-sections.js` — 112 lines | not-found port, dashboard counters, `saveSectionAction` | W6.2 | [ ] |
-| C-DEL-6 | `lib/gallery.js` — 22 lines | DEL-3 | W6.1 | [ ] |
+| C-DEL-1 | `app/(site)/` — 5,225 lines | C-D1 must be committed | W6.1 || [x] W6.1: `app/(site)`, 7 legacy components, `/admin/pages`, `/admin/section`, `/admin/gallery`, `lib/gallery.js`, `lib/content.js`, `lib/admin-sections.js` deleted; legacy contact/newsletter/section/gallery actions removed |
+| C-DEL-2 | 7 legacy components — 737 lines | with DEL-1 | W6.1 || [x] W6.1: `app/(site)`, 7 legacy components, `/admin/pages`, `/admin/section`, `/admin/gallery`, `lib/gallery.js`, `lib/content.js`, `lib/admin-sections.js` deleted; legacy contact/newsletter/section/gallery actions removed |
+| C-DEL-3 | 4 legacy admin routes — 154 lines | nav entry removal | W6.1 || [x] W6.1: `app/(site)`, 7 legacy components, `/admin/pages`, `/admin/section`, `/admin/gallery`, `lib/gallery.js`, `lib/content.js`, `lib/admin-sections.js` deleted; legacy contact/newsletter/section/gallery actions removed |
+| C-DEL-4 | 3 legacy admin components — 347 lines (**keep** `FieldInput`, `NewsForm`) | DEL-3 | W6.1 || [x] W6.1: `app/(site)`, 7 legacy components, `/admin/pages`, `/admin/section`, `/admin/gallery`, `lib/gallery.js`, `lib/content.js`, `lib/admin-sections.js` deleted; legacy contact/newsletter/section/gallery actions removed |
+| C-DEL-5 | `lib/content.js`, `lib/admin-sections.js` — 112 lines | not-found port, dashboard counters, `saveSectionAction` | W6.2 || [x] W6.1: `app/(site)`, 7 legacy components, `/admin/pages`, `/admin/section`, `/admin/gallery`, `lib/gallery.js`, `lib/content.js`, `lib/admin-sections.js` deleted; legacy contact/newsletter/section/gallery actions removed |
+| C-DEL-6 | `lib/gallery.js` — 22 lines | DEL-3 | W6.1 || [x] W6.1: `app/(site)`, 7 legacy components, `/admin/pages`, `/admin/section`, `/admin/gallery`, `lib/gallery.js`, `lib/content.js`, `lib/admin-sections.js` deleted; legacy contact/newsletter/section/gallery actions removed |
 | C-DEL-7 | `lib/news.js` — 46 lines | 4 live admin call sites must move to `newsroom/repo.js` | W6.3 | [ ] |
 | C-DEL-8 | 7 uncalled scripts — 731 lines | `build-corridor-context.mjs` is the sole map-asset producer | W6.10, W6.12 | [ ] |
 | C-DEL-9 | `content/` 12 JSON files, 269 KB | CI `db:seed` reads `content/seed.json` | W6.16 | [ ] |

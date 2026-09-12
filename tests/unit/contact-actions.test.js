@@ -16,7 +16,7 @@ vi.mock('next/headers', () => ({
 import { query, dbEnabled } from '../../lib/db.js';
 import { submitContactMessage } from '../../lib/contact/actions.js';
 import { MAX_MESSAGE_CHARS } from '../../lib/public-write-policy.js';
-import { submitContactAction, subscribeNewsletterAction } from '../../app/admin/actions.js';
+import { subscribeNewsletter } from '../../lib/newsletter/actions.js';
 import { resetRateLimits } from '../../lib/rate-limit.js';
 
 /**
@@ -113,46 +113,43 @@ describe('submitContactMessage — failure honesty', () => {
   });
 });
 
-describe('legacy submitContactAction / subscribeNewsletterAction', () => {
+describe('subscribeNewsletter (the newsletter-form block)', () => {
+  // The legacy submitContactAction / subscribeNewsletterAction went with the
+  // legacy tree (W6.1). Their tests moved here against the successor, which
+  // keeps every guarantee they had: honest failure, rate limit, honeypot.
   afterEach(() => vi.restoreAllMocks());
+  const fd = (email, extra = {}) => {
+    const f = new FormData();
+    f.append('email', email);
+    for (const [k, v] of Object.entries(extra)) f.append(k, v);
+    return f;
+  };
 
-  it('stops returning ok:true after a failed insert — C-D17', async () => {
-    // It logged the failure and thanked the sender anyway. Its own successor
-    // documents that as wrong: somebody reporting a hazard needs to know the
-    // message did not arrive so they can use another route.
+  it('rate-limits sign-ups on the shared public-write bucket', async () => {
+    for (let i = 0; i < 5; i += 1) {
+      expect((await subscribeNewsletter(null, fd(`a${i}@example.com`))).status).toBe('ok');
+    }
+    expect((await subscribeNewsletter(null, fd('a9@example.com'))).status).toBe('ratelimited');
+  });
+
+  it('stops returning ok after a failed insert', async () => {
     query.mockRejectedValue(new Error('disk full'));
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    const res = await submitContactAction(form());
-    expect(res.ok).toBe(false);
-    expect(res.error).toBeTruthy();
+    expect((await subscribeNewsletter(null, fd('a@example.com'))).status).toBe('unavailable');
   });
 
-  it('rate-limits the legacy contact action', async () => {
-    for (let i = 0; i < 5; i += 1) expect((await submitContactAction(form())).ok).toBe(true);
-    const denied = await submitContactAction(form());
-    expect(denied.ok).toBe(false);
-    expect(denied.error).toBeTruthy();
-  });
-
-  it('caps the legacy contact message too', async () => {
-    const res = await submitContactAction(form({ message: 'x'.repeat(1024 * 1024) }));
-    expect(res.ok).toBe(false);
+  it('rejects a malformed address without touching the database', async () => {
+    expect((await subscribeNewsletter(null, fd('not-an-email'))).status).toBe('invalid');
     expect(query).not.toHaveBeenCalled();
   });
 
-  it('rate-limits the newsletter action', async () => {
-    const fd = (email) => { const f = new FormData(); f.append('email', email); return f; };
-    for (let i = 0; i < 5; i += 1) {
-      expect((await subscribeNewsletterAction(fd(`a${i}@example.com`))).ok).toBe(true);
-    }
-    expect((await subscribeNewsletterAction(fd('a9@example.com'))).ok).toBe(false);
+  it('gives a bot a plausible success and stores nothing', async () => {
+    expect((await subscribeNewsletter(null, fd('bot@example.com', { company: 'Acme' }))).status).toBe('ok');
+    expect(query).not.toHaveBeenCalled();
   });
 
-  it('stops returning ok:true after a failed newsletter insert', async () => {
-    query.mockRejectedValue(new Error('disk full'));
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    const fd = new FormData();
-    fd.append('email', 'a@example.com');
-    expect((await subscribeNewsletterAction(fd)).ok).toBe(false);
+  it('lower-cases and INSERT IGNOREs, so a repeat sign-up is not an error', async () => {
+    expect((await subscribeNewsletter(null, fd('Reader@Example.com'))).status).toBe('ok');
+    expect(query).toHaveBeenCalledWith(expect.stringMatching(/INSERT IGNORE/), ['reader@example.com']);
   });
 });
