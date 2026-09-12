@@ -9,6 +9,8 @@ import { LOCALES, DEFAULT_LOCALE } from '../../../../lib/i18n/locales';
 import { revalidateMenus } from '../../../../lib/revalidate';
 import { validationError, friendly } from '../../../../lib/errors';
 import { MENU_SLUGS } from '../../../../lib/menus/slugs';
+import { builtinRows } from '../../../../lib/menus/builtin';
+import { withTransaction } from '../../../../lib/db';
 
 const ADMIN = '/admin/menus';
 
@@ -125,6 +127,43 @@ async function resetMenuAction$inner(formData) {
   revalidatePath(ADMIN);
 }
 
+/**
+ * Start a custom menu FROM the built-in links (W1.11), so an operator who
+ * wants to add one item or rename one does not have to retype the other
+ * nine. Copies the code list into menu_items with the code table's labels in
+ * every language; refused while the menu already has items, because it
+ * would otherwise duplicate them. The site renders identically before and
+ * after, which is the point: the change is who can now edit it.
+ */
+async function seedMenuAction$inner(formData) {
+  await assertCan('manage_pages');
+  const slug = String(formData.get('menu') || '');
+  if (!MENU_SLUGS.includes(slug)) throw validationError('Unknown menu.');
+  const existing = await query(
+    'SELECT COUNT(*) AS c FROM menu_items i JOIN menus m ON m.id = i.menu_id WHERE m.slug = ?', [slug],
+  );
+  if (Number(existing?.[0]?.c) > 0) throw validationError('This menu already has items. Use the built-in links again first, then start from them.');
+  const id = await menuId(slug);
+  const rows = builtinRows(slug);
+  try {
+    await withTransaction(async (q) => {
+      const ids = [];
+      for (const r of rows) {
+        const parentId = r.parentIndex == null ? null : ids[r.parentIndex];
+        const res = await q(
+          'INSERT INTO menu_items (menu_id, parent_id, href, labels, sort_order) VALUES (?, ?, ?, ?, ?)',
+          [id, parentId, r.href, JSON.stringify(r.labels), r.sortOrder],
+        );
+        ids.push(res.insertId);
+      }
+    });
+  } catch (err) {
+    friendly(err, 'The built-in links could not be copied. Please try again.');
+  }
+  revalidateMenus();
+  revalidatePath(ADMIN);
+}
+
 // ---------------------------------------------------------------------------
 // Every exported action runs through runAction(): a thrown validation error
 // becomes a redirect back to the form with the sentence in `?notice=`, which
@@ -139,4 +178,7 @@ export async function deleteMenuItemAction(formData) {
 }
 export async function resetMenuAction(formData) {
   return runAction(() => resetMenuAction$inner(formData));
+}
+export async function seedMenuAction(formData) {
+  return runAction(() => seedMenuAction$inner(formData));
 }

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { t } from '../../lib/i18n/ui';
+import { TRAVEL_NAV } from '../../lib/menus/builtin.js';
 
 /**
  * The built-in travel links: the OUTAGE FALLBACK, not the source of truth.
@@ -13,14 +14,7 @@ import { t } from '../../lib/i18n/ui';
  * rule the header and footer follow (lib/menus/repo.js). It is exported so the
  * block can build the fallback from it and the test can pin the two together.
  */
-export const TRAVEL_SECTION = [
-  { key: 'travelStatus', href: '/travel/status' },
-  { key: 'travelToll', href: '/travel/toll' },
-  { key: 'travelRoute', href: '/travel/route' },
-  { key: 'navMap', href: '/travel/map' },
-  { key: 'travelFacilities', href: '/travel/facilities' },
-  { key: 'travelRules', href: '/travel/rules' },
-];
+export const TRAVEL_SECTION = TRAVEL_NAV;
 
 /**
  * The section sub-nav, a client component so it can mark the current item

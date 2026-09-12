@@ -1,7 +1,7 @@
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { LOCALES, LOCALE_LABELS, DEFAULT_LOCALE } from '../../../../lib/i18n/locales';
 import { getMenu } from '../../../../lib/menus/repo';
-import { saveMenuItemAction, deleteMenuItemAction, resetMenuAction } from './actions';
+import { saveMenuItemAction, deleteMenuItemAction, resetMenuAction, seedMenuAction } from './actions';
 import { MENU_SLUGS } from '../../../../lib/menus/slugs';
 
 export const dynamic = 'force-dynamic';
@@ -52,7 +52,15 @@ export default async function MenusPage() {
           </div>
 
           {menus[slug].length === 0 ? (
-            <p className="text-sm text-gray-500">No custom items. The site uses its built-in links.</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-gray-500">No custom items. The site uses its built-in links.</p>
+              <form action={seedMenuAction}>
+                <input type="hidden" name="menu" value={slug} />
+                <button type="submit" className="text-sm px-3 py-1.5 rounded border font-semibold hover:bg-gray-100">
+                  Start from the built-in links
+                </button>
+              </form>
+            </div>
           ) : (
             <ul className="divide-y border rounded">
               {menus[slug].map((item) => (

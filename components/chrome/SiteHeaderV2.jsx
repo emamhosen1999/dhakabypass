@@ -4,6 +4,7 @@ import LocaleSwitch from './LocaleSwitch.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { t } from '../../lib/i18n/ui.js';
 import { getMenuCached } from '../../lib/menus/cache.js';
+import { MAIN_NAV } from '../../lib/menus/builtin.js';
 import { siteSeoCached } from '../../lib/seo/cache.js';
 import { localeHref } from '../../lib/blocks/href.js';
 
@@ -26,14 +27,7 @@ import { localeHref } from '../../lib/blocks/href.js';
  * click deeper, from the footer and from About, because a road user needs them
  * rarely and needs the toll rate constantly.
  */
-const NAV = [
-  { key: 'navTravel', href: '/travel' },
-  { key: 'navSafety', href: '/safety' },
-  { key: 'navProject', href: '/project' },
-  { key: 'navSustainability', href: '/sustainability' },
-  { key: 'navAbout', href: '/about' },
-  { key: 'navNews', href: '/news' },
-];
+const NAV = MAIN_NAV;
 
 export default async function SiteHeaderV2({ locale }) {
   /**

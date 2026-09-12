@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { t } from '../../lib/i18n/ui.js';
 import { getMenuCached } from '../../lib/menus/cache.js';
+import { FOOTER_GROUPS } from '../../lib/menus/builtin.js';
 import { localeHref } from '../../lib/blocks/href.js';
 import { getSetting, CONTACT_KEYS } from '../../lib/settings.js';
 import { siteSeoCached } from '../../lib/seo/cache.js';
@@ -18,43 +19,7 @@ import { siteSeoCached } from '../../lib/seo/cache.js';
  * Grouped rather than listed flat, because eight undifferentiated links is a
  * list nobody reads.
  */
-const GROUPS = [
-  {
-    heading: 'footerTravel',
-    links: [
-      { key: 'travelStatus', href: '/travel/status' },
-      { key: 'travelToll', href: '/travel/toll' },
-      { key: 'travelRoute', href: '/travel/route' },
-      { key: 'navSafety', href: '/safety' },
-    ],
-  },
-  {
-    heading: 'footerCompany',
-    links: [
-      { key: 'navAbout', href: '/about' },
-      { key: 'navGovernance', href: '/about/governance' },
-      { key: 'navSustainability', href: '/sustainability' },
-      { key: 'navNews', href: '/news' },
-      { key: 'navGallery', href: '/gallery' },
-    ],
-  },
-  {
-    heading: 'footerDisclosure',
-    links: [
-      { key: 'navDisclosures', href: '/disclosures' },
-      { key: 'navTariff', href: '/disclosures/tariff' },
-      { key: 'navLandAcquisition', href: '/disclosures/land-acquisition' },
-      { key: 'navProcurement', href: '/procurement' },
-    ],
-  },
-  {
-    heading: 'footerContact',
-    links: [
-      { key: 'navContact', href: '/contact' },
-      { key: 'navGrievances', href: '/grievances' },
-    ],
-  },
-];
+const GROUPS = FOOTER_GROUPS;
 
 export default async function SiteFooterV2({ locale }) {
   const year = new Date().getFullYear();
