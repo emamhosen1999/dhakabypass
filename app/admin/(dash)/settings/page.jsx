@@ -195,9 +195,11 @@ export default async function SettingsPage() {
         <section className="space-y-4">
           <h2 className="text-lg font-bold">Organisation</h2>
           <p className="text-sm text-gray-600">
-            Published as structured data on every page — this is what a search engine may quote
-            back to the public with DBEDC&rsquo;s name on it. Only the company&rsquo;s real,
-            official name belongs here.
+            The short name is the header&rsquo;s brand line and the full name is the footer&rsquo;s;
+            both are also published as structured data on every page — what a search engine may
+            quote back to the public with DBEDC&rsquo;s name on it. Only the company&rsquo;s real,
+            official name belongs here. The line under the short name (&ldquo;Dhaka Bypass
+            Expressway&rdquo;) is the <em>brandTagline</em> string under Wording, per language.
           </p>
           <Text
             name="org_name" label="Full name" defaultValue={seo.orgName}
@@ -206,6 +208,13 @@ export default async function SettingsPage() {
           <Text
             name="org_short_name" label="Short name" defaultValue={seo.orgShortName}
             placeholder={SEO_DEFAULTS.orgShortName}
+          />
+          <Text
+            name="header_logo" label="Header logo" defaultValue={seo.headerLogo}
+            placeholder="(blank = the built-in DBEDC mark)"
+            hint="Shown at the top of every page beside the short name. Leave blank to keep
+                  the built-in mark, which recolours itself for the dark header. A picture
+                  here is shown at 30 pixels high; use a transparent PNG or WebP."
           />
           <Text
             name="logo_path" label="Logo" defaultValue={seo.logoPath}

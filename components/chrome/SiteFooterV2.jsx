@@ -3,6 +3,7 @@ import { t } from '../../lib/i18n/ui.js';
 import { getMenuCached } from '../../lib/menus/cache.js';
 import { localeHref } from '../../lib/blocks/href.js';
 import { getSetting, CONTACT_KEYS } from '../../lib/settings.js';
+import { siteSeoCached } from '../../lib/seo/cache.js';
 
 /**
  * The footer carries the statutory pages.
@@ -83,6 +84,7 @@ export default async function SiteFooterV2({ locale }) {
    * reaches every page at once. An empty setting renders nothing rather than a
    * placeholder — a number nobody answers is worse than no number.
    */
+  const brand = await siteSeoCached(locale);
   let emergency = '';
   try {
     emergency = String((await getSetting(CONTACT_KEYS.emergency, '')) || '').trim();
@@ -137,7 +139,8 @@ export default async function SiteFooterV2({ locale }) {
         </div>
       ) : null}
       <div className="db-footer-inner">
-        <p className="db-footer-brand">Dhaka Bypass Expressway Development Company</p>
+        {/* The organisation's full name from /admin/settings (W1.10). */}
+        <p className="db-footer-brand">{brand.orgName}</p>
         {/* The legacy footer carried these three and the rebuild dropped them,
             which left the site running Google Analytics behind a consent banner
             with no policy to consent to. They sit in the bottom bar rather than
@@ -149,7 +152,7 @@ export default async function SiteFooterV2({ locale }) {
           <li><Link href={localeHref('terms', locale)}>{t(locale, 'footerTerms')}</Link></li>
           <li><Link href={localeHref('accessibility', locale)}>{t(locale, 'footerAccessibility')}</Link></li>
         </ul>
-        <p className="db-footer-legal">© {year} DBEDC. {t(locale, 'allRights')}</p>
+        <p className="db-footer-legal">© {year} {brand.orgShortName}. {t(locale, 'allRights')}</p>
       </div>
     </footer>
   );

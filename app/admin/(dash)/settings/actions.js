@@ -148,6 +148,7 @@ async function saveSeoSettingsAction$inner(formData) {
   const favicon = asset('favicon', 'The favicon');
   const ogImage = asset('og_image', 'The default share image');
   const logoPath = asset('logo_path', 'The organisation logo');
+  const headerLogo = asset('header_logo', 'The header logo');
 
   const robotsMode = text('robots_mode');
   if (robotsMode && !ROBOTS_MODES.includes(robotsMode)) {
@@ -164,6 +165,7 @@ async function saveSeoSettingsAction$inner(formData) {
     await setSetting(SEO_KEYS.orgName, text('org_name'));
     await setSetting(SEO_KEYS.orgShortName, text('org_short_name'));
     await setSetting(SEO_KEYS.logoPath, logoPath);
+    await setSetting(SEO_KEYS.headerLogo, headerLogo);
   } catch (err) {
     friendly(err, 'The SEO settings could not be saved. Please try again.');
   }

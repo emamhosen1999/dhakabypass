@@ -4,6 +4,7 @@ import LocaleSwitch from './LocaleSwitch.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { t } from '../../lib/i18n/ui.js';
 import { getMenuCached } from '../../lib/menus/cache.js';
+import { siteSeoCached } from '../../lib/seo/cache.js';
 import { localeHref } from '../../lib/blocks/href.js';
 
 /**
@@ -51,6 +52,7 @@ export default async function SiteHeaderV2({ locale }) {
   } catch {
     items = [];
   }
+  const brand = await siteSeoCached(locale);
 
   const links = items.length
     ? items.map((i) => ({ key: i.id, href: localeHref(i.href, locale), label: i.label }))
@@ -60,11 +62,18 @@ export default async function SiteHeaderV2({ locale }) {
     <header className="db-header">
       <a href="#main" className="db-skip">{t(locale, 'skipToContent')}</a>
       <div className="db-header-inner">
+        {/* W1.10: the short name and an optional header picture come from
+            /admin/settings (Organisation); the tagline is the brandTagline
+            string under Wording, per language. Nothing on this line is typed
+            here. The built-in mark stays the default because it is drawn in
+            currentColor and needs no second file for the dark header. */}
         <Link href={`/${locale}`} className="db-brand">
-          <BrandMark className="db-brand-mark" />
+          {brand.headerLogo
+            ? <img className="db-brand-mark db-brand-mark-img" src={brand.headerLogo} alt="" width={41} height={30} />
+            : <BrandMark className="db-brand-mark" />}
           <span>
-            <b className="db-brand-name">DBEDC</b>
-            <small className="db-brand-tag">Dhaka Bypass Expressway</small>
+            <b className="db-brand-name">{brand.orgShortName}</b>
+            <small className="db-brand-tag">{t(locale, 'brandTagline')}</small>
           </span>
         </Link>
 
