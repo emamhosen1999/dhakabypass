@@ -237,8 +237,8 @@ away from being an outage, and the release script blocks it.
 ```bash
 cd ~/apps/dhakabypass-live        # production; staging would be apps/dhakabypass-staging
 /usr/local/cpanel/3rdparty/lib/path-bin/git pull
-node preflight.mjs        # exit 0 means it will boot
-touch tmp/restart.txt
+node preflight.mjs        # exit 0 means it will boot; also lists any db/sql file the database is missing
+bash handover.sh          # replaces the running process with this build (see below)
 ```
 
 `preflight.mjs` checks the environment *without* starting the app, so a
@@ -297,7 +297,16 @@ https://www.namecheap.com/support/knowledgebase/article.aspx/10656/103/managing-
 — try that first, then chat support with "please reset CageFS / kill the
 Node.js process for dhakabypass.com under aeos365".
 
-How to tell it has happened: a never-requested asset of the new build
+**Since 12 September the artifact ships `handover.sh`**: after `git pull` and
+the SQL imports, run `bash handover.sh` in the app root. It tries
+`tmp/restart.txt`, and if the old process is still answering it writes a
+one-line `process.exit(0)` into a route the old process has not loaded yet
+(the news-article route), requests it, restores the file from git and
+confirms the new build's own `_buildManifest` answers 200. That handover
+worked on 12 September where every other lever had failed; only if it
+prints "STILL the old process" is support needed.
+
+How to tell it has happened by hand: a never-requested asset of the new build
 answers 200 at the origin —
 `curl -sk --resolve dhakabypass.com:443:209.74.67.113 -o /dev/null -w "%{http_code}
 " https://dhakabypass.com/_next/static/chunks/<a chunk from the new build-manifest>`.

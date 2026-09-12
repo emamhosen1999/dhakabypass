@@ -146,6 +146,24 @@ function git(...a) {
   }
 }
 
+/** Copy a package and every package it depends on (recursively) from
+ *  ROOT/node_modules into `dest`, flat, as npm lays them out. */
+async function copyPackageClosure(name, dest) {
+  const seen = new Set();
+  const queue = [name];
+  while (queue.length) {
+    const n = queue.shift();
+    if (seen.has(n)) continue;
+    seen.add(n);
+    const src = path.join(ROOT, 'node_modules', n);
+    let pkg;
+    try { pkg = JSON.parse(await fsp.readFile(path.join(src, 'package.json'), 'utf8')); } catch { continue; }
+    await fsp.mkdir(path.dirname(path.join(dest, n)), { recursive: true });
+    await fsp.cp(src, path.join(dest, n), { recursive: true, dereference: true });
+    for (const dep of Object.keys(pkg.dependencies || {})) queue.push(dep);
+  }
+}
+
 async function main() {
   // Same precedence Next itself uses, so the origin recorded here is the origin
   // the build actually rendered with — including when it came from .env.local
@@ -195,8 +213,14 @@ async function main() {
     path.join(ROOT, 'lib', 'db', 'migrations.js'),
     path.join(STANDALONE, 'deploy', 'migrations.js'),
   );
+  // mysql2 is bundled into the server chunks by webpack and is NOT in the
+  // artifact's node_modules, so the packaged preflight could not import it
+  // (ERR_MODULE_NOT_FOUND on the server, 12 September 2026). Its dependency
+  // closure is copied under deploy/node_modules for the preflight alone.
+  await copyPackageClosure('mysql2', path.join(STANDALONE, 'deploy', 'node_modules'));
+  await fsp.copyFile(path.join(ROOT, 'scripts', 'handover.sh'), path.join(STANDALONE, 'handover.sh'));
   await fsp.writeFile(path.join(STANDALONE, 'preflight.mjs'), PREFLIGHT_ENTRY, 'utf8');
-  ok('deploy/env-check.js, deploy/migrations.js and preflight.mjs');
+  ok('deploy/env-check.js, deploy/migrations.js, deploy/node_modules/mysql2, handover.sh and preflight.mjs');
 
   // The migration SQL travels WITH the release. The deploy is a `git pull` on a
   // cPanel account, and migrations are the one step that cannot be a file copy —
@@ -419,7 +443,7 @@ if (!result.problems.some((p) => String(p.key).startsWith('DB')) && env.DB_HOST 
   const { readAppliedMigrations, missingMigrations, migrationProblem, MIGRATIONS } = await import('./deploy/migrations.js');
   let ledger;
   try {
-    const mysql = await import('mysql2/promise');
+    const mysql = await import('./deploy/node_modules/mysql2/promise.js');
     const conn = await mysql.createConnection({
       host: env.DB_HOST, port: Number(env.DB_PORT) || 3306, user: env.DB_USER,
       password: env.DB_PASSWORD || '', database: env.DB_NAME, connectTimeout: 8000,
