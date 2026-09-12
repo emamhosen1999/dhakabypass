@@ -187,8 +187,16 @@ async function main() {
     path.join(ROOT, 'lib', 'deploy', 'env-check.js'),
     path.join(STANDALONE, 'deploy', 'env-check.js'),
   );
+  // The schema ledger check (W6.6) rides the same way: lib/db/migrations.js is
+  // pure — the list of SQL files this build expects plus the arithmetic — and
+  // the artifact carries mysql2 already, so the on-server preflight can ask
+  // the database which files it is missing without any project import.
+  await fsp.copyFile(
+    path.join(ROOT, 'lib', 'db', 'migrations.js'),
+    path.join(STANDALONE, 'deploy', 'migrations.js'),
+  );
   await fsp.writeFile(path.join(STANDALONE, 'preflight.mjs'), PREFLIGHT_ENTRY, 'utf8');
-  ok('deploy/env-check.js and preflight.mjs');
+  ok('deploy/env-check.js, deploy/migrations.js and preflight.mjs');
 
   // The migration SQL travels WITH the release. The deploy is a `git pull` on a
   // cPanel account, and migrations are the one step that cannot be a file copy —
@@ -402,6 +410,31 @@ try {
 const result = checkEnvironment({ env, cwd: dir, buildInfo });
 if (!result.problems.some((p) => p.key === 'MEDIA_ROOT') && env.MEDIA_ROOT) {
   result.problems.push(...(await checkMediaRootWritable(env.MEDIA_ROOT)));
+}
+
+// The schema ledger (W6.6): which of the numbered db/sql files this build
+// expects are missing from the database. Asked only once the connection
+// variables are present, through the artifact's own mysql2.
+if (!result.problems.some((p) => String(p.key).startsWith('DB')) && env.DB_HOST && env.DB_NAME && env.DB_USER) {
+  const { readAppliedMigrations, missingMigrations, migrationProblem, MIGRATIONS } = await import('./deploy/migrations.js');
+  let ledger;
+  try {
+    const mysql = await import('mysql2/promise');
+    const conn = await mysql.createConnection({
+      host: env.DB_HOST, port: Number(env.DB_PORT) || 3306, user: env.DB_USER,
+      password: env.DB_PASSWORD || '', database: env.DB_NAME, connectTimeout: 8000,
+    });
+    try {
+      ledger = await readAppliedMigrations(async (sql) => (await conn.query(sql))[0]);
+    } finally {
+      await conn.end();
+    }
+  } catch (err) {
+    ledger = { applied: [], error: err?.code || err?.message || 'unknown' };
+  }
+  const problem = migrationProblem(missingMigrations(ledger.applied), ledger.error);
+  if (problem) result.problems.push(problem);
+  else console.log(\`\n  database  all \${MIGRATIONS.length} SQL files applied (through \${MIGRATIONS[MIGRATIONS.length - 1]})\`);
 }
 
 if (buildInfo) {
