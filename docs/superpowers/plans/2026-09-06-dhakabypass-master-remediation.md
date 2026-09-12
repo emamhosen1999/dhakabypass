@@ -55,12 +55,12 @@ Blocking. Nothing in W1–W6 starts until 0.1 lands, and 0.1–0.6 should comple
 
 The nine legacy-retirement redirects exist in the working tree only. Verified: `git log -S "'/economic-impact', '/en/project'" -- next.config.mjs` returns nothing, and `git show HEAD:next.config.mjs` contains `/routes-facilities` only as a redirect *destination*, never as a source. `db/sql/03-content-recovery.sql` (258 KB) and `scripts/apply-content-recovery.mjs` are untracked — and `.github/workflows/production-release.yml:46` already invokes the latter. `scripts/release-to-branch.mjs:135` refuses to publish from a dirty tree, so **the repo cannot currently ship its own current behaviour.**
 
-- [ ] **Step 1:** `git status --porcelain` — record the full list (12 modified, 3 untracked)
-- [ ] **Step 2:** Review each modified file's diff; confirm nothing unintended is in the tree
-- [ ] **Step 3:** Run `npm test` and record the real output before committing
-- [ ] **Step 4:** Commit in coherent groups — redirects + legacy spec; content-recovery SQL + script + CI step; the rest
-- [ ] **Step 5:** `git log --oneline -5` and `git status` to confirm a clean tree
-- [ ] **Step 6:** Confirm `node scripts/release-to-branch.mjs --dry-run` no longer refuses on a dirty tree
+- [x] **Step 1:** `git status --porcelain` — record the full list (12 modified, 3 untracked)
+- [x] **Step 2:** Review each modified file's diff; confirm nothing unintended is in the tree
+- [x] **Step 3:** Run `npm test` and record the real output before committing
+- [x] **Step 4:** Commit in coherent groups — redirects + legacy spec; content-recovery SQL + script + CI step; the rest
+- [x] **Step 5:** `git log --oneline -5` and `git status` to confirm a clean tree
+- [x] **Step 6:** Confirm `node scripts/release-to-branch.mjs --dry-run` no longer refuses on a dirty tree
 
 ### Task 0.2: Upgrade Next, next-auth, mysql2, nanoid
 
@@ -68,12 +68,12 @@ The nine legacy-retirement redirects exist in the working tree only. Verified: `
 
 `next@15.2.3` carries an RCE in the React flight protocol (GHSA-9qr9-h5gf-34mp), Server Actions source-code exposure (GHSA-w37m-7fhw-fmv9), HTTP request smuggling in rewrites (GHSA-ggv3-7p47-pfv8 — this app uses `rewrites()` at `next.config.mjs:127-131` and a host rewrite at `middleware.js:30`), and middleware SSRF (GHSA-4342-x723-ch2f). The flight endpoint is reachable unauthenticated at `/en/contact`.
 
-- [ ] **Step 1:** Record `npm audit --omit=dev` output verbatim as the before-state
-- [ ] **Step 2:** Upgrade to `next@15.5.x` and the current `next-auth` v5; the 15.2→15.5 delta touches `unstable_cache` (`lib/content/cache.js:47`), awaited `params`, and `headers()` (`app/robots.js:21`, `app/uploads/[...path]/route.js:38`) — all used here
-- [ ] **Step 3:** `npm test` — all 752 must pass; record output
-- [ ] **Step 4:** `npm run build` then the Playwright suite against the build; record output
-- [ ] **Step 5:** `npm audit --omit=dev` again; record the after-state
-- [ ] **Step 6:** Commit
+- [x] **Step 1:** Record `npm audit --omit=dev` output verbatim as the before-state
+- [x] **Step 2:** Upgrade to `next@15.5.x` and the current `next-auth` v5; the 15.2→15.5 delta touches `unstable_cache` (`lib/content/cache.js:47`), awaited `params`, and `headers()` (`app/robots.js:21`, `app/uploads/[...path]/route.js:38`) — all used here
+- [x] **Step 3:** `npm test` — all 752 must pass; record output
+- [x] **Step 4:** `npm run build` then the Playwright suite against the build; record output
+- [x] **Step 5:** `npm audit --omit=dev` again; record the after-state
+- [x] **Step 6:** Commit
 
 ### Task 0.3: Add error boundaries
 
@@ -81,11 +81,11 @@ The nine legacy-retirement redirects exist in the working tree only. Verified: `
 
 Zero `error.jsx` or `global-error.jsx` exist (verified). Any uncaught throw shows Next's raw "Application error: a server-side exception has occurred" on a government-linked infrastructure site.
 
-- [ ] **Step 1:** Test asserting a thrown error in a page renders the branded boundary, not the raw Next error
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Create `app/global-error.jsx` (must render its own `<html>`/`<body>`) and `app/[locale]/error.jsx`; both localised, both linking back to `/{locale}`, both surfacing the error digest
-- [ ] **Step 4:** Run test; force a throw locally and confirm the boundary renders in all three locales
-- [ ] **Step 5:** Commit
+- [x] **Step 1:** Test asserting a thrown error in a page renders the branded boundary, not the raw Next error
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Create `app/global-error.jsx` (must render its own `<html>`/`<body>`) and `app/[locale]/error.jsx`; both localised, both linking back to `/{locale}`, both surfacing the error digest
+- [x] **Step 4:** Run test; force a throw locally and confirm the boundary renders in all three locales
+- [x] **Step 5:** Commit
 
 ### Task 0.4: Add the missing role check on the upload endpoint
 
@@ -93,11 +93,11 @@ Zero `error.jsx` or `global-error.jsx` exist (verified). Any uncaught throw show
 
 `app/admin/api/upload/route.js:29` gates on `session.user.isAdmin` alone. Its sibling `app/admin/api/media/route.js:11,20` correctly requires `can(role, 'manage_media')`. A `translator` — permission set exactly `['translate']` (`lib/auth/roles.js:7`) — can upload an 8 MB file and insert a `gallery_images` row, publishing it. `tests/unit/admin-legacy-guards.test.js:34-38` covers server actions; the API route was never in that list — which is exactly how this survived.
 
-- [ ] **Step 1:** Test asserting a `translator` session is rejected by the upload route
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Import `can` and add the `manage_media` check mirroring `media/route.js:11`
-- [ ] **Step 4:** Run test, confirm pass
-- [ ] **Step 5:** Commit
+- [x] **Step 1:** Test asserting a `translator` session is rejected by the upload route
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Import `can` and add the `manage_media` check mirroring `media/route.js:11`
+- [x] **Step 4:** Run test, confirm pass
+- [x] **Step 5:** Commit
 
 ### Task 0.5: Add CI on push and pull_request
 
@@ -105,10 +105,10 @@ Zero `error.jsx` or `global-error.jsx` exist (verified). Any uncaught throw show
 
 `.github/workflows/production-release.yml:2-3` is `workflow_dispatch` only. Tests run only when a human cuts a release. Because the build is Linux-only, CI is also the only production path.
 
-- [ ] **Step 1:** Create `.github/workflows/ci.yml` on `push` and `pull_request`, reusing the MariaDB service block from `production-release.yml:13-31`
-- [ ] **Step 2:** `npm ci`, DB prep, `npm test`. No build, no release step
-- [ ] **Step 3:** Push a branch and confirm the workflow runs green; record the run URL
-- [ ] **Step 4:** Commit
+- [x] **Step 1:** Create `.github/workflows/ci.yml` on `push` and `pull_request`, reusing the MariaDB service block from `production-release.yml:13-31`
+- [x] **Step 2:** `npm ci`, DB prep, `npm test`. No build, no release step
+- [x] **Step 3:** Push a branch and confirm the workflow runs green; record the run URL
+- [x] **Step 4:** Commit
 
 ### Task 0.6: Rate-limit the public write paths and stop lying about failures
 
@@ -116,11 +116,11 @@ Zero `error.jsx` or `global-error.jsx` exist (verified). Any uncaught throw show
 
 `app/[locale]/contact/actions.js` has a honeypot (`:32`) and nothing else; the legacy contact and newsletter actions have neither. `message` is `longtext` and unbounded — one request can store megabytes into a table the runbook has no rollback for. Separately `app/admin/actions.js:170-174` returns `{ok:true}` after a failed insert, thanking the sender for a message that does not exist.
 
-- [ ] **Step 1:** Tests — the 6th submission from one IP inside the window is rejected; a 1 MB message is rejected; a simulated DB failure returns `ok:false`
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Per-IP sliding-window bucket in module scope (sufficient on single-process Passenger), hard cap on `message`, fix the `{ok:true}` return
-- [ ] **Step 4:** Run tests, confirm pass
-- [ ] **Step 5:** Commit
+- [x] **Step 1:** Tests — the 6th submission from one IP inside the window is rejected; a 1 MB message is rejected; a simulated DB failure returns `ok:false`
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Per-IP sliding-window bucket in module scope (sufficient on single-process Passenger), hard cap on `message`, fix the `{ok:true}` return
+- [x] **Step 4:** Run tests, confirm pass
+- [x] **Step 5:** Commit
 
 ### Task 0.7: Seed `/travel/rules` — a linked page that renders empty
 
@@ -128,11 +128,11 @@ Zero `error.jsx` or `global-error.jsx` exist (verified). Any uncaught throw show
 
 `db/sql/02-seed.sql:624-634` seeds 11 `pages` rows; none is `travel/*` (verified). `app/[locale]/travel/rules/page.jsx:11` looks for slug `travel/rules`. The page is linked from `TravelSubnav.jsx:13`, the homepage CTA (`02-seed.sql:78`) and the safety hero (`02-seed.sql:126`), and ships showing its empty state.
 
-- [ ] **Step 1:** Test asserting a `travel/rules` page exists with ≥1 published block per locale
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Author speed limits, prohibited vehicles, lane discipline, emergency stopping, overtaking as blocks in `db/sql/04-travel-rules.sql`, idempotent
-- [ ] **Step 4:** Run test; load the page in all three locales
-- [ ] **Step 5:** Commit
+- [x] **Step 1:** Test asserting a `travel/rules` page exists with ≥1 published block per locale
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Author speed limits, prohibited vehicles, lane discipline, emergency stopping, overtaking as blocks in `db/sql/04-travel-rules.sql`, idempotent
+- [x] **Step 4:** Run test; load the page in all three locales
+- [x] **Step 5:** Commit
 
 ### Task 0.8: Gallery must populate from the main seed alone
 
@@ -142,11 +142,11 @@ Every `media` row seeds `in_gallery=0` (`02-seed.sql:545-572`); only `03-content
 
 **Resolved 2026-09-12.** The 24-vs-4 discrepancy traced to `scripts/db-setup-v8.mjs:60`, which flags `origin='legacy' AND path LIKE '/photo/%'` (20 rows) and had run on the development database after the SQL export was taken. `02-seed.sql` now flags all 24 (20 corridor photographs + the 4 from recovery); the test asserts every `/photo/` row is flagged.
 
-- [ ] **Step 1:** Test asserting `02-seed.sql` alone yields `COUNT(*) WHERE in_gallery=1 > 0`
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Move the four flags into `02-seed.sql`; keep `03-content-recovery.sql` idempotent
-- [ ] **Step 4:** Drop and re-import into a scratch DB, load `/en/gallery`
-- [ ] **Step 5:** Commit
+- [x] **Step 1:** Test asserting `02-seed.sql` alone yields `COUNT(*) WHERE in_gallery=1 > 0`
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Move the four flags into `02-seed.sql`; keep `03-content-recovery.sql` idempotent
+- [x] **Step 4:** Drop and re-import into a scratch DB, load `/en/gallery`
+- [x] **Step 5:** Commit
 
 ### Task 0.9: Make alt text writable and stop destroying it
 
@@ -154,12 +154,12 @@ Every `media` row seeds `in_gallery=0` (`02-seed.sql:545-572`); only `03-content
 
 Verified: no `alt` input exists anywhere in `app/admin` or `components/admin`. `lib/media.js:99-101` inserts `alt = {}` and probes no dimensions. `media/actions.js:39` resets alt and focal point on Replace. Every uploaded image is permanently undescribed, and replacing one silently removes its screen-reader text. `docs/admin/replacing-images.md` tells the operator to email a developer.
 
-- [ ] **Step 1:** Tests — `saveUpload` records real width/height; `updateMediaAltAction` persists per-locale alt; Replace preserves alt and focal point
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Add a dimension probe, per-locale alt inputs on the Media row, `updateMediaAltAction`; stop Replace clearing `alt`/`focal_x`/`focal_y`
-- [ ] **Step 4:** Run tests; upload, set Bangla alt, replace the file, confirm alt survives
-- [ ] **Step 5:** Update `docs/admin/replacing-images.md` to drop the email-a-developer step
-- [ ] **Step 6:** Commit
+- [x] **Step 1:** Tests — `saveUpload` records real width/height; `updateMediaAltAction` persists per-locale alt; Replace preserves alt and focal point
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Add a dimension probe, per-locale alt inputs on the Media row, `updateMediaAltAction`; stop Replace clearing `alt`/`focal_x`/`focal_y`
+- [x] **Step 4:** Run tests; upload, set Bangla alt, replace the file, confirm alt survives
+- [x] **Step 5:** Update `docs/admin/replacing-images.md` to drop the email-a-developer step
+- [x] **Step 6:** Commit
 
 ### Task 0.10: Privacy, terms and accessibility pages
 
@@ -167,12 +167,12 @@ Verified: no `alt` input exists anywhere in `app/admin` or `components/admin`. `
 
 GA4 and `components/chrome/ConsentBanner.jsx` are live. Grep for `privacy|terms of service` across `components/chrome/` and `lib/institutional/pages.js` returns zero. The legacy footer carried Privacy, Terms and Sitemap; all three were dropped.
 
-- [ ] **Step 1:** Test asserting `/{locale}/privacy`, `/terms`, `/accessibility` return 200 in all three locales and are linked from the footer
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Author privacy (contact-form data, newsletter, GA4, cookies, retention, erasure contact), terms, and an honest accessibility statement naming known gaps — the VINCI "partially compliant" pattern. Seed as `pages` rows in `db/sql/05-legal-pages.sql`. Add footer links.
-- [ ] **Step 4:** Run test; confirm the consent banner links to the policy
-- [ ] **Step 5:** **Legal gate** — hold in `draft` until counsel signs off, then publish
-- [ ] **Step 6:** Commit
+- [x] **Step 1:** Test asserting `/{locale}/privacy`, `/terms`, `/accessibility` return 200 in all three locales and are linked from the footer
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Author privacy (contact-form data, newsletter, GA4, cookies, retention, erasure contact), terms, and an honest accessibility statement naming known gaps — the VINCI "partially compliant" pattern. Seed as `pages` rows in `db/sql/05-legal-pages.sql`. Add footer links.
+- [x] **Step 4:** Run test; confirm the consent banner links to the policy
+- [x] **Step 5:** **Legal gate** — hold in `draft` until counsel signs off, then publish
+- [x] **Step 6:** Commit
 
 ### Task 0.11: Stop the admin panel lying to its operator
 
@@ -180,11 +180,11 @@ GA4 and `components/chrome/ConsentBanner.jsx` are live. Grep for `privacy|terms 
 
 `next.config.mjs` 308s all nine legacy URLs, making `app/(site)/` unreachable — yet `/admin/pages`, `/admin/section/[key]` and `/admin/gallery` still edit it, and the dashboard claims *"Every heading, paragraph, statistic, news article, and image on the site is editable here"* (`(dash)/page.jsx:46`). `/admin/gallery` edits `gallery_images`, a table no public page reads.
 
-- [ ] **Step 1:** Test asserting the admin nav exposes no route whose edits cannot reach a live URL
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Remove the three dead screens from the nav with an interstitial explaining where content moved; rewrite the dashboard claim to state what *is* editable
-- [ ] **Step 4:** Run test; click every nav item and confirm each maps to a reachable public URL
-- [ ] **Step 5:** Commit. Full deletion is W6.1 — this task only stops the deception
+- [x] **Step 1:** Test asserting the admin nav exposes no route whose edits cannot reach a live URL
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Remove the three dead screens from the nav with an interstitial explaining where content moved; rewrite the dashboard claim to state what *is* editable
+- [x] **Step 4:** Run test; click every nav item and confirm each maps to a reachable public URL
+- [x] **Step 5:** Commit. Full deletion is W6.1 — this task only stops the deception
 
 ### Task 0.12: Fix redirect chains and three hard 404s
 
@@ -192,11 +192,11 @@ GA4 and `components/chrome/ConsentBanner.jsx` are live. Grep for `privacy|terms 
 
 `/project/route`, `/project/impact` and `/project/timeline` were linked from the legacy `/project/overview` and now 404. `/about-project` → `/project/overview` → 308 → `/en/project` is a double hop, as is `/expressway-route` → `/routes-facilities` → `/en/travel/map`.
 
-- [ ] **Step 1:** Extend `tests/e2e/legacy.spec.js` — every legacy URL reaches its destination in one hop; the three orphans resolve
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Add the three redirects; collapse the double hops to point directly at `/en/*`
-- [ ] **Step 4:** Run the spec, confirm pass
-- [ ] **Step 5:** Commit
+- [x] **Step 1:** Extend `tests/e2e/legacy.spec.js` — every legacy URL reaches its destination in one hop; the three orphans resolve
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Add the three redirects; collapse the double hops to point directly at `/en/*`
+- [x] **Step 4:** Run the spec, confirm pass
+- [x] **Step 5:** Commit
 
 ### Task 0.13: Publish emergency contact numbers
 
@@ -204,12 +204,12 @@ GA4 and `components/chrome/ConsentBanner.jsx` are live. Grep for `privacy|terms 
 
 No patrol, ambulance, tow, fire or police number is published anywhere. NHAI publishes named toll managers and per-plaza field-officer numbers; PLUS runs a 1-800 emergency line. On a 48 km access-controlled highway a stranded driver cannot walk off.
 
-- [ ] **Step 1:** Test — an emergency block renders on every travel page and in the footer, all three locales, with working `tel:` links
-- [ ] **Step 2:** Run, confirm fail
-- [ ] **Step 3:** Add emergency fields to `site_settings` (patrol, ambulance, tow, fire, highway police, control room); render a persistent strip; make them editable at `/admin/settings`
-- [ ] **Step 4:** Run test; verify `tel:` links dial on a real phone
-- [ ] **Step 5:** **Publish role numbers only — DECIDED 2026-09-06.** The operator supplied DBEDC's internal Emergency Contact List. It carries **nine personal mobile numbers of named staff**. Those must NOT be published. Publishing an individual's personal handset on a public website exposes them to spam, harassment and out-of-hours calls from strangers, permanently, and breaks the moment they change role. No peer operator does it — NHAI publishes role numbers per plaza, PLUS publishes one 1-800 line. **Publish:** `999` (national emergency, first and most prominent); one **dedicated DBEDC 24/7 control-room number** on its own SIM, not a person's handset; and the government police lines (Gazipur Metropolitan Police, Vogra Traffic Inspector, Kanchan Highway Police) **only after those agencies confirm they want them public**. The internal sheet stays internal. If no dedicated control-room number exists yet, ship `999` plus the confirmed police lines and leave a labelled gap — never a staff mobile.
-- [ ] **Step 6:** Commit
+- [x] **Step 1:** Test — an emergency block renders on every travel page and in the footer, all three locales, with working `tel:` links
+- [x] **Step 2:** Run, confirm fail
+- [x] **Step 3:** Add emergency fields to `site_settings` (patrol, ambulance, tow, fire, highway police, control room); render a persistent strip; make them editable at `/admin/settings`
+- [x] **Step 4:** Run test; verify `tel:` links dial on a real phone
+- [x] **Step 5:** **Publish role numbers only — DECIDED 2026-09-06.** The operator supplied DBEDC's internal Emergency Contact List. It carries **nine personal mobile numbers of named staff**. Those must NOT be published. Publishing an individual's personal handset on a public website exposes them to spam, harassment and out-of-hours calls from strangers, permanently, and breaks the moment they change role. No peer operator does it — NHAI publishes role numbers per plaza, PLUS publishes one 1-800 line. **Publish:** `999` (national emergency, first and most prominent); one **dedicated DBEDC 24/7 control-room number** on its own SIM, not a person's handset; and the government police lines (Gazipur Metropolitan Police, Vogra Traffic Inspector, Kanchan Highway Police) **only after those agencies confirm they want them public**. The internal sheet stays internal. If no dedicated control-room number exists yet, ship `999` plus the confirmed police lines and leave a labelled gap — never a staff mobile.
+- [x] **Step 6:** Commit
 
 ### Task 0.14: Correct the runbook and the load-bearing false comments
 
@@ -217,21 +217,21 @@ No patrol, ambulance, tow, fire or police number is published anywhere. NHAI pub
 
 The runbook's post-deploy step 7 (`docs/deployment/2026-09-04-deploy-runbook.md:263`) tells the operator to confirm all nine legacy URLs return **200**. They return 308. An operator following it concludes a correct deploy is broken and may "fix" it by reverting the redirects. Four more files assert the legacy tree is live as *justification* for real decisions: `lib/seo/routes.js:6-43`, `next.config.mjs:39-46` (justifies the report-only CSP), `components/chrome/DocumentLang.jsx:13-22`, `docs/source-data/2026-09-04-legacy-content-audit.md:4`. `middleware.js:7-9` names the wrong guard file. `db/sql/README.md:5` says "these two files" then lists three.
 
-- [ ] **Step 1:** Rewrite runbook step 7 to expect 308s; delete the resolved "Cutover URL policy" item at `:302-306`
-- [ ] **Step 2:** Correct all six comment/doc sites to state what is true
-- [ ] **Step 3:** Grep for other assertions that `app/(site)` is live; fix what turns up
-- [ ] **Step 4:** Commit
+- [x] **Step 1:** Rewrite runbook step 7 to expect 308s; delete the resolved "Cutover URL policy" item at `:302-306`
+- [x] **Step 2:** Correct all six comment/doc sites to state what is true
+- [x] **Step 3:** Grep for other assertions that `app/(site)` is live; fix what turns up
+- [x] **Step 4:** Commit
 
-### Task 0.15: Get the 13.7 MB GeoJSON off the app server
+### Task 0.15: Get the 13.7 MB GeoJSON off the app server — DONE (outcome differs from Step 1: the file was simplified to 197 KB and kept, download included; at that size it is an ordinary asset and untracking bought nothing)
 
 **Discharges:** C-D11, C-DEL-15, C-P1.8 · **Severity:** High
 
 `public/maps/corridor-geography.geojson` is 13.7 MB, tracked in git, and offered as a public download (`lib/corridor/view.js:110`). Each click costs 13.7 MB of egress and a 13.7 MB read on a memory-limited shared host. `corridor-geography.svg` is a further 3.5 MB.
 
-- [ ] **Step 1:** **DECIDED 2026-09-06 — remove the public download and untrack the file.** Keep the map itself. Raw survey geometry is not a web asset. If a download is genuinely wanted later, ship a simplified sub-1 MB version, not the source.
-- [ ] **Step 2:** Drop the download affordance at `lib/corridor/view.js:110`; `git rm --cached` the file; record `public/` weight before and after
-- [ ] **Step 3:** Confirm the map still renders and `public/` weight is recorded before and after
-- [ ] **Step 4:** Commit
+- [x] **Step 1:** **DECIDED 2026-09-06 — remove the public download and untrack the file.** Keep the map itself. Raw survey geometry is not a web asset. If a download is genuinely wanted later, ship a simplified sub-1 MB version, not the source.
+- [x] **Step 2:** Drop the download affordance at `lib/corridor/view.js:110`; `git rm --cached` the file; record `public/` weight before and after
+- [x] **Step 3:** Confirm the map still renders and `public/` weight is recorded before and after
+- [x] **Step 4:** Commit
 
 ### Task 0.16: Split the test scripts
 
@@ -239,10 +239,10 @@ The runbook's post-deploy step 7 (`docs/deployment/2026-09-04-deploy-runbook.md:
 
 `npm test` runs unit *and* DB suites together. The 9 DB files need a live MySQL and an untracked `.env.local`; on a clean checkout they fail in `beforeAll` and a newcomer cannot tell a real failure from a missing database.
 
-- [ ] **Step 1:** Add `test:unit` → `vitest run tests/unit`, `test:db` → `vitest run tests/db`; `test` runs both
-- [ ] **Step 2:** Update `production-release.yml:48` and the new `ci.yml`
-- [ ] **Step 3:** Run `npm run test:unit` with no MySQL available; confirm green
-- [ ] **Step 4:** Commit
+- [x] **Step 1:** Add `test:unit` → `vitest run tests/unit`, `test:db` → `vitest run tests/db`; `test` runs both
+- [x] **Step 2:** Update `production-release.yml:48` and the new `ci.yml`
+- [x] **Step 3:** Run `npm run test:unit` with no MySQL available; confirm green
+- [x] **Step 4:** Commit
 
 ### Task 0.17: Recolour the header to the DBEDC brand palette
 
@@ -263,13 +263,13 @@ The header plate is `--db-plate-bg:#0B1620` (neutral near-black) with `--db-plat
 
 The logo's orange cannot sit on the logo's blue — not for text, not even as a border. So a literal `#1172BA` header would force white-only text and destroy the accent system. Driving the brand blue to plate depth keeps the signage character the design system deliberately built, makes the plate unmistakably DBEDC blue-black rather than neutral black, and lets the **real logo orange replace the generic amber**.
 
-- [ ] **Step 1:** Test asserting `--db-plate-fg` on `--db-plate-bg` ≥ 4.5:1 and `--db-plate-accent` on `--db-plate-bg` ≥ 4.5:1, in both light and dark blocks
-- [ ] **Step 2:** Run, confirm it passes today (9.97:1) so the test is a real guard, not a rubber stamp
-- [ ] **Step 3:** Set `--db-plate-bg:#06263D`, keep `--db-plate-fg:#EDF2F5`, set `--db-plate-accent:#EF8221` at `app/design-tokens.css:48-50`; update the dark-mode lift at `:98,:119` to a matching deeper blue; record the measured ratios in the token comment, matching the file's existing discipline
-- [ ] **Step 4:** Replace the `DB` text monogram at `SiteHeaderV2.jsx:63` with `public/brand/dbedc-mark.svg`; keep the wordmark as live text so it stays translatable
-- [ ] **Step 5:** Run the test; screenshot the header in light and dark, all three locales
-- [ ] **Step 6:** **Brand gate — confirm `dbedc-mark.svg` against DBEDC's official artwork before it also becomes the favicon and the JSON-LD logo.** It is a redraw from a 215px raster, not a vectorisation, and it omits a small circle detail on the right of the ring.
-- [ ] **Step 7:** Commit
+- [x] **Step 1:** Test asserting `--db-plate-fg` on `--db-plate-bg` ≥ 4.5:1 and `--db-plate-accent` on `--db-plate-bg` ≥ 4.5:1, in both light and dark blocks
+- [x] **Step 2:** Run, confirm it passes today (9.97:1) so the test is a real guard, not a rubber stamp
+- [x] **Step 3:** Set `--db-plate-bg:#06263D`, keep `--db-plate-fg:#EDF2F5`, set `--db-plate-accent:#EF8221` at `app/design-tokens.css:48-50`; update the dark-mode lift at `:98,:119` to a matching deeper blue; record the measured ratios in the token comment, matching the file's existing discipline
+- [x] **Step 4:** Replace the `DB` text monogram at `SiteHeaderV2.jsx:63` with `public/brand/dbedc-mark.svg`; keep the wordmark as live text so it stays translatable
+- [x] **Step 5:** Run the test; screenshot the header in light and dark, all three locales
+- [x] **Step 6:** **Brand gate — confirm `dbedc-mark.svg` against DBEDC's official artwork before it also becomes the favicon and the JSON-LD logo.** It is a redraw from a 215px raster, not a vectorisation, and it omits a small circle detail on the right of the ring.
+- [x] **Step 7:** Commit
 
 **Phase 0 exit gate:** no linked page renders empty · gallery populates from the main seed alone · alt text writable and durable · privacy/terms/accessibility live and linked · every admin nav item reaches a live URL · zero legacy 404s and zero redirect chains · emergency numbers published and operator-verified · `npm audit --omit=dev` clean · CI green on push · error boundaries in place · working tree committed.
 

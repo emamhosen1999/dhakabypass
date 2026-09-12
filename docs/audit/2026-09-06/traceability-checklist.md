@@ -21,15 +21,15 @@
 
 | ID | Old page → what was dropped | Task | Status |
 |---|---|---|---|
-| A-LEG-01 | `/` — 4 overview stats, 4 impact metrics, "12 bridges/7 flyovers/27 underpasses", callout + virtual-tour CTA, footer address/email/phone, newsletter form, Privacy/Terms/Sitemap links | W2.1, 0.10, 2.8 | [ ] |
-| A-LEG-02 | `/project` — 6-category progress breakdown, 5 achievements, 5-entry timeline, 8 spec tiles, entire semi-rigid pavement section, Vision & Mission | W2.2 | [ ] |
-| A-LEG-03 | `/project/overview` — 8 objectives, 9-item tech-spec grid, project sub-nav, Project Documents list, "Need More Information?" CTA | W2.3 | [ ] |
-| A-LEG-04 | `/routes-facilities` — full-distance toll column ৳200–৳1600, calculation formulas, 5 key-location narratives, Expressway Facilities section, "Partial Opening Success" panel, vehicle-type toll selector, route diagram | W2.4, W4.1 | [ ] |
-| A-LEG-05 | `/stakeholders` — 6 partner outbound links, 4-tab UI, 3 header stats, ৳224cr→৳674cr VGF revision, ৳1,614cr CDB loan, ৳1,075cr BIFFL loan, ৳42.5cr first instalment, Governance Structure panel | W2.5, W3.6 | [ ] |
-| A-LEG-06 | `/chinese-contribution` — 6 contribution cards, $412M/60%/1000+ counters, pavement case study, Belt & Road section, Knowledge Transfer (50+ engineers), 3 CSR cards, 5 images | W2.6 | [ ] |
-| A-LEG-07 | `/economic-impact` — **everything**; content is seeded and editable but the route 308s away | W2.7, W5.11 | [ ] |
+| A-LEG-01 | `/` — 4 overview stats, 4 impact metrics, "12 bridges/7 flyovers/27 underpasses", callout + virtual-tour CTA, footer address/email/phone, newsletter form, Privacy/Terms/Sitemap links | W2.1, 0.10, 2.8 | [x] stats on home stat-row; structures in project specs (24); newsletter-form block; legal links in footer; address/phone are Settings values pending W2.10 |
+| A-LEG-02 | `/project` — 6-category progress breakdown, 5 achievements, 5-entry timeline, 8 spec tiles, entire semi-rigid pavement section, Vision & Mission | W2.2 | [x] discharged by W2.2 (see plan) |
+| A-LEG-03 | `/project/overview` — 8 objectives, 9-item tech-spec grid, project sub-nav, Project Documents list, "Need More Information?" CTA | W2.3 | [x] discharged by W2.3 (see plan) |
+| A-LEG-04 | `/routes-facilities` — full-distance toll column ৳200–৳1600, calculation formulas, 5 key-location narratives, Expressway Facilities section, "Partial Opening Success" panel, vehicle-type toll selector, route diagram | W2.4, W4.1 | [x] 24-legacy-content: full-corridor table + formulas on /travel/toll, 5 locations on /travel/route, facilities on /travel/facilities, partial-opening notice on /travel/status; toll-calculator (INT.2) replaces the selector; route diagram = corridor-map block |
+| A-LEG-05 | `/stakeholders` — 6 partner outbound links, 4-tab UI, 3 header stats, ৳224cr→৳674cr VGF revision, ৳1,614cr CDB loan, ৳1,075cr BIFFL loan, ৳42.5cr first instalment, Governance Structure panel | W2.5, W3.6 | [x] 24-legacy-content on /about/governance: 7 partner cards with the six links, 3 stats, VGF/CDB/BIFFL figures, governance structure (W3.6 concession summary remains operator content) |
+| A-LEG-06 | `/chinese-contribution` — 6 contribution cards, $412M/60%/1000+ counters, pavement case study, Belt & Road section, Knowledge Transfer (50+ engineers), 3 CSR cards, 5 images | W2.6 | [x] discharged by W2.6 (see plan) |
+| A-LEG-07 | `/economic-impact` — **everything**; content is seeded and editable but the route 308s away | W2.7, W5.11 | [x] 24-legacy-content on /sustainability: counters, trade, growth, employment, regional development (marked projections; W5.11 real figures await DBEDC) |
 | A-LEG-08 | `/latest-updates` — embedded 36-photo grid, newsletter subscribe form | W2.8, W2.9 | [~] `gallery-grid` and `newsletter-form` blocks exist for an operator to place on /news; authoring is W2 |
-| A-LEG-09 | `/gallery` — **32 of 36 photos**, "Load More" pagination | W2.9, 0.8 | [ ] |
+| A-LEG-09 | `/gallery` — **32 of 36 photos**, "Load More" pagination | W2.9, 0.8 | [x] discharged by W2.9, 0.8 (see plan) |
 | A-LEG-10 | `/contact` — phone number dropped as placeholder; address/email hardcoded not seeded | W2.10, W1.20 | [ ] |
 | A-LEG-11 | `/404` — renders unstyled, English, no chrome on `/bn` and `/zh` | W1.19 || [x] 404 is the `not-found` block document (23-not-found.sql), localised with 404 status; `app/not-found.jsx` re-exports it |
 
@@ -37,9 +37,9 @@
 
 | ID | Finding | Task | Status |
 |---|---|---|---|
-| A-MED-1 | 13 legacy images in neither AUDITED nor REJECTED: `/photo/4`, `/photo/26`–`36`, `/DSC02396`, `/translate.png` | W2.9 | [ ] |
+| A-MED-1 | 13 legacy images in neither AUDITED nor REJECTED: `/photo/4`, `/photo/26`–`36`, `/DSC02396`, `/translate.png` | W2.9 | [x] discharged by W2.9 (see plan) |
 | A-MED-2 | 24 of 28 registered `media` rows have `in_gallery=0`; gallery empty without manual SQL import | 0.8 | [x] 02-seed.sql flags 24 (traced to db-setup-v8's `/photo/%` rule); test pins every `/photo/` row |
-| A-MED-3 | `redirects` table has zero seeded rows; `/project/route`, `/project/impact`, `/project/timeline` 404 | 0.12 | [ ] |
+| A-MED-3 | `redirects` table has zero seeded rows; `/project/route`, `/project/impact`, `/project/timeline` 404 | 0.12 | [x] discharged by 0.12 (see plan) |
 
 ### A.3 Hardcoded content hit list (15) — §5
 
@@ -47,17 +47,17 @@
 |---|---|---|---|
 | A-HC-5.1 | `lib/i18n/ui.js` — 154 keys × 3 locales = 462 strings, none admin-editable; file's own comment is false | W1.6 | [x] |
 | A-HC-5.2 | `lib/i18n/map-ui.js` — 28 keys × 3 locales = 84 strings; entire map control panel + legend | W1.6, W1.21 | [x] |
-| A-HC-5.3 | `SiteHeaderV2.jsx` — NAV array, `DB` monogram, `DBEDC` name, tagline, untranslated aria-labels, unremovable Contact CTA | W1.10, W1.11 | [ ] |
-| A-HC-5.4 | `SiteFooterV2.jsx` — GROUPS (4 cols/15 links), legal name literal, copyright, **no Privacy/Terms/Sitemap** | W1.10, 0.10 | [ ] |
+| A-HC-5.3 | `SiteHeaderV2.jsx` — NAV array, `DB` monogram, `DBEDC` name, tagline, untranslated aria-labels, unremovable Contact CTA | W1.10, W1.11 | [x] discharged by W1.10, W1.11 (see plan) |
+| A-HC-5.4 | `SiteFooterV2.jsx` — GROUPS (4 cols/15 links), legal name literal, copyright, **no Privacy/Terms/Sitemap** | W1.10, 0.10 | [x] discharged by W1.10, 0.10 (see plan) |
 | A-HC-5.5 | `app/[locale]/page.jsx` — hero force-hoisting makes editor order a lie; corridor section is unmovable JSX; CTA targets hardcoded; untranslated empty state | W1.5 | [x] file deleted; corridor section = progress-bar + corridor-strip + interchange-table(limit 5, link) blocks (18-home-corridor.sql); empty state is ui `homeNotCreated` |
 | A-HC-5.6 | Six travel pages — every H1, lede, caption, column header in code; `status` has no block region at all; `TravelSubnav` not menu-driven; `/travel` redirect target fixed | W1.8, W1.11 | [x] six page files deleted (16-travel-pages.sql); `section-subnav` reads the `travel` menu at /admin/menus with the code list as outage fallback (browser-verified override); `/travel` is a `redirects` row (21) |
 | A-HC-5.7 | Gallery page — copy in code, no lightbox/pagination/albums, hard 200-photo ceiling | W1.9, W2.9 | [ ] |
-| A-HC-5.8 | Contact page — address/email hardcoded English-only fallbacks, all 12 form labels in code, field set fixed | W1.20, W1.9 | [ ] |
+| A-HC-5.8 | Contact page — address/email hardcoded English-only fallbacks, all 12 form labels in code, field set fixed | W1.20, W1.9 | [x] contact-form block, settings-backed details with a pending callout, labels in ui_strings (W1.20) |
 | A-HC-5.9 | News — eyebrow/H1/lede/empty state in code, no category filter, no pagination, 24-item cap | W1.9 | [ ] |
-| A-HC-5.10 | SEO — site title, description, favicon, JSON-LD logo path *and dimensions*, org name, `STATIC_LOCALISED_PATHS`, robots; **no per-page SEO on any code route** | W1.7 | [ ] |
+| A-HC-5.10 | SEO — site title, description, favicon, JSON-LD logo path *and dimensions*, org name, `STATIC_LOCALISED_PATHS`, robots; **no per-page SEO on any code route** | W1.7 | [x] discharged by W1.7 (see plan) |
 | A-HC-5.11 | Media — no Add button, **no alt input anywhere**, no width/height probe, Replace wipes alt+focal, no delete, focal_x/y unused | 0.9, W1.18 || [x] Add to library, focal point, delete-with-usage-check on /admin/media; crop deferred |
-| A-HC-5.12 | `app/design-tokens.css` — 75 tokens, all code; no colour, type, breakpoint or status colour is admin-editable | W1.16 | [ ] |
-| A-HC-5.13 | Corridor/map data — 100 KB `map-context.json`, `public/maps/*`, label geometry and zoom regex all code | W1.21 | [ ] |
+| A-HC-5.12 | `app/design-tokens.css` — 75 tokens, all code; no colour, type, breakpoint or status colour is admin-editable | W1.16 | [x] discharged by W1.16 (see plan) |
+| A-HC-5.13 | Corridor/map data — 100 KB `map-context.json`, `public/maps/*`, label geometry and zoom regex all code | W1.21 | [x] discharged by W1.21 (see plan) |
 | A-HC-5.14 | `app/not-found.jsx` reads the dead `content` table; legacy Tailwind; no chrome | W1.19 || [x] 404 is the `not-found` block document (23-not-found.sql), localised with 404 status; `app/not-found.jsx` re-exports it |
 | A-HC-5.15 | Roles in code, **no `/admin/users` screen**; adding an editor needs SSH or SQL | W1.17 || [x] /admin/users (Staff): add, remove, re-role, reset password; no SSH/SQL; browser-verified add → editor sign-in → removal enforced on next request |
 
@@ -65,28 +65,28 @@
 
 | ID | Finding | Task | Status |
 |---|---|---|---|
-| A-P0-1 | `/travel/rules` has no `pages` row; linked from subnav + homepage CTA + safety hero; renders empty | 0.7 | [ ] |
-| A-P0-2 | Gallery empty without manual `03-content-recovery.sql` import | 0.8 | [ ] |
-| A-P0-3 | Alt text unwritable; `lib/media.js:99` inserts `{}`; Replace wipes it | 0.9 | [ ] |
-| A-P0-4 | No privacy policy, with GA4 + consent banner live | 0.10 | [ ] |
-| A-P0-5 | Half the admin edits a retired site; dashboard makes a false claim | 0.11 | [ ] |
-| A-P1-6 | Block editor has no image picker — paths typed from memory | W1.1 | [ ] |
-| A-P1-7 | List fields = raw JSON textarea; richtext = raw HTML textarea | W1.2, W1.3 | [ ] |
-| A-P1-8 | Reordering is ↑/↓ buttons, one page reload per swap | W1.4 | [ ] |
+| A-P0-1 | `/travel/rules` has no `pages` row; linked from subnav + homepage CTA + safety hero; renders empty | 0.7 | [x] discharged by 0.7 (see plan) |
+| A-P0-2 | Gallery empty without manual `03-content-recovery.sql` import | 0.8 | [x] discharged by 0.8 (see plan) |
+| A-P0-3 | Alt text unwritable; `lib/media.js:99` inserts `{}`; Replace wipes it | 0.9 | [x] discharged by 0.9 (see plan) |
+| A-P0-4 | No privacy policy, with GA4 + consent banner live | 0.10 | [x] discharged by 0.10 (see plan) |
+| A-P0-5 | Half the admin edits a retired site; dashboard makes a false claim | 0.11 | [x] discharged by 0.11 (see plan) |
+| A-P1-6 | Block editor has no image picker — paths typed from memory | W1.1 | [x] discharged by W1.1 (see plan) |
+| A-P1-7 | List fields = raw JSON textarea; richtext = raw HTML textarea | W1.2, W1.3 | [x] discharged by W1.2, W1.3 (see plan) |
+| A-P1-8 | Reordering is ↑/↓ buttons, one page reload per swap | W1.4 | [x] discharged by W1.4 (see plan) |
 | A-P1-9 | Homepage corridor section unmovable; hero force-hoisted | W1.5 | [x] home rendered by `[[...slug]]` in editor order; no hoisting |
 | A-P1-10 | 546 UI strings code-only; `/admin/translations` read-only and not in nav | W1.6 | [x] |
-| A-P1-11 | No per-page SEO for any code route | W1.7 | [ ] |
-| A-P1-12 | 13 legacy images unclassified | W2.9 | [ ] |
-| A-P1-13 | `/project/route`, `/project/impact`, `/project/timeline` 404 | 0.12 | [ ] |
-| A-P2-14 | Header/footer branding literal; logo never rendered in live header | W1.10 | [ ] |
-| A-P2-15 | Menus all-or-nothing; footer headings must pre-exist; numeric position | W1.11 | [ ] |
-| A-P2-16 | `TravelSubnav` not menu-driven (`lib/menus/slugs.js` knows only main/footer) | W1.11 | [ ] |
+| A-P1-11 | No per-page SEO for any code route | W1.7 | [x] discharged by W1.7 (see plan) |
+| A-P1-12 | 13 legacy images unclassified | W2.9 | [x] discharged by W2.9 (see plan) |
+| A-P1-13 | `/project/route`, `/project/impact`, `/project/timeline` 404 | 0.12 | [x] discharged by 0.12 (see plan) |
+| A-P2-14 | Header/footer branding literal; logo never rendered in live header | W1.10 | [x] discharged by W1.10 (see plan) |
+| A-P2-15 | Menus all-or-nothing; footer headings must pre-exist; numeric position | W1.11 | [x] discharged by W1.11 (see plan) |
+| A-P2-16 | `TravelSubnav` not menu-driven (`lib/menus/slugs.js` knows only main/footer) | W1.11 | [x] discharged by W1.11 (see plan) |
 | A-P2-17 | No user management screen | W1.17 || [x] /admin/users (Staff): add, remove, re-role, reset password; no SSH/SQL; browser-verified add → editor sign-in → removal enforced on next request |
-| A-P2-18 | `revisions` table never written — no undo, no history | W1.13 | [ ] |
-| A-P2-19 | No colour/typography control | W1.16 | [ ] |
-| A-P2-20 | Contact address/email hardcoded English-only fallbacks | W1.20 | [ ] |
+| A-P2-18 | `revisions` table never written — no undo, no history | W1.13 | [x] discharged by W1.13 (see plan) |
+| A-P2-19 | No colour/typography control | W1.16 | [x] discharged by W1.16 (see plan) |
+| A-P2-20 | Contact address/email hardcoded English-only fallbacks | W1.20 | [x] discharged by W1.20 (see plan) |
 | A-P2-21 | `isrFlushToDisk:false` + multi-process Passenger serves stale after save | W6.18 | [ ] |
-| A-P2-22 | Doc drift in `lib/seo/routes.js`, `next.config.mjs:39`, legacy-content-audit, `db/sql/README.md` | 0.14 | [ ] |
+| A-P2-22 | Doc drift in `lib/seo/routes.js`, `next.config.mjs:39`, legacy-content-audit, `db/sql/README.md` | 0.14 | [x] discharged by 0.14 (see plan) |
 
 ---
 
@@ -134,7 +134,7 @@
 | B-C2 | Vehicle classification guide with diagrams and edge cases | W4.2 | [ ] |
 | B-C3 | Payment methods page — cash/card/bKash/Nagad/Rocket/ETC/pass/fleet | W4.3 | [ ] |
 | B-C4 | ETC/RFID account signup & self-service | W4.4 | [ ] |
-| B-C5 | Emergency & assistance directory — helpline, patrol, ambulance, fire, tow, police | 0.13 | [ ] |
+| B-C5 | Emergency & assistance directory — helpline, patrol, ambulance, fire, tow, police | 0.13 | [x] discharged by 0.13 (see plan) |
 | B-C6 | Breakdown / incident assistance request | W4.6 | [ ] |
 | B-C7 | Live CCTV / camera snapshots | W4.7 | [ ] |
 | B-C8 | Planned roadworks & closures calendar | W4.8 | [ ] |
@@ -204,26 +204,26 @@
 
 | ID | Finding | Sev | Task | Status |
 |---|---|---|---|---|
-| C-D1 | **Redirects, `03-content-recovery.sql`, `apply-content-recovery.mjs` all uncommitted** — repo cannot ship its own behaviour | Critical | 0.1 | [ ] |
+| C-D1 | **Redirects, `03-content-recovery.sql`, `apply-content-recovery.mjs` all uncommitted** — repo cannot ship its own behaviour | Critical | 0.1 | [x] discharged by 0.1 (see plan) |
 | C-D2 | `app/(site)/**` — 5,225 lines unreachable | High | W6.1 || [x] W6.1: `app/(site)`, 7 legacy components, `/admin/pages`, `/admin/section`, `/admin/gallery`, `lib/gallery.js`, `lib/content.js`, `lib/admin-sections.js` deleted; legacy contact/newsletter/section/gallery actions removed |
-| C-D3 | Second content model: `content` table + legacy admin, still in nav | High | 0.11, W6.2 | [ ] |
+| C-D3 | Second content model: `content` table + legacy admin, still in nav | High | 0.11, W6.2 | [x] discharged by 0.11, W6.2 (see plan) |
 | C-D4 | Third content model: `content/*.json`, `.extract/`, `old_dhakabypass/` tracked (13 MB) | Medium | W6.16, W6.14, W6.15 | [ ] |
-| C-D5 | `next@15.2.3` + `@auth/core` + `mysql2` + `nanoid` — 7 vulns, 3 critical | Critical | 0.2 | [ ] |
-| C-D6 | No CI on push or PR — `workflow_dispatch` only | High | 0.5 | [ ] |
-| C-D7 | **Zero error boundaries** in `app/` | High | 0.3 | [ ] |
+| C-D5 | `next@15.2.3` + `@auth/core` + `mysql2` + `nanoid` — 7 vulns, 3 critical | Critical | 0.2 | [x] discharged by 0.2 (see plan) |
+| C-D6 | No CI on push or PR — `workflow_dispatch` only | High | 0.5 | [x] discharged by 0.5 (see plan) |
+| C-D7 | **Zero error boundaries** in `app/` | High | 0.3 | [x] discharged by 0.3 (see plan) |
 | C-D8 | Three `console.error` calls total; no logger, no reporting | High | W6.8 | [ ] |
-| C-D9 | No migration tool; `ALTER`s hand-pasted into phpMyAdmin | High | W6.6 | [ ] |
-| C-D10 | Runbook step 7 expects 200 on legacy URLs; they 308 | High | 0.14 | [ ] |
-| C-D11 | `corridor-geography.geojson` 13.7 MB tracked and publicly downloadable | High | 0.15 | [ ] |
+| C-D9 | No migration tool; `ALTER`s hand-pasted into phpMyAdmin | High | W6.6 | [x] discharged by W6.6 (see plan) |
+| C-D10 | Runbook step 7 expects 200 on legacy URLs; they 308 | High | 0.14 | [x] discharged by 0.14 (see plan) |
+| C-D11 | `corridor-geography.geojson` 13.7 MB tracked and publicly downloadable | High | 0.15 | [x] discharged by 0.15 (see plan) |
 | C-D12 | `sharp` used by the map pipeline but absent from `package.json` | Medium | W6.12 | [ ] |
 | C-D13 | No ESLint/Prettier/tsconfig/jsconfig/lint script — 22,281 lines unanalysed | Medium | W6.7 | [ ] |
 | C-D14 | Deploy branch tracks 2,471 files incl. 1,973 `node_modules/` | Medium | W6.11 | [ ] |
-| C-D15 | `upload/route.js:29` missing `manage_media` check | Medium | 0.4 | [ ] |
-| C-D16 | No rate limiting on any public write path | Medium | 0.6 | [ ] |
-| C-D17 | Legacy contact action returns `{ok:true}` on DB failure | Medium | 0.6 | [ ] |
+| C-D15 | `upload/route.js:29` missing `manage_media` check | Medium | 0.4 | [x] discharged by 0.4 (see plan) |
+| C-D16 | No rate limiting on any public write path | Medium | 0.6 | [x] discharged by 0.6 (see plan) |
+| C-D17 | Legacy contact action returns `{ok:true}` on DB failure | Medium | 0.6 | [x] discharged by 0.6 (see plan) |
 | C-D18 | 404 reads dead `content` table; degrades to blank on outage | Medium | W1.19, W6.2 || [x] 404 is the `not-found` block document (23-not-found.sql), localised with 404 status; `app/not-found.jsx` re-exports it |
 | C-D19 | `lib/content/pages.js` fetches all locales, discards ⅔ in JS | Medium | W6.17 | [ ] |
-| C-D20 | `npm test` mixes unit + DB; 9 files fail on a clean checkout | Medium | 0.16 | [ ] |
+| C-D20 | `npm test` mixes unit + DB; 9 files fail on a clean checkout | Medium | 0.16 | [x] discharged by 0.16 (see plan) |
 | C-D21 | 7 uncalled scripts, 731 lines, two of which rewrite the app tree | Low | W6.10 | [ ] |
 | C-D22 | `admin_users`, `audit_log`, `revisions` — zero references, defended by tests + CI | Low | W6.10, W1.13 | [ ] |
 | C-D23 | `verify-release-sql.mjs` hardcodes `tables.length!==28`; no drop before verify | Low | W6.13 | [ ] |
@@ -233,13 +233,13 @@
 
 | ID | Finding | Exploitable? | Task | Status |
 |---|---|---|---|---|
-| C-S1 | `next@15.2.3` RCE in React flight protocol + Server Actions source exposure + rewrite smuggling + middleware SSRF; flight endpoint reachable unauthenticated at `/en/contact` | Treat as yes | 0.2 | [ ] |
-| C-S2 | `@auth/core` OAuth state/PKCE not provider-bound; `getToken()` 500 on malformed Bearer | Yes if Google OAuth on; mitigated by allowlist | 0.2 | [ ] |
-| C-S3 | Translator can upload files and publish gallery rows via `upload/route.js` | Yes, authenticated | 0.4 | [ ] |
-| C-S4 | No rate limiting; `message` is unbounded `longtext` — megabytes per request | Yes, trivially | 0.6 | [ ] |
+| C-S1 | `next@15.2.3` RCE in React flight protocol + Server Actions source exposure + rewrite smuggling + middleware SSRF; flight endpoint reachable unauthenticated at `/en/contact` | Treat as yes | 0.2 | [x] discharged by 0.2 (see plan) |
+| C-S2 | `@auth/core` OAuth state/PKCE not provider-bound; `getToken()` 500 on malformed Bearer | Yes if Google OAuth on; mitigated by allowlist | 0.2 | [x] discharged by 0.2 (see plan) |
+| C-S3 | Translator can upload files and publish gallery rows via `upload/route.js` | Yes, authenticated | 0.4 | [x] discharged by 0.4 (see plan) |
+| C-S4 | No rate limiting; `message` is unbounded `longtext` — megabytes per request | Yes, trivially | 0.6 | [x] discharged by 0.6 (see plan) |
 | C-S5 | Report-only CSP justified by a fiction; `unsafe-inline` justified by a self-imposed rule | Removes a defence | W6.4 | [ ] |
 | C-S6 | Upload/file-serving path — **clean**, no action | n/a | — | [~] No action: verified correct |
-| C-S7 | Authorization coverage — **complete**; `middleware.js:7-9` names the wrong guard file | n/a | 0.14 (comment fix) | [ ] |
+| C-S7 | Authorization coverage — **complete**; `middleware.js:7-9` names the wrong guard file | n/a | 0.14 (comment fix) | [x] discharged by 0.14 (see plan) |
 | C-S8 | Secrets — **clean**, no action | n/a | — | [~] No action: verified correct |
 
 ### C.3 Deletion list (15) — §4
@@ -260,7 +260,7 @@
 | C-DEL-12 | `admin-dash.png`, `var/shots.mjs` | nothing | W6.14 | [ ] |
 | C-DEL-13 | Tables `admin_users`, `audit_log`, `revisions` | schema test + CI count + `migrate-users.mjs` | W6.10 | [ ] |
 | C-DEL-14 | Tables `content`, `gallery_images` | DEL-3/5/6 + upload route's gallery branch | W6.10 | [ ] |
-| C-DEL-15 | `corridor-geography.geojson` 13.7 MB | download affordance at `view.js:110` | 0.15 | [ ] |
+| C-DEL-15 | `corridor-geography.geojson` 13.7 MB | download affordance at `view.js:110` | 0.15 | [x] discharged by 0.15 (see plan) |
 
 ### C.4 Test-coverage gaps (6) — §5
 
@@ -277,33 +277,33 @@
 
 | ID | Risk | Task | Status |
 |---|---|---|---|
-| C-R1 | `npm run db:sql` skipped → committed SQL drifts from the migration chain; nothing in CI checks | W6.6 | [ ] |
-| C-R2 | **phpMyAdmin import — the single most dangerous step**; no migration runner, no applied-version table | W6.6 | [ ] |
-| C-R3 | Schema upgrades applied by hand-copying `ALTER`s out of `.mjs` files | W6.6 | [ ] |
-| C-R4 | `03-content-recovery.sql` untracked — absent on a fresh install from `main` | 0.1 | [ ] |
-| C-R5 | Linux-only build ⇒ CI is the only production path, and CI is manual-dispatch-only | 0.5 | [ ] |
-| C-R6 | `preflight.mjs` not enforced before restart | W6.6 | [ ] |
+| C-R1 | `npm run db:sql` skipped → committed SQL drifts from the migration chain; nothing in CI checks | W6.6 | [x] discharged by W6.6 (see plan) |
+| C-R2 | **phpMyAdmin import — the single most dangerous step**; no migration runner, no applied-version table | W6.6 | [x] discharged by W6.6 (see plan) |
+| C-R3 | Schema upgrades applied by hand-copying `ALTER`s out of `.mjs` files | W6.6 | [x] discharged by W6.6 (see plan) |
+| C-R4 | `03-content-recovery.sql` untracked — absent on a fresh install from `main` | 0.1 | [x] discharged by 0.1 (see plan) |
+| C-R5 | Linux-only build ⇒ CI is the only production path, and CI is manual-dispatch-only | 0.5 | [x] discharged by 0.5 (see plan) |
+| C-R6 | `preflight.mjs` not enforced before restart | W6.6 | [x] discharged by W6.6 (see plan) |
 | C-R7 | CI bakes `unstable_cache` entries warmed against the CI seed DB into `.next/cache` (documented prior incident) | W6.18 | [ ] |
 
 ### C.6 Remediation items mapped (20) — §7
 
 | ID | Item | Task | Status |
 |---|---|---|---|
-| C-P0.1 | Commit the working tree | 0.1 | [ ] |
-| C-P0.2 | Upgrade next + next-auth | 0.2 | [ ] |
-| C-P0.3 | Error boundaries | 0.3 | [ ] |
-| C-P0.4 | Upload role check | 0.4 | [ ] |
-| C-P0.5 | CI on push/PR | 0.5 | [ ] |
-| C-P0.6 | Fix runbook step 7 | 0.14 | [ ] |
-| C-P1.1 | Delete legacy tree | W6.1 | [ ] |
-| C-P1.2 | Port not-found + dashboard off `lib/content.js` | W6.2 | [ ] |
+| C-P0.1 | Commit the working tree | 0.1 | [x] discharged by 0.1 (see plan) |
+| C-P0.2 | Upgrade next + next-auth | 0.2 | [x] discharged by 0.2 (see plan) |
+| C-P0.3 | Error boundaries | 0.3 | [x] discharged by 0.3 (see plan) |
+| C-P0.4 | Upload role check | 0.4 | [x] discharged by 0.4 (see plan) |
+| C-P0.5 | CI on push/PR | 0.5 | [x] discharged by 0.5 (see plan) |
+| C-P0.6 | Fix runbook step 7 | 0.14 | [x] discharged by 0.14 (see plan) |
+| C-P1.1 | Delete legacy tree | W6.1 | [x] discharged by W6.1 (see plan) |
+| C-P1.2 | Port not-found + dashboard off `lib/content.js` | W6.2 | [x] discharged by W6.2 (see plan) |
 | C-P1.3 | Port news admin off `lib/news.js` | W6.3 | [ ] |
 | C-P1.4 | CSP enforcing on `/:path*` | W6.4 | [ ] |
 | C-P1.5 | Simplify `DocumentLang` via route-group root layout | W6.5 | [ ] |
-| C-P1.6 | Split test scripts | 0.16 | [ ] |
-| C-P1.7 | Rate limiting + fix `{ok:true}` | 0.6 | [ ] |
-| C-P1.8 | Move the 13.7 MB geojson off the app server | 0.15 | [ ] |
-| C-P2.1 | Real migration tool + `schema_migrations` + preflight version gate | W6.6 | [ ] |
+| C-P1.6 | Split test scripts | 0.16 | [x] discharged by 0.16 (see plan) |
+| C-P1.7 | Rate limiting + fix `{ok:true}` | 0.6 | [x] discharged by 0.6 (see plan) |
+| C-P1.8 | Move the 13.7 MB geojson off the app server | 0.15 | [x] discharged by 0.15 (see plan) |
+| C-P2.1 | Real migration tool + `schema_migrations` + preflight version gate | W6.6 | [x] discharged by W6.6 (see plan) |
 | C-P2.2 | ESLint + Prettier + CI lint gate | W6.7 | [ ] |
 | C-P2.3 | Structured logger wired into boundaries and `friendly()` | W6.8 | [ ] |
 | C-P2.4 | Admin e2e coverage | W6.9 | [ ] |
@@ -332,14 +332,14 @@ These carry extra weight; they are not one auditor's opinion.
 
 | ID | Item | Task | Status |
 |---|---|---|---|
-| OP-1 | Header plate is neutral near-black `#0B1620` with a generic amber accent `#FFB000`; neither appears in the DBEDC logo (`#1172BA` / `#EF8221`) | 0.17 | [ ] |
-| OP-2 | Header renders a `DB` **text monogram**, not the logo — `SiteHeaderV2.jsx:63` | 0.17, W1.10 | [ ] |
+| OP-1 | Header plate is neutral near-black `#0B1620` with a generic amber accent `#FFB000`; neither appears in the DBEDC logo (`#1172BA` / `#EF8221`) | 0.17 | [x] discharged by 0.17 (see plan) |
+| OP-2 | Header renders a `DB` **text monogram**, not the logo — `SiteHeaderV2.jsx:63` | 0.17, W1.10 | [x] discharged by 0.17, W1.10 (see plan) |
 | OP-3 | No vector mark existed for DBEDC; only a 215×204 raster | Done — `public/brand/dbedc-mark.svg` (redraw, pending brand-file check) | [>] |
 | OP-4 | No vector marks for RHD, SRBG/SDIG, UDC | Request official SVG/EPS from each org; do **not** redraw | [ ] |
 | OP-5 | No site search, no breadcrumbs — becomes mandatory once W3/W5 add ~40 pages | W5.14, W5.15 | [ ] |
 | OP-6 | Gallery has no lightbox, no pagination, hard 200-image ceiling | W2.9, W1.9 | [ ] |
-| OP-7 | Contact CTA sits outside the menu system (`SiteHeaderV2.jsx:78`) — cannot be relabelled or removed | W1.11 | [ ] |
-| OP-8 | No persistent emergency affordance on a toll expressway site | 0.13 | [ ] |
+| OP-7 | Contact CTA sits outside the menu system (`SiteHeaderV2.jsx:78`) — cannot be relabelled or removed | W1.11 | [x] discharged by W1.11 (see plan) |
+| OP-8 | No persistent emergency affordance on a toll expressway site | 0.13 | [x] discharged by 0.13 (see plan) |
 
 ## UI & design review (added 2026-09-06) — public + admin
 
@@ -348,12 +348,12 @@ These carry extra weight; they are not one auditor's opinion.
 | UI-1 | **Credit where due:** the public design system is disciplined — 1,050 lines, 75 tokens, measured contrast ratios recorded in comments, `--db-tap:44px` targets, `--db-measure:68ch`, fluid `clamp()` scale, full dark palette, `tabular-nums` on figures. Above average. Do not rebuild it. | — | [~] No action |
 | UI-2 | **Typography is subject-grounded, not default.** Barlow Semi Condensed (display) derives from highway-signage vernacular — genuinely apt for an expressway operator. Archivo body, Hind Siliguri Bengali. Keep. | — | [~] No action |
 | UI-3 | **`/zh` has no font.** `public/fonts/` ships latin + bengali only; `--db-font-zh` (`design-tokens.css:74`) is 100% system fallback (PingFang SC / Hiragino / YaHei / Noto SC). On Android or Linux without a CJK font → **tofu**. No zh preload in `FontPreload.jsx`. Worse, `.db-root:lang(zh)` (`:154`) only fires if `lang="zh"` is set — which the JS `DocumentLang` hack does, so with JS off the rule may never apply. Chinese is a second-class citizen in the type system while the site claims trilingual support. | W1.28, W6.5 | [ ] |
-| UI-4 | **Brand voice evaporates on `/zh`.** Barlow and Archivo have no CJK coverage, so Chinese headings silently fall back to a system sans. The signage character that defines the brand exists only in English and Bengali. | W1.28 | [ ] |
-| UI-5 | **`.db-h1{text-transform:uppercase}`** (`:437`) is linguistically incoherent for two of three locales — Bengali and Chinese have no case. A latin-centric decision baked into the type system. | W1.28 | [ ] |
-| UI-6 | `--db-eyebrow` + uppercase H1 is the classic template-chrome pairing. Reads as generic, and compounds UI-5. | W1.15 | [ ] |
+| UI-4 | **Brand voice evaporates on `/zh`.** Barlow and Archivo have no CJK coverage, so Chinese headings silently fall back to a system sans. The signage character that defines the brand exists only in English and Bengali. | W1.28 | [x] discharged by W1.28 (see plan) |
+| UI-5 | **`.db-h1{text-transform:uppercase}`** (`:437`) is linguistically incoherent for two of three locales — Bengali and Chinese have no case. A latin-centric decision baked into the type system. | W1.28 | [x] discharged by W1.28 (see plan) |
+| UI-6 | `--db-eyebrow` + uppercase H1 is the classic template-chrome pairing. Reads as generic, and compounds UI-5. | W1.15 | [x] discharged by W1.15 (see plan) |
 | UI-7 | **No Bangladeshi or Chinese visual identity anywhere** — the look is neutral international transport-operator. Correct for the *driver-facing* layer (signage clarity beats ornament), but the corporate/governance layer has no visual system for expressing the RHD + SDIG/SRBG + UDC + DBEDC structure. Decide consciously rather than by default. | W3.4, W1.22 | [ ] |
-| UI-8 | **Partner marks must sit on light surfaces only.** Verified by render: SDIG/SRBG carries a hard white panel that floats as a card on dark, and DBEDC blue on `#06263D` is 3.06:1 and nearly vanishes. | W1.26, W1.27 | [ ] |
-| UI-9 | **Ten block types W3–W5 require do not exist.** Registry has 9: hero, media-prose, figure-grid, card-grid, cta-band, partner-row, toll-preview, rich-text, stat-row. Missing: person card, document list, FAQ, data table, timeline, tabs, contact directory, map-pin list, stat dashboard, logo row. | W1.22 | [ ] |
+| UI-8 | **Partner marks must sit on light surfaces only.** Verified by render: SDIG/SRBG carries a hard white panel that floats as a card on dark, and DBEDC blue on `#06263D` is 3.06:1 and nearly vanishes. | W1.26, W1.27 | [x] discharged by W1.26, W1.27 (see plan) |
+| UI-9 | **Ten block types W3–W5 require do not exist.** Registry has 9: hero, media-prose, figure-grid, card-grid, cta-band, partner-row, toll-preview, rich-text, stat-row. Missing: person card, document list, FAQ, data table, timeline, tabs, contact directory, map-pin list, stat dashboard, logo row. | W1.22 | [x] discharged by W1.22 (see plan) |
 | UI-10 | **Admin and public are two unrelated design languages.** `grep -rl "db-" app/admin components/admin` finds no styling use of the design system. Admin is raw Tailwind defaults (`bg-blue-900`, `container mx-auto`, `border rounded px-3 py-2`). Bespoke front-of-house, bootstrap-grade back-of-house. | W1.29 (new) | [x] `app/admin/admin.css` (W1.29): the admin's Tailwind palette is remapped onto the public tokens inside `.db-admin` |
 | UI-11 | **Admin doesn't match the brand it manages** — `bg-blue-900` is Tailwind's default blue, not DBEDC `#1172BA`. And admin has no dark mode while the public site ships a full dark palette. | W1.29 | [x] plate blue #06263D / logo blue #1172BA / accent #EF8221 across the admin; dark mode parity via the public `data-theme` rule and the same ThemeToggle |
 | UI-12 | **Admin nav naming is confusing and the code admits it.** "Content" vs "Pages" vs "Legacy" — `(dash)/layout.jsx:8-12` carries a comment explaining the workaround. Names things by how the system is built, not by what the operator understands. | 0.11, W1.29 | [x] nav reads Dashboard · Pages · News · Media · Corridor · Messages · Requests · Sign-ups · Navigation · Wording · Redirects · Search · Settings · Staff; no "Legacy" |
@@ -386,13 +386,13 @@ Answers the client's question "is our site already interactive, and where should
 |---|---|---|---|
 | INT-1 | **Credit where due:** the corridor map (pan/zoom/select, working no-JS fallback via a parallel accessible section-button list), the block editor's drag-and-drop (full keyboard parity via dnd-kit's KeyboardSensor, live `aria-live` announcements), `TabsBlock`/`FaqBlock` (textbook WAI-ARIA tabs and a deliberately script-free `<details>` FAQ), and `ContactForm.jsx` (`useActionState`, per-outcome `aria-live` messaging) are all already well-built and should not be reworked | — | [~] No action: verified good |
 | INT-2 | **Registry correction:** contrary to `findings-block-catalogue.md`'s 2026-09-06 snapshot, `lib/blocks/index.js` today registers all ten W1.22 types plus `toll-table`/`traffic-status`/`interchange-table` (22 live types against the plan's original 9), and the richtext-in-list-row sanitisation bug it flagged is fixed in `lib/blocks/form.js`. A second, concurrent workstream has closed this gap since the 2026-09-06 audit | — | [~] No action: verified current on 2026-09-10 |
-| INT-3 | Toll calculator (B-C1/W4.1) needs an O–D fare data model that does not exist yet — `toll_rates` has one flat `amount_bdt` per class plus a free-text `section`, no interchange-pair matrix. Corrects W4.1's stated effort from S to M | INT.1 | [ ] |
+| INT-3 | Toll calculator (B-C1/W4.1) needs an O–D fare data model that does not exist yet — `toll_rates` has one flat `amount_bdt` per class plus a free-text `section`, no interchange-pair matrix. Corrects W4.1's stated effort from S to M | INT.1 | [x] discharged by INT.1 (see plan) |
 | INT-4 | No `toll-calculator` block type exists anywhere on disk; recommend combining the toll fare calculator and the distance/journey-planner into one block rather than two, per PLUS Malaysia/407 ETR precedent (homepage + toll-page placement) | INT.2, W4.1 | [ ] |
 | INT-5 | `map-pin-list` already has `amenities` (nested list) and `hours` fields on disk; only the amenity-filter UI is missing, not a schema extension as the block catalogue assumed | INT.3, W4.9 | [ ] |
 | INT-6 | Vehicle classification guide (B-C2/W4.2) needs `card-grid` to carry an image alongside title/meta/body — same gap the block catalogue already named for awards and ISO certs | INT.4, W4.2 | [ ] |
-| INT-7 | FAQ search, downloads-centre filtering and news category filter/pagination (B-D5, W5.1, W1.30) all need the same shape of fix: a thin, dependency-free client-side visibility filter over content that must stay in the DOM (crawlability, Ctrl+F, print) — one shared pattern, not three bespoke ones | INT.5 | [ ] |
-| INT-8 | Gallery's real cap today is **60** images (`lib/gallery/repo.js:87`), tighter than the 200-photo ceiling already tracked at OP-6/W2.9. Recommend against building a scripted lightbox as the default — the existing native-link-to-native-viewer pattern is a deliberate, correct accessibility decision documented in the page's own comments | INT.6, W2.9 | [ ] |
-| INT-9 | `NewsletterForm.jsx` uses a materially weaker pattern (manual `fetch`/`useState`, no `aria-live`) than `ContactForm.jsx`; relinking it as-is (W2.8) would ship a regression next to a better-built form already in the codebase | INT.7, W2.8 | [ ] |
+| INT-7 | FAQ search, downloads-centre filtering and news category filter/pagination (B-D5, W5.1, W1.30) all need the same shape of fix: a thin, dependency-free client-side visibility filter over content that must stay in the DOM (crawlability, Ctrl+F, print) — one shared pattern, not three bespoke ones | INT.5 | [x] discharged by INT.5 (see plan) |
+| INT-8 | Gallery's real cap today is **60** images (`lib/gallery/repo.js:87`), tighter than the 200-photo ceiling already tracked at OP-6/W2.9. Recommend against building a scripted lightbox as the default — the existing native-link-to-native-viewer pattern is a deliberate, correct accessibility decision documented in the page's own comments | INT.6, W2.9 | [x] discharged by INT.6, W2.9 (see plan) |
+| INT-9 | `NewsletterForm.jsx` uses a materially weaker pattern (manual `fetch`/`useState`, no `aria-live`) than `ContactForm.jsx`; relinking it as-is (W2.8) would ship a regression next to a better-built form already in the codebase | INT.7, W2.8 | [x] discharged by INT.7, W2.8 (see plan) |
 | INT-10 | `request-form` block type (grievance, toll dispute, breakdown assistance, lost & found) does not exist; needs a new `service_requests` table with a generated tracking number, reusing `ContactForm.jsx`'s outcome/honeypot/rate-limit pattern rather than inventing a weaker one | INT.8, W3.17, W3.18, W4.6, W4.12 | [x] `request-form` (38th type): `service_requests` (19-service-requests.sql), `GR/TD/BA/LF/SR-YYMMDD-XXXX` tracking no., SLA due date, config bound server-side; queue at `/admin/requests`; grievance form placed on /grievances (20-grievance-form.sql); browser-verified en/bn |
 | INT-11 | `lib/corridor/tomtom.js`/`traffic-admin.js`/`traffic-refresh.js` are a complete, defensively-written live-traffic pipeline and `TrafficStatusBlock.jsx` is fully built, but no task anywhere schedules the refresh or confirms `TOMTOM_API_KEY` is set — all seven corridor sections read `unknown` today for an operations reason, not a missing-feature reason | INT.9 | [ ] |
 | INT-12 | **Rejected, for the record:** a scripted photo lightbox as the default gallery build; a carousel/slider anywhere on the site; a chatbot/live-chat widget ahead of B-C13's SMS/WhatsApp sequencing; a separate `journey-planner` block distinct from the toll calculator; treating live-CCTV (`video-embed`) as an "add interactivity" task rather than the missing media primitive it already is under W4.7/W5.3/W5.10 | — | [~] Rejected — see `findings-interactivity.md` §5 for reasoning on each |
