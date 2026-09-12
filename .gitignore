@@ -38,3 +38,6 @@ coverage/
 var/shots/
 var/hyd.mjs
 var/rate.mjs
+
+# Local Claude Code permission grants, never shared.
+.claude/settings.json

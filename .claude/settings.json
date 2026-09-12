@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(timeout 60 ssh -i ~/.ssh/aeos365_deploy -p 21098 -o BatchMode=yes aeos365@server904.web-hosting.com 'grep -n \"Passenger\" ~/dhakabypass.com/.htaccess')"
-    ]
-  }
-}
