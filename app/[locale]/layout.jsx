@@ -78,6 +78,12 @@ export default async function LocaleLayout({ children, params }) {
       <DocumentLang locale={locale} />
       {/* Stops the header re-wrapping when the condensed face swaps in. */}
       <FontPreload />
+      {/* Chinese: Noto Sans SC, self-hosted and sliced by unicode-range (W1.28).
+          A stylesheet link rather than a CSS import so only /zh pays for the
+          202 @font-face rules; the browser then fetches just the slices this
+          page's characters need. `precedence` lets React hoist it into <head>
+          ahead of the page's own styles. */}
+      {locale === 'zh' ? <link rel="stylesheet" href="/fonts/noto-sans-sc.css" precedence="high" /> : null}
       <ThemeScript />
       {/* Asserts only what has been verified and omits every field DBEDC has
           not supplied, which is why it is safe to publish on every page. The

@@ -94,7 +94,13 @@
 
   --db-font-display:'BarlowSemiCondensed','HindSiliguri',system-ui,sans-serif;
   --db-font-body:'Archivo','HindSiliguri',system-ui,sans-serif;
-  --db-font-zh:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
+  /* Chinese (W1.28): Noto Sans SC first, self-hosted from
+     public/fonts/noto-sans-sc.css and loaded only under lang=zh, so every
+     reader sees the same face rather than whichever CJK font their device
+     happens to carry; the platform faces remain as the fallback while the
+     slices arrive. Headings inherit this through the :lang(zh) rules below,
+     because BarlowSemiCondensed carries no CJK glyphs. */
+  --db-font-zh:'Noto Sans SC','PingFang SC','Hiragino Sans GB','Microsoft YaHei',system-ui,sans-serif;
 }
 
 @media (prefers-color-scheme:dark){
@@ -175,6 +181,15 @@
   }
 }
 .db-root:lang(zh){font-family:var(--db-font-zh);}
+/* Display runs on Chinese pages: the condensed Latin face has no CJK glyphs,
+   so a heading would otherwise be set per glyph from two unrelated fonts.
+   Keeping the Latin face first still sets the digits and acronyms (DBEDC,
+   K3+218, SRBG) in the display face; the CJK glyphs fall through to Noto. */
+.db-root:lang(zh) .db-h1,.db-root:lang(zh) .db-h2,.db-root:lang(zh) .db-h3,
+.db-root:lang(zh) .db-tag,.db-root:lang(zh) .db-stat-value,.db-root:lang(zh) .db-stat-label,
+.db-root:lang(zh) .db-btn,.db-root:lang(zh) .db-nav-link,.db-root:lang(zh) .db-subnav-link,
+.db-root:lang(zh) .db-eyebrow,.db-root:lang(zh) .db-ctaband-title{
+  font-family:'BarlowSemiCondensed','Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;}
 .db-root h1,.db-root h2,.db-root h3,.db-root .db-display{
   font-family:var(--db-font-display);font-weight:700;line-height:1.06;text-wrap:balance;
 }
