@@ -1,5 +1,7 @@
 'use server';
 
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { revalidatePage, revalidateMedia } from '../../../../lib/revalidate';
@@ -68,7 +70,7 @@ const REPLACEABLE_MIME_TYPES = ALLOWED_MIME_TYPES.filter((m) => m !== 'image/svg
  * and holds everything this does to rows so it can be tested against a real
  * database without an authenticated session.
  */
-export async function replaceMediaAction(formData) {
+async function replaceMediaAction$inner(formData) {
   await assertCan(ACTION);
 
   const id = Number(formData.get('id'));
@@ -139,7 +141,7 @@ export async function replaceMediaAction(formData) {
  * Guarded by the same `edit_blocks` capability as the rest of this screen:
  * deciding what the public sees is an editorial act, not an administrative one.
  */
-export async function setGalleryVisibilityAction(formData) {
+async function setGalleryVisibilityAction$inner(formData) {
   await assertCan(ACTION);
 
   const id = Number(formData.get('id'));
@@ -182,7 +184,7 @@ export async function setGalleryVisibilityAction(formData) {
  */
 const ALT_MAX = 300;
 
-export async function updateMediaAltAction(formData) {
+async function updateMediaAltAction$inner(formData) {
   await assertCan('manage_media');
 
   const id = Number(formData.get('id'));
@@ -217,4 +219,135 @@ export async function updateMediaAltAction(formData) {
   revalidateMedia();
   for (const slug of await pageSlugsUsingMedia(row.path)) revalidatePage(slug);
   revalidatePath(ADMIN);
+}
+
+/**
+ * Add a picture to the library without placing it on a page first (W1.18).
+ *
+ * Until now the only way in was the "Upload new" button inside a block's
+ * image field, which registers the row but leaves an operator no way to
+ * describe or crop a picture before it is in use. saveUpload() writes the
+ * file and the row (with real pixel dimensions); the English description
+ * typed alongside is stored at once, so a picture never enters the library
+ * silent.
+ */
+async function addMediaAction$inner(formData) {
+  await assertCan(ACTION);
+  const file = formData.get('file');
+  if (!file || typeof file.arrayBuffer !== 'function' || !file.size) {
+    throw validationError('Choose a file to upload.');
+  }
+  if (!REPLACEABLE_MIME_TYPES.includes(file.type)) {
+    throw validationError(`That file type is not allowed. Use ${REPLACEABLE_MIME_TYPES.join(', ')}.`);
+  }
+  const buffer = Buffer.from(await file.arrayBuffer());
+  if (buffer.length > 8 * 1024 * 1024) throw validationError('The file is larger than 8MB.');
+  if (!imageSize(buffer)) {
+    throw validationError('That file does not look like an image we can read. Send the original camera file.');
+  }
+  const alt = String(formData.get('alt_en') || '').trim().slice(0, ALT_MAX);
+  try {
+    const saved = await saveUpload({ buffer, filename: file.name, mime: file.type });
+    if (alt) await setMediaAlt(saved.id, { en: alt });
+    await query("UPDATE media SET origin = 'upload' WHERE id = ?", [saved.id]);
+  } catch (err) {
+    friendly(err, 'The image could not be added. Please try again.');
+  }
+  revalidateMedia();
+  revalidatePath(ADMIN);
+}
+
+/**
+ * Where the picture sits in a crop. 0–1 on each axis, stored as focal_x /
+ * focal_y and read by components/SiteImage.jsx as object-position, so a
+ * hero cropped to a wide band keeps its subject — the toll plaza, the face,
+ * the gantry — in frame.
+ */
+async function setFocalPointAction$inner(formData) {
+  await assertCan(ACTION);
+  const id = Number(formData.get('id'));
+  const fx = Number(formData.get('focal_x'));
+  const fy = Number(formData.get('focal_y'));
+  if (!Number.isInteger(id) || id <= 0) throw validationError('Pick an image.');
+  for (const v of [fx, fy]) {
+    if (!Number.isFinite(v) || v < 0 || v > 1) throw validationError('The focal point is two numbers between 0 and 1.');
+  }
+  let slugs = [];
+  try {
+    const row = await getMediaById(id);
+    if (!row) throw validationError('That image no longer exists.');
+    await query('UPDATE media SET focal_x = ?, focal_y = ? WHERE id = ?', [fx.toFixed(3), fy.toFixed(3), id]);
+    slugs = await pageSlugsUsingMedia(query, row.path);
+  } catch (err) {
+    friendly(err, 'The focal point could not be saved. Please try again.');
+  }
+  for (const slug of slugs) revalidatePage(slug);
+  revalidateMedia();
+  revalidatePath(ADMIN);
+}
+
+/**
+ * Remove a picture — but never one a page still shows.
+ *
+ * A picture referenced from a block or a social preview is refused with the
+ * pages named, so the operator replaces or removes it there first; a broken
+ * image on a live page is worse than a stray file. One that is in the public
+ * gallery is refused too: take it out of the gallery first, deliberately.
+ * The file is unlinked after the row, and only for uploads under
+ * /uploads/ — the legacy copies under /photo/ are static assets in the
+ * deploy and are not this screen's to delete.
+ */
+async function deleteMediaAction$inner(formData) {
+  await assertCan(ACTION);
+  const id = Number(formData.get('id'));
+  if (!Number.isInteger(id) || id <= 0) throw validationError('Pick an image.');
+  try {
+    const row = await getMediaById(id);
+    if (!row) throw validationError('That image no longer exists.');
+    const slugs = await pageSlugsUsingMedia(query, row.path);
+    if (slugs.length) {
+      throw validationError(
+        `Still used on ${slugs.map((s) => `/${s}`).join(', ')}. Replace or remove it there first.`,
+      );
+    }
+    if (Number(row.in_gallery) === 1) {
+      throw validationError('This picture is in the public gallery. Remove it from the gallery first.');
+    }
+    await query('DELETE FROM media WHERE id = ?', [id]);
+    if (String(row.path).startsWith('/uploads/')) {
+      const { unlink } = await import('node:fs/promises');
+      const { join, basename } = await import('node:path');
+      const { uploadRoot } = await import('../../../../lib/media');
+      await unlink(join(uploadRoot(), basename(row.path))).catch(() => {});
+    }
+  } catch (err) {
+    friendly(err, 'The image could not be removed. Please try again.');
+  }
+  revalidateMedia();
+  revalidatePath(ADMIN);
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function replaceMediaAction(formData) {
+  return runAction(() => replaceMediaAction$inner(formData));
+}
+export async function setGalleryVisibilityAction(formData) {
+  return runAction(() => setGalleryVisibilityAction$inner(formData));
+}
+export async function updateMediaAltAction(formData) {
+  return runAction(() => updateMediaAltAction$inner(formData));
+}
+export async function addMediaAction(formData) {
+  return runAction(() => addMediaAction$inner(formData));
+}
+export async function setFocalPointAction(formData) {
+  return runAction(() => setFocalPointAction$inner(formData));
+}
+export async function deleteMediaAction(formData) {
+  return runAction(() => deleteMediaAction$inner(formData));
 }

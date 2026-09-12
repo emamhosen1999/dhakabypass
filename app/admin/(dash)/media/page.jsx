@@ -1,6 +1,9 @@
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { listMedia, mediaAlt } from '../../../../lib/media/repo';
-import { replaceMediaAction, setGalleryVisibilityAction, updateMediaAltAction } from './actions';
+import {
+  replaceMediaAction, setGalleryVisibilityAction, updateMediaAltAction,
+  addMediaAction, setFocalPointAction, deleteMediaAction,
+} from './actions';
 import { LOCALES, LOCALE_LABELS, LOCALE_HTML_LANG } from '../../../../lib/i18n/locales';
 import GuideNotice from './GuideNotice';
 
@@ -133,6 +136,33 @@ function Row({ row }) {
           Replace
         </button>
       </form>
+
+        {/* Where the subject is, as a fraction of the width and height. A hero
+            cropped to a wide band keeps this point in frame (SiteImage sets
+            object-position from it). 0.5 / 0.5 is the centre. Keyed on the
+            saved values so the inputs show what was stored after a save. */}
+        <form
+          key={`${row.id}:${row.focal_x}:${row.focal_y}`}
+          action={setFocalPointAction} className="flex flex-wrap items-center gap-2 sm:justify-end"
+        >
+          <input type="hidden" name="id" value={row.id} />
+          <label className="text-xs text-gray-600">Focus x
+            <input type="number" name="focal_x" min="0" max="1" step="0.05" defaultValue={Number(row.focal_x ?? 0.5)} className="ml-1 w-16 rounded border px-1 py-0.5 text-sm" />
+          </label>
+          <label className="text-xs text-gray-600">y
+            <input type="number" name="focal_y" min="0" max="1" step="0.05" defaultValue={Number(row.focal_y ?? 0.5)} className="ml-1 w-16 rounded border px-1 py-0.5 text-sm" />
+          </label>
+          <button type="submit" className="px-3 py-1.5 rounded border text-sm">Set focus</button>
+        </form>
+
+        {/* Refused while any page or the gallery still shows it — the action
+            names the pages — so this can never leave a broken picture live. */}
+        <form action={deleteMediaAction} className="sm:self-end">
+          <input type="hidden" name="id" value={row.id} />
+          <button type="submit" className="px-3 py-1.5 rounded border border-red-300 text-red-700 text-sm hover:bg-red-50">
+            Remove from library
+          </button>
+        </form>
       </div>
     </li>
   );
@@ -158,6 +188,19 @@ export default async function MediaLibrary() {
       </header>
 
       <GuideNotice />
+
+      {/* Into the library directly, described on the way in. Until this form,
+          the only door was the "Upload new" button inside a block's image
+          field, which put a picture in use before anyone could describe it. */}
+      <form action={addMediaAction} className="rounded border bg-white p-4 flex flex-wrap items-end gap-3">
+        <label className="text-xs font-semibold text-gray-700">Add a picture
+          <input type="file" name="file" required accept="image/jpeg,image/png,image/webp" className="block mt-1 text-sm max-w-[260px]" />
+        </label>
+        <label className="text-xs font-semibold text-gray-700 grow min-w-[260px]">Description (English — what is in the frame)
+          <input type="text" name="alt_en" maxLength={300} placeholder="Traffic on the open carriageway at Vogra" className="block mt-1 w-full rounded border px-2 py-1 text-sm font-normal" />
+        </label>
+        <button type="submit" className="px-3 py-1.5 rounded bg-black text-white text-sm">Add to library</button>
+      </form>
 
       <section className="space-y-2">
         <h2 className="text-lg font-bold">

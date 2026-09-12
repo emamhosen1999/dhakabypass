@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { auth } from '../../../../auth';
 import { can } from '../../../../lib/auth/roles';
-import { query, dbEnabled } from '../../../../lib/db';
 import { saveUpload, ALLOWED_MIME_TYPES } from '../../../../lib/media';
 
 export const runtime = 'nodejs';
@@ -34,8 +33,7 @@ export async function POST(request) {
   // `isAdmin` only means the address is on ADMIN_EMAILS; lib/auth/roles.js is
   // what separates an editor from a translator, whose permission set is
   // exactly ['translate']. Checking isAdmin alone let a translator persist an
-  // 8 MB file and — with target=gallery below — insert a gallery_images row,
-  // publishing it to the site. `can()` fails closed, so a missing or unknown
+  // 8 MB file into the library. `can()` fails closed, so a missing or unknown
   // role is denied here rather than waved through.
   if (!can(session.user.role, 'manage_media')) {
     return NextResponse.json({ ok: false, error: 'Your role cannot upload media' }, { status: 403 });
@@ -72,15 +70,10 @@ export async function POST(request) {
 
     const saved = await saveUpload({ buffer, filename: file.name, mime: file.type });
 
-    // If this upload targets the gallery, register it.
-    if (formData.get('target') === 'gallery' && dbEnabled()) {
-      const rows = await query('SELECT COALESCE(MAX(sort_order), 0) + 1 AS next FROM gallery_images');
-      await query('INSERT INTO gallery_images (file, caption, sort_order) VALUES (?, ?, ?)', [
-        saved.path,
-        String(formData.get('caption') || ''),
-        rows?.[0]?.next ?? 0,
-      ]);
-    }
+    // The `target=gallery` branch that inserted a gallery_images row is gone
+    // with the legacy gallery (W6.1). saveUpload() registers the media row;
+    // whether it shows in the public gallery is the in_gallery flag on the
+    // Media screen.
 
     // content is force-dynamic, but revalidate anyway so any cached shell refreshes
     revalidatePath('/', 'layout');

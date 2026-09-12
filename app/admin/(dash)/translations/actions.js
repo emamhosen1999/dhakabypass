@@ -1,5 +1,7 @@
 'use server';
 
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { LOCALES } from '../../../../lib/i18n/locales';
@@ -42,7 +44,7 @@ function assertKnownKey(key) {
  * would be an invisible row that the screen would then report as an override.
  * Delete is the honest representation of what the reader will do.
  */
-export async function saveUiStringAction(formData) {
+async function saveUiStringAction$inner(formData) {
   await assertCan(PERMISSION);
 
   const key = String(formData.get('key') || '').trim();
@@ -73,7 +75,7 @@ export async function saveUiStringAction(formData) {
 }
 
 /** Drop every override for one string, so all three locales fall back to code. */
-export async function resetUiStringAction(formData) {
+async function resetUiStringAction$inner(formData) {
   await assertCan(PERMISSION);
 
   const key = String(formData.get('key') || '').trim();
@@ -87,4 +89,17 @@ export async function resetUiStringAction(formData) {
 
   revalidateUiStrings();
   revalidatePath(ADMIN);
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function saveUiStringAction(formData) {
+  return runAction(() => saveUiStringAction$inner(formData));
+}
+export async function resetUiStringAction(formData) {
+  return runAction(() => resetUiStringAction$inner(formData));
 }

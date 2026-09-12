@@ -1,5 +1,7 @@
 'use server';
 
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { query, dbEnabled } from '../../../../lib/db';
@@ -20,7 +22,7 @@ const NOTE_MAX = 4000;
  *  optional note. `resolved_at` is stamped the first time it reaches
  *  resolved or closed and cleared if it is reopened, so the queue's overdue
  *  arithmetic stays honest. */
-export async function updateRequestAction(formData) {
+async function updateRequestAction$inner(formData) {
   await assertCan('manage_users');
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
@@ -39,11 +41,24 @@ export async function updateRequestAction(formData) {
   revalidatePath('/admin');
 }
 
-export async function deleteRequestAction(formData) {
+async function deleteRequestAction$inner(formData) {
   await assertCan('manage_users');
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
   if (Number.isFinite(id)) await query('DELETE FROM service_requests WHERE id = ?', [id]);
   revalidatePath(ADMIN);
   revalidatePath('/admin');
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function updateRequestAction(formData) {
+  return runAction(() => updateRequestAction$inner(formData));
+}
+export async function deleteRequestAction(formData) {
+  return runAction(() => deleteRequestAction$inner(formData));
 }

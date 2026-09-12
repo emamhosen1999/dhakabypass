@@ -1,5 +1,7 @@
 'use server';
 
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { query } from '../../../../lib/db';
@@ -16,7 +18,7 @@ const ADMIN = '/admin/redirects';
  * for everyone, including search engines, and a wrong one can strand a page's
  * accumulated ranking. That is a site-structure decision, not a copy edit.
  */
-export async function saveRedirectAction(formData) {
+async function saveRedirectAction$inner(formData) {
   await assertCan('manage_pages');
 
   const source = normalisePath(String(formData.get('source') || ''));
@@ -58,7 +60,7 @@ export async function saveRedirectAction(formData) {
   revalidatePath(ADMIN);
 }
 
-export async function deleteRedirectAction(formData) {
+async function deleteRedirectAction$inner(formData) {
   await assertCan('manage_pages');
   const id = Number(formData.get('id'));
   if (!Number.isInteger(id) || id <= 0) throw validationError('That redirect no longer exists.');
@@ -71,4 +73,17 @@ export async function deleteRedirectAction(formData) {
 
   revalidateRedirects();
   revalidatePath(ADMIN);
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function saveRedirectAction(formData) {
+  return runAction(() => saveRedirectAction$inner(formData));
+}
+export async function deleteRedirectAction(formData) {
+  return runAction(() => deleteRedirectAction$inner(formData));
 }

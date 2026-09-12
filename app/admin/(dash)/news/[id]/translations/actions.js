@@ -1,5 +1,7 @@
 'use server';
 
+import { runAction } from '../../../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../../../lib/auth/assert-can';
 import { isLocale, DEFAULT_LOCALE } from '../../../../../../lib/i18n/locales';
@@ -19,7 +21,7 @@ function adminPath(id) {
  * Guarded by `translate` rather than `publish`: translating is the capability
  * this work needs, and the same gate the block translation editor uses.
  */
-export async function saveNewsTranslationAction(formData) {
+async function saveNewsTranslationAction$inner(formData) {
   await assertCan('translate');
 
   const newsId = Number(formData.get('newsId'));
@@ -65,7 +67,7 @@ export async function saveNewsTranslationAction(formData) {
 }
 
 /** Remove a translation, so the article falls back to English in that locale. */
-export async function deleteNewsTranslationAction(formData) {
+async function deleteNewsTranslationAction$inner(formData) {
   await assertCan('translate');
 
   const newsId = Number(formData.get('newsId'));
@@ -83,4 +85,17 @@ export async function deleteNewsTranslationAction(formData) {
 
   revalidateNews();
   revalidatePath(adminPath(newsId));
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function saveNewsTranslationAction(formData) {
+  return runAction(() => saveNewsTranslationAction$inner(formData));
+}
+export async function deleteNewsTranslationAction(formData) {
+  return runAction(() => deleteNewsTranslationAction$inner(formData));
 }

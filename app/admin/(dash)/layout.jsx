@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
+import AdminNotice from '../../../components/admin/AdminNotice';
 import { redirect } from 'next/navigation';
 import { auth, signOut } from '../../../auth';
 
@@ -107,6 +109,8 @@ export default async function DashLayout({ children }) {
           ))}
         </nav>
       </header>
+      {/* useSearchParams needs a Suspense boundary above it in a layout. */}
+      <Suspense fallback={null}><AdminNotice /></Suspense>
 
       <main className="container mx-auto px-4 py-8">{children}</main>
     </>

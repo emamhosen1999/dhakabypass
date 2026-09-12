@@ -1,5 +1,7 @@
 'use server';
 
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { query } from '../../../../lib/db';
@@ -27,7 +29,7 @@ async function menuId(slug) {
  * `manage_pages`: adding a link changes what the whole site navigates to, which
  * is site structure rather than copy.
  */
-export async function saveMenuItemAction(formData) {
+async function saveMenuItemAction$inner(formData) {
   await assertCan('manage_pages');
 
   const slug = String(formData.get('menu') || '');
@@ -79,7 +81,7 @@ export async function saveMenuItemAction(formData) {
   revalidatePath(ADMIN);
 }
 
-export async function deleteMenuItemAction(formData) {
+async function deleteMenuItemAction$inner(formData) {
   await assertCan('manage_pages');
   const id = Number(formData.get('id'));
   if (!Number.isInteger(id) || id <= 0) throw validationError('That item no longer exists.');
@@ -105,7 +107,7 @@ export async function deleteMenuItemAction(formData) {
  * the original navigation back, and would have no way of knowing that deleting
  * the last one is what restores it.
  */
-export async function resetMenuAction(formData) {
+async function resetMenuAction$inner(formData) {
   await assertCan('manage_pages');
   const slug = String(formData.get('menu') || '');
   if (!MENU_SLUGS.includes(slug)) throw validationError('Unknown menu.');
@@ -121,4 +123,20 @@ export async function resetMenuAction(formData) {
 
   revalidateMenus();
   revalidatePath(ADMIN);
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function saveMenuItemAction(formData) {
+  return runAction(() => saveMenuItemAction$inner(formData));
+}
+export async function deleteMenuItemAction(formData) {
+  return runAction(() => deleteMenuItemAction$inner(formData));
+}
+export async function resetMenuAction(formData) {
+  return runAction(() => resetMenuAction$inner(formData));
 }

@@ -1,5 +1,8 @@
 'use server';
 
+import { validationError } from '../../../../lib/errors';
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { revalidateCorridor } from '../../../../lib/revalidate';
@@ -23,7 +26,7 @@ const STATUSES = ['open', 'construction', 'planned'];
 const KINDS = ['interchange', 'toll_plaza', 'service_area', 'u_loop', 'pedestrian_overpass', 'bridge'];
 const SEVERITIES = ['info', 'warning', 'closure'];
 
-export async function listCorridorAction() {
+async function listCorridorAction$inner() {
   await assertCan(ACTION);
   const [segments, interchanges, tolls, advisories, illustrative] = await Promise.all([
     listSegments(), listInterchanges(), listAllTollRates(), listAllAdvisories(), isDataIllustrative(),
@@ -31,13 +34,13 @@ export async function listCorridorAction() {
   return { segments, interchanges, tolls, advisories, illustrative };
 }
 
-export async function saveSegmentAction(formData) {
+async function saveSegmentAction$inner(formData) {
   await assertCan(ACTION);
   const id = Number(formData.get('id')) || null;
   const from_m = parseChainageField(formData.get('from_m'));
   const to_m = parseChainageField(formData.get('to_m'));
   const status = String(formData.get('status') || 'planned');
-  if (!STATUSES.includes(status)) throw new Error('Status must be open, construction or planned');
+  if (!STATUSES.includes(status)) throw validationError('Status must be open, construction or planned');
 
   try {
     await saveSegment({
@@ -50,25 +53,25 @@ export async function saveSegmentAction(formData) {
   revalidatePath(`${ADMIN}/segments`);
 }
 
-export async function deleteSegmentAction(formData) {
+async function deleteSegmentAction$inner(formData) {
   await assertCan(ACTION);
   try {
     await deleteSegment(Number(formData.get('id')));
-  } catch { throw new Error('Could not delete the segment. Please try again.'); }
+  } catch { throw validationError('Could not delete the segment. Please try again.'); }
   revalidateCorridor();
   revalidatePath(`${ADMIN}/segments`);
 }
 
-export async function saveInterchangeAction(formData) {
+async function saveInterchangeAction$inner(formData) {
   await assertCan(ACTION);
   const chainage_m = parseChainageField(formData.get('chainage_m'));
   const names = localeMap(formData, 'name');
-  if (!names.en) throw new Error('An English name is required');
+  if (!names.en) throw validationError('An English name is required');
 
   const kind = String(formData.get('kind') || 'interchange');
   const status = String(formData.get('status') || 'planned');
-  if (!KINDS.includes(kind)) throw new Error('That is not a known kind of location');
-  if (!STATUSES.includes(status)) throw new Error('Status must be open, construction or planned');
+  if (!KINDS.includes(kind)) throw validationError('That is not a known kind of location');
+  if (!STATUSES.includes(status)) throw validationError('Status must be open, construction or planned');
 
   try {
     await saveInterchange({
@@ -85,16 +88,16 @@ export async function saveInterchangeAction(formData) {
   revalidatePath(`${ADMIN}/interchanges`);
 }
 
-export async function deleteInterchangeAction(formData) {
+async function deleteInterchangeAction$inner(formData) {
   await assertCan(ACTION);
   try {
     await deleteInterchange(Number(formData.get('id')));
-  } catch { throw new Error('Could not delete the interchange. Please try again.'); }
+  } catch { throw validationError('Could not delete the interchange. Please try again.'); }
   revalidateCorridor();
   revalidatePath(`${ADMIN}/interchanges`);
 }
 
-export async function saveTollRateAction(formData) {
+async function saveTollRateAction$inner(formData) {
   await assertCan(ACTION);
   try {
     await saveTollRate({
@@ -116,7 +119,7 @@ export async function saveTollRateAction(formData) {
     // Give it a specific, actionable message instead, same as
     // app/admin/(dash)/pages-v2/actions.js does for its own ER_DUP_ENTRY case.
     if (err?.code === 'ER_DUP_ENTRY') {
-      throw new Error('A rate for that vehicle class already exists on that date.');
+      throw validationError('A rate for that vehicle class already exists on that date.');
     }
     friendly(err, 'Could not save the toll rate. Please try again.');
   }
@@ -124,23 +127,23 @@ export async function saveTollRateAction(formData) {
   revalidatePath(`${ADMIN}/tolls`);
 }
 
-export async function deleteTollRateAction(formData) {
+async function deleteTollRateAction$inner(formData) {
   await assertCan(ACTION);
   try {
     await deleteTollRate(Number(formData.get('id')));
-  } catch { throw new Error('Could not delete the toll rate. Please try again.'); }
+  } catch { throw validationError('Could not delete the toll rate. Please try again.'); }
   revalidateCorridor();
   revalidatePath(`${ADMIN}/tolls`);
 }
 
-export async function saveAdvisoryAction(formData) {
+async function saveAdvisoryAction$inner(formData) {
   await assertCan(ACTION);
   const severity = String(formData.get('severity') || 'info');
   if (!SEVERITIES.includes(severity)) {
-    throw new Error('Severity must be info, warning or closure');
+    throw validationError('Severity must be info, warning or closure');
   }
   const messages = localeMap(formData, 'message');
-  if (!messages.en) throw new Error('An English message is required');
+  if (!messages.en) throw validationError('An English message is required');
 
   try {
     await saveAdvisory({
@@ -155,20 +158,57 @@ export async function saveAdvisoryAction(formData) {
   revalidatePath(`${ADMIN}/advisories`);
 }
 
-export async function deleteAdvisoryAction(formData) {
+async function deleteAdvisoryAction$inner(formData) {
   await assertCan(ACTION);
   try {
     await deleteAdvisory(Number(formData.get('id')));
-  } catch { throw new Error('Could not delete the advisory. Please try again.'); }
+  } catch { throw validationError('Could not delete the advisory. Please try again.'); }
   revalidateCorridor();
   revalidatePath(`${ADMIN}/advisories`);
 }
 
-export async function setIllustrativeAction(formData) {
+async function setIllustrativeAction$inner(formData) {
   await assertCan(ACTION);
   try {
     await setSetting('corridor.illustrative', Boolean(formData.get('illustrative')));
-  } catch { throw new Error('Could not update the setting. Please try again.'); }
+  } catch { throw validationError('Could not update the setting. Please try again.'); }
   revalidateCorridor();
   revalidatePath(ADMIN);
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function listCorridorAction() {
+  return runAction(() => listCorridorAction$inner());
+}
+export async function saveSegmentAction(formData) {
+  return runAction(() => saveSegmentAction$inner(formData));
+}
+export async function deleteSegmentAction(formData) {
+  return runAction(() => deleteSegmentAction$inner(formData));
+}
+export async function saveInterchangeAction(formData) {
+  return runAction(() => saveInterchangeAction$inner(formData));
+}
+export async function deleteInterchangeAction(formData) {
+  return runAction(() => deleteInterchangeAction$inner(formData));
+}
+export async function saveTollRateAction(formData) {
+  return runAction(() => saveTollRateAction$inner(formData));
+}
+export async function deleteTollRateAction(formData) {
+  return runAction(() => deleteTollRateAction$inner(formData));
+}
+export async function saveAdvisoryAction(formData) {
+  return runAction(() => saveAdvisoryAction$inner(formData));
+}
+export async function deleteAdvisoryAction(formData) {
+  return runAction(() => deleteAdvisoryAction$inner(formData));
+}
+export async function setIllustrativeAction(formData) {
+  return runAction(() => setIllustrativeAction$inner(formData));
 }

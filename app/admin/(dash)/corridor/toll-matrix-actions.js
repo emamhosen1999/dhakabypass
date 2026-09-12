@@ -1,5 +1,8 @@
 'use server';
 
+import { validationError } from '../../../../lib/errors';
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { revalidateCorridor } from '../../../../lib/revalidate';
@@ -32,7 +35,7 @@ const ADMIN = '/admin/corridor';
 /** Operational data is structural: a translator must not change a toll. */
 const ACTION = 'edit_blocks';
 
-export async function listTollMatrixAction() {
+async function listTollMatrixAction$inner() {
   await assertCan(ACTION);
   const [fares, interchanges] = await Promise.all([listAllTollOdRates(), listInterchanges()]);
   // Only `kind = 'toll_plaza'` records may be an origin or a destination, and
@@ -41,12 +44,12 @@ export async function listTollMatrixAction() {
   return { fares, points: tollPoints(interchanges) };
 }
 
-export async function saveTollOdRateAction(formData) {
+async function saveTollOdRateAction$inner(formData) {
   await assertCan(ACTION);
 
   const direction = String(formData.get('direction') || '');
   if (direction && !DIRECTIONS.includes(direction)) {
-    throw new Error('Choose which carriageway this fare applies to');
+    throw validationError('Choose which carriageway this fare applies to');
   }
 
   try {
@@ -76,7 +79,7 @@ export async function saveTollOdRateAction(formData) {
     // generic "please try again" would invite them to repeat forever. Same
     // treatment saveTollRateAction already gives its own duplicate case.
     if (err?.code === 'ER_DUP_ENTRY') {
-      throw new Error('There is already a fare for that pair and vehicle class on that date.');
+      throw validationError('There is already a fare for that pair and vehicle class on that date.');
     }
     friendly(err, 'Could not save the fare. Please try again.');
   }
@@ -84,11 +87,27 @@ export async function saveTollOdRateAction(formData) {
   revalidatePath(`${ADMIN}/toll-matrix`);
 }
 
-export async function deleteTollOdRateAction(formData) {
+async function deleteTollOdRateAction$inner(formData) {
   await assertCan(ACTION);
   try {
     await deleteTollOdRate(Number(formData.get('id')));
-  } catch { throw new Error('Could not delete the fare. Please try again.'); }
+  } catch { throw validationError('Could not delete the fare. Please try again.'); }
   revalidateCorridor();
   revalidatePath(`${ADMIN}/toll-matrix`);
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function listTollMatrixAction() {
+  return runAction(() => listTollMatrixAction$inner());
+}
+export async function saveTollOdRateAction(formData) {
+  return runAction(() => saveTollOdRateAction$inner(formData));
+}
+export async function deleteTollOdRateAction(formData) {
+  return runAction(() => deleteTollOdRateAction$inner(formData));
 }

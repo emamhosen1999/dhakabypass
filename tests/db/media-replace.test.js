@@ -6,7 +6,7 @@ process.env.DB_NAME = DB; // lib/db.js reads this
 
 let query;
 let withTransaction;
-let applyMediaReplacement;
+let applyMediaReplacement, pageSlugsUsingMedia;
 
 const notFound = () => new Error('gone');
 
@@ -26,7 +26,7 @@ beforeAll(async () => {
     env: { ...process.env, DB_NAME: DB },
   });
   ({ query, withTransaction } = await import('../../lib/db.js'));
-  ({ applyMediaReplacement } = await import('../../lib/media/replace.js'));
+  ({ applyMediaReplacement, pageSlugsUsingMedia } = await import('../../lib/media/replace.js'));
 });
 
 beforeEach(async () => {
@@ -201,5 +201,41 @@ describe('applyMediaReplacement — repointing the references', () => {
     const rows = await query('SELECT id FROM media WHERE path = ?', ['/uploads/new.webp']);
     expect(rows).toHaveLength(1);
     expect(rows[0].id).toBe(id);
+  });
+});
+
+
+describe('pageSlugsUsingMedia — against a real database', () => {
+  // The unit tests mock `q`, which is how a broken ESCAPE literal in the
+  // LIKE prefilter (`'\'` in a template string became SQL `''`) shipped
+  // unnoticed: every call threw, the media alt action fell over AFTER saving,
+  // and the delete guard could never have run. This is the test that would
+  // have caught it.
+  async function seedPage(slug, data) {
+    const p = await query('INSERT INTO pages (slug, status) VALUES (?, ?)', [slug, 'published']);
+    await query(
+      "INSERT INTO page_translations (page_id, locale, title, status) VALUES (?, 'en', ?, 'published')",
+      [p.insertId, slug],
+    );
+    const b = await query("INSERT INTO blocks (page_id, type, sort_order) VALUES (?, 'hero', 0)", [p.insertId]);
+    await query(
+      "INSERT INTO block_translations (block_id, locale, data, status) VALUES (?, 'en', ?, 'published')",
+      [b.insertId, JSON.stringify(data)],
+    );
+  }
+
+  it('names the pages whose blocks reference the path, and no others', async () => {
+    await seedPage('uses-it', { image: '/photo/1.webp' });
+    await seedPage('nested', { body: '<p>x</p><img src="/photo/1.webp">' });
+    await seedPage('prefix-only', { image: '/photo/10.webp' });
+    await seedPage('unrelated', { image: '/other.webp' });
+    expect((await pageSlugsUsingMedia(query, '/photo/1.webp')).sort()).toEqual(['nested', 'uses-it']);
+    expect(await pageSlugsUsingMedia(query, '/nowhere.webp')).toEqual([]);
+  });
+
+  it('survives LIKE metacharacters in the path', async () => {
+    await seedPage('under', { image: '/uploads/a_b%c.webp' });
+    await seedPage('near', { image: '/uploads/aXb-c.webp' });
+    expect(await pageSlugsUsingMedia(query, '/uploads/a_b%c.webp')).toEqual(['under']);
   });
 });

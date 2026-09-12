@@ -1,6 +1,9 @@
 // app/admin/(dash)/pages-v2/actions.js
 'use server';
 
+import { validationError } from '../../../../lib/errors';
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { listPages, createPage, deletePageIfChildless, getPageBySlug, duplicatePage } from '../../../../lib/content/pages';
@@ -10,26 +13,26 @@ import { revalidatePage } from '../../../../lib/revalidate';
 
 const ADMIN_PATH = '/admin/pages-v2';
 
-export async function listPagesAction() {
+async function listPagesAction$inner() {
   await assertCan('manage_pages');
   return listPages();
 }
 
-export async function createPageAction(formData) {
+async function createPageAction$inner(formData) {
   await assertCan('manage_pages');
   const title = String(formData.get('title') || '').trim();
   const slug = normalizeSlug(formData.get('slug') || title);
 
-  if (!title) throw new Error('Give the page a title');
+  if (!title) throw validationError('Give the page a title');
   if (!slug) {
     // A title in a non-Latin script (Bengali, Chinese, ...) normalises to
     // nothing — the ASCII slug regex is correct for URLs, but "is not a
     // usable address" doesn't tell a trilingual editor what to do about it.
-    throw new Error(
+    throw validationError(
       'Could not build a web address from that title. Please type one in the Address field using English letters, numbers and hyphens.'
     );
   }
-  if (!isValidSlug(slug)) throw new Error(`"${slug}" is not a usable address`);
+  if (!isValidSlug(slug)) throw validationError(`"${slug}" is not a usable address`);
 
   try {
     if (await getPageBySlug(slug)) {
@@ -46,19 +49,19 @@ export async function createPageAction(formData) {
     // SQL error from either call) must not leak the driver's text to the
     // browser.
     if (err?.code === 'DUPLICATE_SLUG' || err?.code === 'ER_DUP_ENTRY') {
-      throw new Error(`A page already lives at "${slug}"`);
+      throw validationError(`A page already lives at "${slug}"`);
     }
-    throw new Error('Could not create the page. Please try again.');
+    throw validationError('Could not create the page. Please try again.');
   }
   revalidatePage(slug);
   revalidatePath(ADMIN_PATH);
 }
 
-export async function deletePageAction(formData) {
+async function deletePageAction$inner(formData) {
   await assertCan('manage_pages');
   const id = Number(formData.get('id'));
   const slug = String(formData.get('slug') || '');
-  if (!id) throw new Error('No page selected');
+  if (!id) throw validationError('No page selected');
 
   // pages.parent_id has no foreign key constraint, so the database will not
   // cascade or null it when a parent row is deleted — a child would be left
@@ -70,13 +73,13 @@ export async function deletePageAction(formData) {
     await deletePageIfChildless(id);
   } catch (err) {
     if (err?.code === 'HAS_CHILDREN') {
-      throw new Error(
+      throw validationError(
         `This page has ${err.childCount} sub-page${err.childCount === 1 ? '' : 's'}. Delete or move them first.`
       );
     }
     // Anything else (a connection drop, a raw SQL error) must not leak the
     // driver's text to the browser.
-    throw new Error('Could not delete the page. Please try again.');
+    throw validationError('Could not delete the page. Please try again.');
   }
 
   if (slug) revalidatePage(slug);
@@ -91,26 +94,45 @@ export async function deletePageAction(formData) {
  * an operator then has to remember to rename, and a page called
  * "/about-copy" has a way of going live.
  */
-export async function duplicatePageAction(formData) {
+async function duplicatePageAction$inner(formData) {
   await assertCan('manage_pages');
   const sourceId = Number(formData.get('id'));
   const slug = normalizeSlug(formData.get('slug') || '');
-  if (!sourceId) throw new Error('No page selected');
+  if (!sourceId) throw validationError('No page selected');
   if (!slug || !isValidSlug(slug)) {
-    throw new Error('Give the copy a web address using English letters, numbers and hyphens.');
+    throw validationError('Give the copy a web address using English letters, numbers and hyphens.');
   }
-  if (RESERVED_SLUGS.includes(slug)) throw new Error(`"${slug}" is reserved and cannot be a page address`);
+  if (RESERVED_SLUGS.includes(slug)) throw validationError(`"${slug}" is reserved and cannot be a page address`);
 
   let newId;
   try {
     newId = await duplicatePage({ sourceId, slug, titleSuffix: () => ' (copy)' });
   } catch (err) {
     if (err?.code === 'DUPLICATE_SLUG' || err?.code === 'ER_DUP_ENTRY') {
-      throw new Error(`A page already lives at "${slug}"`);
+      throw validationError(`A page already lives at "${slug}"`);
     }
-    if (err?.code === 'NOT_FOUND') throw new Error('That page no longer exists');
-    throw new Error('Could not copy the page. Please try again.');
+    if (err?.code === 'NOT_FOUND') throw validationError('That page no longer exists');
+    throw validationError('Could not copy the page. Please try again.');
   }
   revalidatePath(ADMIN_PATH);
   redirect(`${ADMIN_PATH}/${newId}`);
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function listPagesAction() {
+  return runAction(() => listPagesAction$inner());
+}
+export async function createPageAction(formData) {
+  return runAction(() => createPageAction$inner(formData));
+}
+export async function deletePageAction(formData) {
+  return runAction(() => deletePageAction$inner(formData));
+}
+export async function duplicatePageAction(formData) {
+  return runAction(() => duplicatePageAction$inner(formData));
 }

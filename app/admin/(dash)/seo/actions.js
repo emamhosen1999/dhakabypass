@@ -1,5 +1,7 @@
 'use server';
 
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { LOCALES } from '../../../../lib/i18n/locales';
@@ -20,7 +22,7 @@ const ADMIN = '/admin/seo';
  * — the robots.txt posture, the organisation's own name — are the ones that
  * live at /admin/settings behind `manage_users`.
  */
-export async function saveRouteMetaAction(formData) {
+async function saveRouteMetaAction$inner(formData) {
   await assertCan('manage_pages');
 
   const raw = String(formData.get('route') || '').trim();
@@ -95,7 +97,7 @@ export async function saveRouteMetaAction(formData) {
  * and the point of removing it is to say the route has no overrides again —
  * the same meaning a deleted row has in `ui_strings`.
  */
-export async function deleteRouteMetaAction(formData) {
+async function deleteRouteMetaAction$inner(formData) {
   await assertCan('manage_pages');
 
   const raw = String(formData.get('route') || '').trim();
@@ -110,4 +112,17 @@ export async function deleteRouteMetaAction(formData) {
   revalidateRouteMeta();
   revalidatePath('/sitemap.xml');
   revalidatePath(ADMIN);
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function saveRouteMetaAction(formData) {
+  return runAction(() => saveRouteMetaAction$inner(formData));
+}
+export async function deleteRouteMetaAction(formData) {
+  return runAction(() => deleteRouteMetaAction$inner(formData));
 }

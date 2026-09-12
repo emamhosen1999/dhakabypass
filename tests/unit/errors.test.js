@@ -145,3 +145,32 @@ describe('every validationError() call actually throws', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe('operator messages survive production (digest transport)', () => {
+  // Next redacts the message of an error thrown from a Server Action in a
+  // production build; `digest` is the one property it forwards. The admin
+  // error boundary reads the message back out of it.
+  it('packs the validation message into the digest and unpacks it', async () => {
+    const { operatorMessage, OPERATOR_MESSAGE_PREFIX } = await import('../../lib/errors.js');
+    const err = validationError('Give the page a title');
+    expect(err.digest).toBe(`${OPERATOR_MESSAGE_PREFIX}Give the page a title`);
+    expect(operatorMessage(err)).toBe('Give the page a title');
+  });
+
+  it('never unpacks a message from an error we did not build', async () => {
+    const { operatorMessage } = await import('../../lib/errors.js');
+    expect(operatorMessage(new Error('ER_DUP_ENTRY: secret table name'))).toBe('');
+    expect(operatorMessage({ digest: '1234567890' })).toBe('');
+    expect(operatorMessage(null)).toBe('');
+  });
+
+  it("friendly()'s fallback travels the same way, so a generic failure still shows a sentence", async () => {
+    const { operatorMessage } = await import('../../lib/errors.js');
+    try {
+      friendly(new Error('driver text'), 'The page could not be saved.');
+    } catch (e) {
+      expect(operatorMessage(e)).toBe('The page could not be saved.');
+      expect(e.message).not.toContain('driver text');
+    }
+  });
+});

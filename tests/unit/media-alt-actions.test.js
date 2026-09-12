@@ -46,6 +46,9 @@ vi.mock('../../lib/revalidate.js', () => ({
   revalidatePage: vi.fn(),
 }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
+// The production transport (redirect-with-notice) is tested on its own in
+// run-action.test.js; here the bodies' thrown messages are the subject.
+vi.mock('../../lib/admin/run-action.js', () => ({ runAction: (fn) => fn() }));
 
 import { auth } from '../../auth.js';
 import { setMediaAlt, getMediaById } from '../../lib/media/repo.js';

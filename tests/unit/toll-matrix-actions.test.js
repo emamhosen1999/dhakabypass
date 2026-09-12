@@ -34,6 +34,9 @@ vi.mock('../../lib/corridor/toll-matrix.js', async (importOriginal) => ({
 vi.mock('../../lib/settings.js', () => ({ setSetting: vi.fn(), isDataIllustrative: vi.fn() }));
 vi.mock('../../lib/revalidate.js', () => ({ revalidateCorridor: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
+// The production transport (redirect-with-notice) is tested on its own in
+// run-action.test.js; here the bodies' thrown messages are the subject.
+vi.mock('../../lib/admin/run-action.js', () => ({ runAction: (fn) => fn() }));
 
 import { auth } from '../../auth.js';
 import { listInterchanges } from '../../lib/corridor/interchanges.js';

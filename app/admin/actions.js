@@ -1,5 +1,8 @@
 'use server';
 
+import { validationError } from '../../lib/errors';
+import { runAction } from '../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { revalidateNews } from '../../lib/revalidate.js';
 import { assertCan } from '../../lib/auth/assert-can';
@@ -32,7 +35,7 @@ function revalidateSite() {
   revalidatePath('/', 'layout');
 }
 
-export async function deleteMessageAction(formData) {
+async function deleteMessageAction$inner(formData) {
   await requireAdmin('manage_users'); // contact_messages holds personal data; keep it to admins
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
@@ -43,7 +46,7 @@ export async function deleteMessageAction(formData) {
   revalidatePath('/admin');
 }
 
-export async function toggleMessageReadAction(formData) {
+async function toggleMessageReadAction$inner(formData) {
   await requireAdmin('manage_users'); // same table, same data
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
@@ -59,9 +62,9 @@ export async function toggleMessageReadAction(formData) {
 }
 
 /** News / Latest Updates CRUD */
-export async function saveNewsAction(formData) {
+async function saveNewsAction$inner(formData) {
   await requireAdmin('publish'); // news goes straight to the public site
-  if (!dbEnabled()) throw new Error('Database is not configured');
+  if (!dbEnabled()) throw validationError('Database is not configured');
 
   const id = Number(formData.get('id'));
   const title = String(formData.get('title') || '').trim();
@@ -118,9 +121,9 @@ export async function saveNewsAction(formData) {
   return { ok: true };
 }
 
-export async function deleteNewsAction(formData) {
+async function deleteNewsAction$inner(formData) {
   await requireAdmin('publish'); // unpublishing is publishing
-  if (!dbEnabled()) throw new Error('Database is not configured');
+  if (!dbEnabled()) throw validationError('Database is not configured');
 
   const id = Number(formData.get('id'));
   if (Number.isFinite(id)) {
@@ -132,4 +135,23 @@ export async function deleteNewsAction(formData) {
   revalidatePath('/admin');
   revalidateNews();
   return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function deleteMessageAction(formData) {
+  return runAction(() => deleteMessageAction$inner(formData));
+}
+export async function toggleMessageReadAction(formData) {
+  return runAction(() => toggleMessageReadAction$inner(formData));
+}
+export async function saveNewsAction(formData) {
+  return runAction(() => saveNewsAction$inner(formData));
+}
+export async function deleteNewsAction(formData) {
+  return runAction(() => deleteNewsAction$inner(formData));
 }

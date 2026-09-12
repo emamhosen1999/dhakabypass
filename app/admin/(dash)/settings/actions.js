@@ -1,5 +1,7 @@
 'use server';
 
+import { runAction } from '../../../../lib/admin/run-action';
+
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { setSetting, CONTACT_KEYS, SOCIAL_KEYS } from '../../../../lib/settings';
@@ -24,7 +26,7 @@ const ADMIN = '/admin/settings';
  * realises a number is wrong must be able to withdraw it immediately, and being
  * unable to un-publish is worse than never having published.
  */
-export async function saveContactSettingsAction(formData) {
+async function saveContactSettingsAction$inner(formData) {
   await assertCan('manage_users');
 
   const text = (name) => String(formData.get(name) || '').trim();
@@ -111,7 +113,7 @@ export async function saveContactSettingsAction(formData) {
  * enforces this on the read side too, so a row that is blank for any other
  * reason behaves the same way.
  */
-export async function saveSeoSettingsAction(formData) {
+async function saveSeoSettingsAction$inner(formData) {
   await assertCan('manage_users');
 
   const text = (name) => String(formData.get(name) || '').trim();
@@ -172,4 +174,17 @@ export async function saveSeoSettingsAction(formData) {
   // the sitemap advertising the old answer for up to an hour.
   revalidatePath('/sitemap.xml');
   revalidatePath(ADMIN);
+}
+
+// ---------------------------------------------------------------------------
+// Every exported action runs through runAction(): a thrown validation error
+// becomes a redirect back to the form with the sentence in `?notice=`, which
+// is the only way a message survives a production build. See
+// lib/admin/run-action.js. The bodies above are unchanged.
+// ---------------------------------------------------------------------------
+export async function saveContactSettingsAction(formData) {
+  return runAction(() => saveContactSettingsAction$inner(formData));
+}
+export async function saveSeoSettingsAction(formData) {
+  return runAction(() => saveSeoSettingsAction$inner(formData));
 }
