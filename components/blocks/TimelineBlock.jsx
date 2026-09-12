@@ -7,10 +7,17 @@ import { listItems, text } from '../../lib/blocks/items.js';
  * outside the range is treated as unset rather than clamped: a bar drawn from
  * a typo is a claim about a construction programme.
  */
+/**
+ * A bar is drawn for 1–100. Blank and 0 both mean "no bar": the editor stores
+ * an empty number field as 0 (lib/blocks/form.js), so 0 is the only value an
+ * operator can produce for "this milestone has no progress figure" — a
+ * signed contract, an opening date. A bar at 0% would say "nothing done" of
+ * a thing that was done.
+ */
 function percent(value) {
   if (value === '' || value === null || value === undefined) return null;
   const n = Number(value);
-  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : null;
+  return Number.isFinite(n) && n > 0 && n <= 100 ? n : null;
 }
 
 /**
@@ -43,13 +50,12 @@ export default async function TimelineBlock({ data, locale }) {
             {text(item.date) ? (
               <p className="db-timeline-date">
                 {text(item.datetime)
-                  /* Lower-case `datetime` on purpose. React 19 writes a
-                     host attribute under the prop name it was given, so
-                     `dateTime` reaches the page as dateTime="…" — valid,
-                     because HTML attribute names are case-insensitive, but
-                     not the name the spec uses and not what a reader of the
-                     source or a byte-level test expects. */
-                  ? <time datetime={text(item.datetime)}>{text(item.date)}</time>
+                  /* `dateTime` is the React property; React writes it to the
+                     page as the spec's `datetime` attribute (it is in React's
+                     known-attribute table, like `className`). The lower-case
+                     prop used here before produced React's "invalid DOM
+                     property" error on every page with a timeline. */
+                  ? <time dateTime={text(item.datetime)}>{text(item.date)}</time>
                   : text(item.date)}
               </p>
             ) : null}

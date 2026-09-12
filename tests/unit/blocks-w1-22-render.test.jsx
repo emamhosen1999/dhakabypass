@@ -339,7 +339,11 @@ describe('TimelineBlock', () => {
 
   it('marks up a machine-readable date when one was supplied', async () => {
     const html = render(await TimelineBlock({ data, locale: 'en' }));
-    expect(html).toContain('<time datetime="2018-12-06"');
+    // React writes the `dateTime` property as dateTime="…"; HTML attribute
+    // names are case-insensitive, so the browser reads it as datetime. The
+    // lower-case prop this used to assert produced React's "invalid DOM
+    // property" error on every page with a timeline.
+    expect(html).toMatch(/<time date[tT]ime="2018-12-06"/);
     expect(html).toContain('6 December 2018');
   });
 

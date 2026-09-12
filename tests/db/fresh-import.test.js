@@ -74,8 +74,11 @@ describe('a database built from db/sql/*.sql alone', () => {
       WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.body')) LIKE '%db-pending%'
          OR JSON_UNQUOTE(JSON_EXTRACT(data, '$.body')) LIKE '%db-archive%'`);
     expect(r.c).toBe(0);
+    // 15 from the migration (22) plus the 8 legacy notices 24-legacy-content
+    // places, one at the head of each restored group.
     const c = await one("SELECT COUNT(*) AS c FROM blocks WHERE type = 'callout'");
-    expect(c.c).toBe(15);
+    expect(c.c).toBe(23);
+    expect((await one('SELECT COUNT(*) AS c FROM blocks WHERE id >= 400')).c).toBe(33);
   });
 
   it('put the home corridor blocks on the home page, after the hero (18)', async () => {
