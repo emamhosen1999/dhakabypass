@@ -107,6 +107,14 @@ describe('a database built from db/sql/*.sql alone', () => {
 
   it('shows 24 gallery images and the provisional O-D matrix', async () => {
     expect((await one('SELECT COUNT(*) AS c FROM media WHERE in_gallery = 1')).c).toBe(24);
+    // 23: the four brand marks are in the library but never in the gallery,
+    // and the home partner row carries three of them plus RHD as a partner.
+    expect((await one("SELECT COUNT(*) AS c FROM media WHERE path LIKE '/brand/%' AND in_gallery = 0")).c).toBe(4);
+    const partners = await one(`SELECT JSON_EXTRACT(t.data, '$.items[*].name') AS names, JSON_LENGTH(JSON_EXTRACT(t.data, '$.items[*].logo')) AS logos
+      FROM block_translations t JOIN blocks b ON b.id = t.block_id JOIN pages p ON p.id = b.page_id
+      WHERE p.slug = 'home' AND b.type = 'partner-row' AND t.locale = 'zh'`);
+    expect(JSON.parse(JSON.stringify(partners.names))).toEqual(['SRBG', 'SEL', 'UDC', 'RHD']);
+    expect(partners.logos).toBe(3);
     expect((await one('SELECT COUNT(*) AS c FROM toll_od_rates')).c).toBe(270);
     expect((await one('SELECT COUNT(*) AS c FROM service_requests')).c).toBe(0);
   });

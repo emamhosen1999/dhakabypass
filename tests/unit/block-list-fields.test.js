@@ -37,10 +37,15 @@ describe('list fields declare their row shape', () => {
     expect(names('stat-row', 'stats')).toEqual(['value', 'unit', 'label']);
   });
 
-  it('partner-row.items is name / role / share plus an optional link', () => {
+  it('partner-row.items is name / logo / role / share plus an optional link', () => {
     // W1.22 added `href`: a partner named without a link is a dead end on a
     // disclosure page where the reader is checking who the sponsor is.
-    expect(names('partner-row', 'items')).toEqual(['name', 'role', 'share', 'href']);
+    // W1.27 added `logo`, an optional image: the name is always printed, so
+    // a partner without a mark (SEL) is a typographic credit, not a hole.
+    expect(names('partner-row', 'items')).toEqual(['name', 'logo', 'role', 'share', 'href']);
+    const logo = getBlock('partner-row').fields.find((f) => f.name === 'items').itemFields.find((f) => f.name === 'logo');
+    expect(logo.type).toBe('image');
+    expect(logo.required).toBeFalsy();
   });
 
   it('toll-preview.classes is a list of plain strings, not objects', () => {
