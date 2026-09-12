@@ -46,3 +46,12 @@ describe('localeHref', () => {
     expect(localeHref('  travel/route  ', 'en')).toBe('/en/travel/route');
   });
 });
+
+describe('localeHref and the bare root', () => {
+  it('sends "/" to the locale root, not to the legacy address', () => {
+    // `/` is rewritten to /en by next.config.mjs; a Bangla 404 page whose
+    // "home" button pointed there would land its reader on the English home.
+    expect(localeHref('/', 'bn')).toBe('/bn');
+    expect(localeHref('/', 'en')).toBe('/en');
+  });
+});

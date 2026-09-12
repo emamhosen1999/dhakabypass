@@ -31,7 +31,7 @@
 | A-LEG-08 | `/latest-updates` — embedded 36-photo grid, newsletter subscribe form | W2.8, W2.9 | [~] `gallery-grid` and `newsletter-form` blocks exist for an operator to place on /news; authoring is W2 |
 | A-LEG-09 | `/gallery` — **32 of 36 photos**, "Load More" pagination | W2.9, 0.8 | [ ] |
 | A-LEG-10 | `/contact` — phone number dropped as placeholder; address/email hardcoded not seeded | W2.10, W1.20 | [ ] |
-| A-LEG-11 | `/404` — renders unstyled, English, no chrome on `/bn` and `/zh` | W1.19 | [ ] |
+| A-LEG-11 | `/404` — renders unstyled, English, no chrome on `/bn` and `/zh` | W1.19 || [x] 404 is the `not-found` block document (23-not-found.sql), localised with 404 status; `app/not-found.jsx` re-exports it |
 
 ### A.2 Orphaned media & redirects (3) — §3
 
@@ -58,7 +58,7 @@
 | A-HC-5.11 | Media — no Add button, **no alt input anywhere**, no width/height probe, Replace wipes alt+focal, no delete, focal_x/y unused | 0.9, W1.18 | [ ] |
 | A-HC-5.12 | `app/design-tokens.css` — 75 tokens, all code; no colour, type, breakpoint or status colour is admin-editable | W1.16 | [ ] |
 | A-HC-5.13 | Corridor/map data — 100 KB `map-context.json`, `public/maps/*`, label geometry and zoom regex all code | W1.21 | [ ] |
-| A-HC-5.14 | `app/not-found.jsx` reads the dead `content` table; legacy Tailwind; no chrome | W1.19 | [ ] |
+| A-HC-5.14 | `app/not-found.jsx` reads the dead `content` table; legacy Tailwind; no chrome | W1.19 || [x] 404 is the `not-found` block document (23-not-found.sql), localised with 404 status; `app/not-found.jsx` re-exports it |
 | A-HC-5.15 | Roles in code, **no `/admin/users` screen**; adding an editor needs SSH or SQL | W1.17 | [ ] |
 
 ### A.4 Ranked gap list (22) — §8
@@ -221,7 +221,7 @@
 | C-D15 | `upload/route.js:29` missing `manage_media` check | Medium | 0.4 | [ ] |
 | C-D16 | No rate limiting on any public write path | Medium | 0.6 | [ ] |
 | C-D17 | Legacy contact action returns `{ok:true}` on DB failure | Medium | 0.6 | [ ] |
-| C-D18 | 404 reads dead `content` table; degrades to blank on outage | Medium | W1.19, W6.2 | [ ] |
+| C-D18 | 404 reads dead `content` table; degrades to blank on outage | Medium | W1.19, W6.2 || [x] 404 is the `not-found` block document (23-not-found.sql), localised with 404 status; `app/not-found.jsx` re-exports it |
 | C-D19 | `lib/content/pages.js` fetches all locales, discards ⅔ in JS | Medium | W6.17 | [ ] |
 | C-D20 | `npm test` mixes unit + DB; 9 files fail on a clean checkout | Medium | 0.16 | [ ] |
 | C-D21 | 7 uncalled scripts, 731 lines, two of which rewrite the app tree | Low | W6.10 | [ ] |

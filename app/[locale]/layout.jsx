@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { LOCALES, LOCALE_HTML_LANG, isLocale } from '../../lib/i18n/locales.js';
+import { setRequestLocale } from '../../lib/i18n/request-locale.js';
 import ThemeScript from '../../components/chrome/ThemeScript.jsx';
 import SiteHeaderV2 from '../../components/chrome/SiteHeaderV2.jsx';
 import SiteFooterV2 from '../../components/chrome/SiteFooterV2.jsx';
@@ -63,6 +64,8 @@ export default async function LocaleLayout({ children, params }) {
    * edited one. It is bounded to the first request after a revalidation, and
    * W1.7 replaces those `t()`-built titles with `route_meta` rows anyway.
    */
+  // For not-found.jsx, which receives no params — see lib/i18n/request-locale.js.
+  setRequestLocale(locale);
   const uiStringTables = await primeUiStrings();
 
   return (

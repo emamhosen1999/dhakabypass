@@ -1,4 +1,5 @@
 import { LOCALE_HTML_LANG } from '../../lib/i18n/locales.js';
+import DocumentLangEffect from './DocumentLangEffect.jsx';
 
 /**
  * Sets the document's language to the one this page is actually written in.
@@ -36,10 +37,15 @@ export default function DocumentLang({ locale }) {
   // JSON.stringify quotes and escapes, so a locale value can never break out of
   // the string literal even if the list of locales grows to something exotic.
   return (
-    <script
-      dangerouslySetInnerHTML={{
-        __html: `document.documentElement.lang=${JSON.stringify(lang)};`,
-      }}
-    />
+    <>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `document.documentElement.lang=${JSON.stringify(lang)};`,
+        }}
+      />
+      {/* Runs where the inline script cannot: a 404 rendered through a
+          client transition. See the component. */}
+      <DocumentLangEffect lang={lang} />
+    </>
   );
 }

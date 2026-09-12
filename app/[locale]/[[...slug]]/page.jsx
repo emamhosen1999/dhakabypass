@@ -8,6 +8,7 @@ import { pathForSlug, HOME_PATH } from '../../../lib/seo/routes.js';
 import { routeMetaFor } from '../../../lib/seo/cache.js';
 import { applyRouteMeta } from '../../../lib/seo/route-meta.js';
 import { t } from '../../../lib/i18n/ui.js';
+import { HOME_SLUG, NOT_FOUND_SLUG } from '../../../lib/content/slug.js';
 import BlockRenderer from '../../../components/blocks/BlockRenderer.jsx';
 
 /**
@@ -35,8 +36,11 @@ import BlockRenderer from '../../../components/blocks/BlockRenderer.jsx';
  * letting it also answer at `/en/home` would publish the front page twice and
  * split whatever ranking it earns. A permanent redirect rather than a 404,
  * because a reader who typed it meant the home page.
+ *
+ * `/en/not-found` is not a URL either: that row is the 404 document, rendered
+ * by app/[locale]/not-found.jsx with a 404 status. Asking for it by name
+ * 404s — which renders it, with the right status.
  */
-const HOME_SLUG = 'home';
 
 async function load(params) {
   const { locale, slug } = await params;
@@ -86,6 +90,7 @@ export async function generateMetadata({ params }) {
   // declared unconditionally and the content-dependent metadata is layered on.
   const published = loaded.page?.status === 'published';
   if (!published && !loaded.isHome) return {};
+  if (loaded.page?.slug === NOT_FOUND_SLUG) return {};
 
   const path = loaded.isHome ? HOME_PATH : pathForSlug(loaded.page.slug);
   const alternates = alternatesFor(path, loaded.locale);
@@ -122,6 +127,7 @@ export default async function CmsPage({ params, searchParams }) {
   if (!isHome && parts.length === 1 && parts[0] === HOME_SLUG) {
     permanentRedirect(`/${locale}`);
   }
+  if (!isHome && parts.length === 1 && parts[0] === NOT_FOUND_SLUG) notFound();
 
   // Unlike every other document, an unpublished or missing home page does NOT
   // 404. The home route is the site's front door — a draft home (or one that
