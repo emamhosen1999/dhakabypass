@@ -2,6 +2,7 @@
 
 import { validationError } from '../../../../../lib/errors';
 import { getRevision } from '../../../../../lib/content/revisions';
+import { parsePresentationForm } from '../../../../../lib/blocks/presentation';
 import { runAction } from '../../../../../lib/admin/run-action';
 
 import { revalidatePath } from 'next/cache';
@@ -10,7 +11,7 @@ import { getBlock, validateBlockData, defaultBlockData } from '../../../../../li
 import { parseBlockForm } from '../../../../../lib/blocks/form';
 import '../../../../../lib/blocks/index';
 import {
-  addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation, getPageBlocks,
+  addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation, getPageBlocks, setBlockSettings,
 } from '../../../../../lib/content/pages';
 import { revalidatePage } from '../../../../../lib/revalidate';
 import { isLocale } from '../../../../../lib/i18n/locales';
@@ -194,6 +195,29 @@ async function restoreRevisionAction$inner(formData) {
   revalidatePath(adminPath(pageId));
 }
 
+/**
+ * Presentation settings — background, spacing, width, alignment — for one
+ * block (W1.15). `edit_blocks`, like adding or moving one: how a block sits
+ * on the page is layout, not translation, and it is shared by every
+ * language, so it is saved once and not per locale.
+ */
+async function saveBlockSettingsAction$inner(formData) {
+  await assertCan('edit_blocks');
+  const pageId = Number(formData.get('pageId'));
+  const blockId = Number(formData.get('blockId'));
+  const slug = String(formData.get('slug') || '');
+  if (!Number.isInteger(blockId) || blockId <= 0) throw validationError('Pick a block.');
+  const parsed = parsePresentationForm(formData);
+  if (!parsed.ok) throw validationError(parsed.errors.join('. '));
+  try {
+    await setBlockSettings(blockId, pageId, parsed.settings);
+  } catch {
+    throw validationError('Could not save the presentation. Please try again.');
+  }
+  if (slug) revalidatePage(slug);
+  revalidatePath(adminPath(pageId));
+}
+
 // ---------------------------------------------------------------------------
 // Every exported action runs through runAction(): a thrown validation error
 // becomes a redirect back to the form with the sentence in `?notice=`, which
@@ -217,4 +241,7 @@ export async function saveTranslationAction(formData) {
 }
 export async function restoreRevisionAction(formData) {
   return runAction(() => restoreRevisionAction$inner(formData));
+}
+export async function saveBlockSettingsAction(formData) {
+  return runAction(() => saveBlockSettingsAction$inner(formData));
 }

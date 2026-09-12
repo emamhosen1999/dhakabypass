@@ -4,6 +4,7 @@ import { allBlocks, getBlock, defaultBlockData } from '../../../../../lib/blocks
 import '../../../../../lib/blocks/index';
 import { listPages, getPageBlocks } from '../../../../../lib/content/pages';
 import { listRevisions } from '../../../../../lib/content/revisions';
+import { PRESENTATION, PRESENTATION_KEYS, presentationOf } from '../../../../../lib/blocks/presentation';
 import { translationStatus } from '../../../../../lib/content/resolve';
 import BlockFields from '../../../../../components/admin/BlockFields';
 import BlockSortableList from '../../../../../components/admin/BlockSortableList';
@@ -11,7 +12,7 @@ import PreviewPane from '../../../../../components/admin/PreviewPane';
 import { assertCan } from '../../../../../lib/auth/assert-can';
 import {
   addBlockAction, deleteBlockAction, duplicateBlockAction, reorderBlocksAction, saveTranslationAction,
-  restoreRevisionAction,
+  restoreRevisionAction, saveBlockSettingsAction,
 } from './block-actions';
 
 export const dynamic = 'force-dynamic';
@@ -105,6 +106,31 @@ export default async function BlockEditor({ params, searchParams }) {
                 </button>
               </div>
             </form>
+
+            {/* Presentation (W1.15): shared by every language, so it sits
+                outside the per-locale form and is keyed on the saved values
+                (React 19 resets an uncontrolled form to its defaults after
+                the action; without a remount they would be the old ones). */}
+            <details className="text-sm bg-gray-50 rounded p-3">
+              <summary className="cursor-pointer">Presentation — background, spacing, width, alignment (all languages)</summary>
+              <form
+                key={`${block.id}:${JSON.stringify(block.settings || {})}`}
+                action={saveBlockSettingsAction} className="mt-2 flex flex-wrap items-end gap-3"
+              >
+                <input type="hidden" name="pageId" value={pageId} />
+                <input type="hidden" name="slug" value={page.slug} />
+                <input type="hidden" name="blockId" value={block.id} />
+                {PRESENTATION_KEYS.map((key) => (
+                  <label key={key} className="text-xs font-semibold text-gray-700">
+                    {PRESENTATION[key].label}
+                    <select name={`p.${key}`} defaultValue={presentationOf(block.settings)[key]} className="block mt-1 border rounded px-2 py-1 text-sm font-normal">
+                      {PRESENTATION[key].options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </label>
+                ))}
+                <button type="submit" className="px-3 py-1.5 border rounded">Apply</button>
+              </form>
+            </details>
 
             {revisions.length > 0 ? (
               <details className="text-sm bg-gray-50 rounded p-3">

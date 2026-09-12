@@ -1,6 +1,7 @@
 import { getBlock } from '../../lib/blocks/registry.js';
 import { resolveTranslation } from '../../lib/content/resolve.js';
 import { isPlainObject } from '../../lib/json.js';
+import { presentationClasses } from '../../lib/blocks/presentation.js';
 import '../../lib/blocks/index.js';
 
 /**
@@ -52,7 +53,7 @@ export default function BlockRenderer({ blocks = [], locale, searchParams }) {
         if (!resolved) return null;
         if (!isPlainObject(resolved.data)) return null;
         const Component = def.Component;
-        return (
+        const element = (
           <Component
             key={block.id}
             data={resolved.data}
@@ -61,6 +62,12 @@ export default function BlockRenderer({ blocks = [], locale, searchParams }) {
             searchParams={searchParams}
           />
         );
+        // Presentation settings (W1.15) — background, spacing, width,
+        // alignment — are per BLOCK, not per language, and live in
+        // blocks.settings. A block with none renders exactly as before: no
+        // wrapper at all, so nothing about the existing pages changes.
+        const cls = presentationClasses(block.settings);
+        return cls ? <div key={block.id} className={`db-pwrap ${cls}`}>{element}</div> : element;
       })}
     </>
   );

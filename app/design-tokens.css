@@ -359,6 +359,30 @@
   text-underline-offset:2px;display:inline-block;padding:4px 0;}
 .db-footer-legal-links a:hover{color:var(--db-ink);}
 .db-block{max-width:var(--db-shell);margin:0 auto;padding:clamp(28px,5vw,40px) clamp(12px,3vw,20px);}
+
+/* ---- Block presentation (W1.15) ------------------------------------------
+   Classes BlockRenderer puts on a wrapper when an operator changes a block's
+   background, spacing, width or alignment (lib/blocks/presentation.js). A
+   block with defaults has no wrapper, so nothing here touches existing pages.
+   The wrapper carries the tone across the full viewport width; the block
+   inside keeps the page column. */
+.db-pwrap{display:block;}
+.db-p-tone-surface{background:var(--db-surface);}
+.db-p-tone-plate{background:var(--db-plate-bg);color:var(--db-plate-fg);}
+.db-p-tone-plate .db-h1,.db-p-tone-plate .db-h2,.db-p-tone-plate .db-h3,.db-p-tone-plate .db-lede,
+.db-p-tone-plate .db-prose,.db-p-tone-plate .db-eyebrow,.db-p-tone-plate .db-stat-label,.db-p-tone-plate .db-stat-value,
+.db-p-tone-plate .db-table-caption,.db-p-tone-plate .db-empty-inline{color:var(--db-plate-fg);}
+.db-p-tone-plate .db-prose a,.db-p-tone-plate .db-lede a{color:var(--db-plate-accent);}
+.db-p-tone-plate .db-btn-secondary{border-color:var(--db-plate-fg);color:var(--db-plate-fg);}
+.db-p-tone-accent > .db-block{border-left:4px solid var(--db-accent);}
+.db-p-spacing-tight > .db-block{padding-top:clamp(14px,2.5vw,20px);padding-bottom:clamp(14px,2.5vw,20px);}
+.db-p-spacing-loose > .db-block{padding-top:clamp(56px,10vw,80px);padding-bottom:clamp(56px,10vw,80px);}
+.db-p-spacing-none > .db-block{padding-top:0;padding-bottom:0;}
+.db-p-width-narrow > .db-block{max-width:calc(var(--db-measure) + 2 * clamp(12px,3vw,20px));}
+.db-p-width-full > .db-block{max-width:none;}
+.db-p-align-center > .db-block{text-align:center;}
+.db-p-align-center .db-lede,.db-p-align-center .db-prose{margin-left:auto;margin-right:auto;}
+.db-p-align-center .db-actions{justify-content:center;}
 .db-prose{max-width:var(--db-measure);color:var(--db-ink-2);}
 .db-prose p+p{margin-top:1em;}
 .db-prose a{text-decoration:underline;text-underline-offset:.18em;text-decoration-thickness:1px;overflow-wrap:anywhere;}
