@@ -3,8 +3,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
-import { listPages, createPage, deletePageIfChildless, getPageBySlug } from '../../../../lib/content/pages';
-import { normalizeSlug, isValidSlug } from '../../../../lib/content/slug';
+import { listPages, createPage, deletePageIfChildless, getPageBySlug, duplicatePage } from '../../../../lib/content/pages';
+import { normalizeSlug, isValidSlug, RESERVED_SLUGS } from '../../../../lib/content/slug';
+import { redirect } from 'next/navigation';
 import { revalidatePage } from '../../../../lib/revalidate';
 
 const ADMIN_PATH = '/admin/pages-v2';
@@ -80,4 +81,36 @@ export async function deletePageAction(formData) {
 
   if (slug) revalidatePage(slug);
   revalidatePath(ADMIN_PATH);
+}
+
+/**
+ * Copy a page — structure, blocks, every translation — as a draft under a new
+ * address, then open it in the editor (W1.23). Any page is a template.
+ *
+ * The address is required rather than derived: "<slug>-copy" would be a URL
+ * an operator then has to remember to rename, and a page called
+ * "/about-copy" has a way of going live.
+ */
+export async function duplicatePageAction(formData) {
+  await assertCan('manage_pages');
+  const sourceId = Number(formData.get('id'));
+  const slug = normalizeSlug(formData.get('slug') || '');
+  if (!sourceId) throw new Error('No page selected');
+  if (!slug || !isValidSlug(slug)) {
+    throw new Error('Give the copy a web address using English letters, numbers and hyphens.');
+  }
+  if (RESERVED_SLUGS.includes(slug)) throw new Error(`"${slug}" is reserved and cannot be a page address`);
+
+  let newId;
+  try {
+    newId = await duplicatePage({ sourceId, slug, titleSuffix: () => ' (copy)' });
+  } catch (err) {
+    if (err?.code === 'DUPLICATE_SLUG' || err?.code === 'ER_DUP_ENTRY') {
+      throw new Error(`A page already lives at "${slug}"`);
+    }
+    if (err?.code === 'NOT_FOUND') throw new Error('That page no longer exists');
+    throw new Error('Could not copy the page. Please try again.');
+  }
+  revalidatePath(ADMIN_PATH);
+  redirect(`${ADMIN_PATH}/${newId}`);
 }

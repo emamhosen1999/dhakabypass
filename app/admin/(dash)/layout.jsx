@@ -62,17 +62,6 @@ export default async function DashLayout({ children }) {
               <img src="/logo.webp" alt="" className="w-8 h-8 bg-white rounded p-0.5" />
               <span className="whitespace-nowrap">DBEDC Admin</span>
             </Link>
-            <nav className="hidden md:flex items-center gap-1">
-              {NAV.map((n) => (
-                <Link
-                  key={n.href}
-                  href={n.href}
-                  className="px-3 py-2 rounded-md text-sm font-semibold text-blue-100 hover:bg-white/10 hover:text-white transition-all whitespace-nowrap"
-                >
-                  {n.label}
-                </Link>
-              ))}
-            </nav>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
@@ -102,13 +91,15 @@ export default async function DashLayout({ children }) {
           </div>
         </div>
 
-        {/* mobile nav */}
-        <nav className="md:hidden flex items-center gap-1 px-4 pb-3 overflow-x-auto">
+        {/* Its own row, wrapping, on every screen size. Thirteen screens no
+            longer fit beside the brand at 1280px, and a horizontally scrolling
+            strip hides half of them on a phone. */}
+        <nav aria-label="Admin" className="container mx-auto px-4 pb-2 flex flex-wrap gap-1">
           {NAV.map((n) => (
             <Link
               key={n.href}
               href={n.href}
-              className="px-3 py-1.5 rounded-md text-sm font-semibold text-blue-100 bg-white/10 whitespace-nowrap"
+              className="px-3 py-1.5 rounded-md text-sm font-semibold text-blue-100 hover:bg-white/10 hover:text-white transition-all whitespace-nowrap"
             >
               {n.label}
             </Link>

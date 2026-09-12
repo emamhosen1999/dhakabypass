@@ -1,6 +1,6 @@
 // app/admin/(dash)/pages-v2/page.jsx
 import Link from 'next/link';
-import { listPagesAction, createPageAction, deletePageAction } from './actions';
+import { listPagesAction, createPageAction, deletePageAction, duplicatePageAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,11 +41,24 @@ export default async function PageTree() {
               <td><code>/{p.slug}</code></td>
               <td>{p.status}</td>
               <td className="text-right">
-                <form action={deletePageAction}>
-                  <input type="hidden" name="id" value={p.id} />
-                  <input type="hidden" name="slug" value={p.slug} />
-                  <button type="submit" className="text-red-600">Delete</button>
-                </form>
+                <div className="flex items-center justify-end gap-3">
+                  {/* Any page is a template: the copy opens in the editor as a
+                      draft with every block and translation. */}
+                  <form action={duplicatePageAction} className="flex items-center gap-1">
+                    <input type="hidden" name="id" value={p.id} />
+                    <label className="sr-only" htmlFor={`copy-slug-${p.id}`}>Address for the copy of {p.title || p.slug}</label>
+                    <input
+                      id={`copy-slug-${p.id}`} name="slug" placeholder={`${p.slug}-2`} required
+                      className="border border-gray-300 rounded px-2 py-1 text-xs w-36"
+                    />
+                    <button type="submit" className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-100">Copy</button>
+                  </form>
+                  <form action={deletePageAction}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <input type="hidden" name="slug" value={p.slug} />
+                    <button type="submit" className="text-red-600">Delete</button>
+                  </form>
+                </div>
               </td>
             </tr>
           ))}

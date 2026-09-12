@@ -110,7 +110,7 @@ export default async function AdminDashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {stats.map((s) => (
           <Link key={s.label} href={s.href}>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 h-full hover:border-orange-400 hover:shadow transition-all">

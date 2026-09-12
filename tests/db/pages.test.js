@@ -60,6 +60,39 @@ describe('pages', () => {
     expect(dup.translations.map((t) => t.locale).sort()).toEqual(['bn', 'en']);
   });
 
+  it('duplicates a whole page as a draft, with every block and translation (W1.23)', async () => {
+    const src = await P.createPage({ slug: 'about', title: 'About' });
+    const a = await P.addBlock({ pageId: src, type: 'hero', data: { headline: 'H' } });
+    const b = await P.addBlock({ pageId: src, type: 'rich-text', data: { body: '<p>a</p>' } });
+    await P.saveBlockTranslation({ blockId: b, locale: 'bn', data: { body: '<p>ক</p>' }, status: 'published' });
+    await P.reorderBlocks(src, [b, a]);
+
+    const copyId = await P.duplicatePage({ sourceId: src, slug: 'about-2', titleSuffix: (l) => (l === 'bn' ? ' (কপি)' : ' (copy)') });
+    const copy = await P.getPageBySlug('about-2');
+    expect(copy.id).toBe(copyId);
+    // Never live by accident: the page and its translations are drafts.
+    expect(copy.status).toBe('draft');
+    expect(copy.translations.find((t) => t.locale === 'en').status).toBe('draft');
+    expect(copy.translations.find((t) => t.locale === 'en').title).toBe('About (copy)');
+
+    const blocks = await P.getPageBlocks(copyId);
+    expect(blocks.map((x) => x.type)).toEqual(['rich-text', 'hero']); // the reordered order survives
+    expect(blocks[0].translations.map((t) => t.locale).sort()).toEqual(['bn', 'en']);
+    expect(blocks.every((x) => x.id !== a && x.id !== b)).toBe(true); // new rows, not shared ones
+
+    // The source is untouched.
+    const original = await P.getPageBlocks(src);
+    expect(original).toHaveLength(2);
+  });
+
+  it('refuses to duplicate onto an existing address and leaves nothing behind', async () => {
+    const src = await P.createPage({ slug: 'a', title: 'A' });
+    await P.createPage({ slug: 'b', title: 'B' });
+    await expect(P.duplicatePage({ sourceId: src, slug: 'b' })).rejects.toMatchObject({ code: 'DUPLICATE_SLUG' });
+    await expect(P.duplicatePage({ sourceId: 999999, slug: 'c' })).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(await P.getPageBySlug('c')).toBe(null);
+  });
+
   it('saves a translation and reports its status', async () => {
     const pageId = await P.createPage({ slug: 'p', title: 'P' });
     const a = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>a</p>' } });
