@@ -3,13 +3,16 @@ import { Suspense } from 'react';
 import AdminNotice from '../../../components/admin/AdminNotice';
 import { redirect } from 'next/navigation';
 import { auth, signOut } from '../../../auth';
+import ThemeToggle from '../../../components/chrome/ThemeToggle.jsx';
+import BrandMark from '../../../components/chrome/BrandMark.jsx';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * `/admin/pages-v2` — the block builder for the localised site — was missing
  * from this list, so the screen that edits every page of the new site was
- * reachable only by typing its URL. It is listed as "Content".
+ * reachable only by typing its URL. It is listed as "Pages" (W1.29: named for
+ * what the operator understands, not for how the code was rebuilt).
  *
  * `/admin/pages` ("Legacy"), `/admin/section/[key]` and `/admin/gallery` are
  * NO LONGER LISTED. They edit the `content` and `gallery_images` tables, which
@@ -32,7 +35,7 @@ export const dynamic = 'force-dynamic';
  */
 const NAV = [
   { href: '/admin', label: 'Dashboard' },
-  { href: '/admin/pages-v2', label: 'Content' },
+  { href: '/admin/pages-v2', label: 'Pages' },
   { href: '/admin/news', label: 'News' },
   { href: '/admin/media', label: 'Media' },
   { href: '/admin/corridor', label: 'Corridor' },
@@ -62,7 +65,8 @@ export default async function DashLayout({ children }) {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-8 min-w-0">
             <Link href="/admin" className="flex items-center gap-2 font-bold shrink-0">
-              <img src="/logo.webp" alt="" className="w-8 h-8 bg-white rounded p-0.5" />
+              {/* The same mark as the public header, in currentColor. */}
+              <BrandMark className="db-brand-mark" />
               <span className="whitespace-nowrap">DBEDC Admin</span>
             </Link>
           </div>
@@ -78,6 +82,8 @@ export default async function DashLayout({ children }) {
             <span className="hidden lg:inline text-sm text-blue-200 truncate max-w-[200px]">
               {session.user.email}
             </span>
+            {/* The public site's toggle: one choice, both surfaces. */}
+            <ThemeToggle />
             <form
               action={async () => {
                 'use server';
