@@ -3,6 +3,7 @@ import { LOCALES, LOCALE_LABELS } from '../../../../../lib/i18n/locales';
 import { allBlocks, getBlock, defaultBlockData } from '../../../../../lib/blocks/registry';
 import '../../../../../lib/blocks/index';
 import { listPages, getPageBlocks } from '../../../../../lib/content/pages';
+import { listRevisions } from '../../../../../lib/content/revisions';
 import { translationStatus } from '../../../../../lib/content/resolve';
 import BlockFields from '../../../../../components/admin/BlockFields';
 import BlockSortableList from '../../../../../components/admin/BlockSortableList';
@@ -10,9 +11,21 @@ import PreviewPane from '../../../../../components/admin/PreviewPane';
 import { assertCan } from '../../../../../lib/auth/assert-can';
 import {
   addBlockAction, deleteBlockAction, duplicateBlockAction, reorderBlocksAction, saveTranslationAction,
+  restoreRevisionAction,
 } from './block-actions';
 
 export const dynamic = 'force-dynamic';
+
+/** The first few text values of a version, tags stripped, for the list. */
+function revisionPreview(data) {
+  const out = [];
+  for (const [k, v] of Object.entries(data || {})) {
+    if (typeof v !== 'string' || !v.trim()) continue;
+    out.push(`${k}: ${v.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140)}`);
+    if (out.length >= 3) break;
+  }
+  return out.join('\n') || '(no text fields)';
+}
 
 export default async function BlockEditor({ params, searchParams }) {
   await assertCan('translate');
@@ -31,10 +44,18 @@ export default async function BlockEditor({ params, searchParams }) {
    * BlockFields and the save/publish path stay server-rendered and work
    * exactly as before.
    */
+  // Previous versions per block, for this locale (W1.13). One query per
+  // block on an admin page a handful of people use; nothing public pays it.
+  const history = new Map();
+  for (const block of blocks) {
+    try { history.set(block.id, await listRevisions(block.id, locale, 10)); } catch { history.set(block.id, []); }
+  }
+
   const items = blocks
     .map((block) => {
       const def = getBlock(block.type);
       if (!def) return null;
+      const revisions = history.get(block.id) || [];
       const row = block.translations.find((t) => t.locale === locale);
       const english = block.translations.find((t) => t.locale === 'en');
       const status = translationStatus(block.translations, locale);
@@ -84,6 +105,32 @@ export default async function BlockEditor({ params, searchParams }) {
                 </button>
               </div>
             </form>
+
+            {revisions.length > 0 ? (
+              <details className="text-sm bg-gray-50 rounded p-3">
+                <summary className="cursor-pointer">
+                  Previous versions ({revisions.length}) — one click puts one back; the current text is kept as a version too
+                </summary>
+                <ul className="mt-2 divide-y">
+                  {revisions.map((r) => (
+                    <li key={r.id} className="py-2 flex flex-wrap items-start gap-3">
+                      <div className="min-w-0 grow">
+                        <div className="text-xs text-gray-500">
+                          {new Date(r.createdAt).toLocaleString()} · was {r.status}{r.by ? ` · ${r.by}` : ''}
+                        </div>
+                        <pre className="mt-1 whitespace-pre-wrap text-xs text-gray-700 max-h-24 overflow-hidden">{revisionPreview(r.data)}</pre>
+                      </div>
+                      <form action={restoreRevisionAction}>
+                        <input type="hidden" name="pageId" value={pageId} />
+                        <input type="hidden" name="slug" value={page.slug} />
+                        <input type="hidden" name="revisionId" value={r.id} />
+                        <button type="submit" className="px-2 py-1 border rounded">Restore</button>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
           </>
         ),
       };

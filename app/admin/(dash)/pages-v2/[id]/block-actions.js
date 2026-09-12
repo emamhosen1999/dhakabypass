@@ -1,6 +1,7 @@
 'use server';
 
 import { validationError } from '../../../../../lib/errors';
+import { getRevision } from '../../../../../lib/content/revisions';
 import { runAction } from '../../../../../lib/admin/run-action';
 
 import { revalidatePath } from 'next/cache';
@@ -9,7 +10,7 @@ import { getBlock, validateBlockData, defaultBlockData } from '../../../../../li
 import { parseBlockForm } from '../../../../../lib/blocks/form';
 import '../../../../../lib/blocks/index';
 import {
-  addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation,
+  addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation, getPageBlocks,
 } from '../../../../../lib/content/pages';
 import { revalidatePage } from '../../../../../lib/revalidate';
 import { isLocale } from '../../../../../lib/i18n/locales';
@@ -160,6 +161,39 @@ async function saveTranslationAction$inner(formData) {
   revalidatePath(adminPath(pageId));
 }
 
+/**
+ * Put a previous version of a block's text back (W1.13).
+ *
+ * The restored text lands with the row's CURRENT status: restoring an older
+ * paragraph on a live block keeps the block live, and restoring on a draft
+ * keeps it a draft — nothing publishes or unpublishes as a side effect of
+ * going back. The version being replaced is itself recorded first, so a
+ * restore can be undone by restoring again.
+ */
+async function restoreRevisionAction$inner(formData) {
+  const session = await assertCan('translate');
+  const pageId = Number(formData.get('pageId'));
+  const revisionId = Number(formData.get('revisionId'));
+  const slug = String(formData.get('slug') || '');
+  if (!Number.isInteger(revisionId) || revisionId <= 0) throw validationError('Pick a version to restore.');
+  const rev = await getRevision(revisionId);
+  if (!rev || !isLocale(rev.locale)) throw validationError('That version is no longer available.');
+  const blocks = await getPageBlocks(pageId);
+  const block = blocks.find((b) => b.id === rev.blockId);
+  if (!block) throw validationError('That block is not on this page.');
+  const current = block.translations.find((t) => t.locale === rev.locale);
+  const status = current?.status === 'published' ? 'published' : 'draft';
+  const check = validateBlockData(block.type, rev.data);
+  if (status === 'published' && !check.ok) throw validationError(`That version cannot be published as it is: ${check.errors.join('. ')}`);
+  try {
+    await saveBlockTranslation({ blockId: rev.blockId, locale: rev.locale, data: rev.data, status, userId: Number(session.user.id) || null });
+  } catch {
+    throw validationError('Could not restore. Please try again.');
+  }
+  if (slug) revalidatePage(slug);
+  revalidatePath(adminPath(pageId));
+}
+
 // ---------------------------------------------------------------------------
 // Every exported action runs through runAction(): a thrown validation error
 // becomes a redirect back to the form with the sentence in `?notice=`, which
@@ -180,4 +214,7 @@ export async function reorderBlocksAction(formData) {
 }
 export async function saveTranslationAction(formData) {
   return runAction(() => saveTranslationAction$inner(formData));
+}
+export async function restoreRevisionAction(formData) {
+  return runAction(() => restoreRevisionAction$inner(formData));
 }

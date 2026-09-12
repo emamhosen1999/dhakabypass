@@ -93,6 +93,35 @@ describe('pages', () => {
     expect(await P.getPageBySlug('c')).toBe(null);
   });
 
+  it('keeps the version being overwritten as a revision, and a first save keeps nothing (W1.13)', async () => {
+    const R = await import('../../lib/content/revisions.js');
+    const pageId = await P.createPage({ slug: 'p', title: 'P' });
+    const a = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>first</p>' } });
+    // addBlock wrote the first English row; the first explicit save keeps THAT.
+    await P.saveBlockTranslation({ blockId: a, locale: 'en', data: { body: '<p>second</p>' }, status: 'published' });
+    await P.saveBlockTranslation({ blockId: a, locale: 'en', data: { body: '<p>third</p>' }, status: 'published' });
+    const revs = await R.listRevisions(a, 'en');
+    expect(revs.map((r) => r.data.body)).toEqual(['<p>second</p>', '<p>first</p>']);
+    // Another locale's first save has nothing to keep.
+    await P.saveBlockTranslation({ blockId: a, locale: 'bn', data: { body: '<p>ক</p>' }, status: 'draft' });
+    expect(await R.listRevisions(a, 'bn')).toEqual([]);
+    // A revision resolves back to its block and locale.
+    const one = await R.getRevision(revs[0].id);
+    expect(one).toMatchObject({ blockId: a, locale: 'en', status: 'published', data: { body: '<p>second</p>' } });
+  });
+
+  it('trims history to the newest KEEP versions per block and locale', async () => {
+    const R = await import('../../lib/content/revisions.js');
+    const pageId = await P.createPage({ slug: 'p', title: 'P' });
+    const a = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>0</p>' } });
+    for (let i = 1; i <= R.KEEP + 5; i += 1) {
+      await P.saveBlockTranslation({ blockId: a, locale: 'en', data: { body: `<p>${i}</p>` }, status: 'draft' });
+    }
+    const revs = await R.listRevisions(a, 'en', 100);
+    expect(revs).toHaveLength(R.KEEP);
+    expect(revs[0].data.body).toBe(`<p>${R.KEEP + 4}</p>`);
+  });
+
   it('saves a translation and reports its status', async () => {
     const pageId = await P.createPage({ slug: 'p', title: 'P' });
     const a = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>a</p>' } });
