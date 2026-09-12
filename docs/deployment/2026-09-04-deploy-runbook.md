@@ -118,8 +118,15 @@ Privileges on it. Note the names — cPanel prefixes both with `aeos365_`.
 
 Then cPanel → **phpMyAdmin** → select the database → **Import**:
 `db/sql/01-schema.sql`, then `db/sql/02-seed.sql`, then each later numbered file
-in order — currently `db/sql/09-ui-strings.sql`. Details and the re-import rules
-are in `db/sql/README.md`.
+in order — the full list is `MIGRATIONS` in `lib/db/migrations.js`, currently
+through `db/sql/26-schema-migrations.sql`. Details and the re-import rules are
+in `db/sql/README.md`.
+
+Since `26-schema-migrations.sql` the database keeps a ledger of the files it
+has been given, and **the app refuses to boot when the ledger is behind the
+code** — `preflight.mjs` and the boot check both print exactly which
+`db/sql/*.sql` files to import. A missed file is a refused start with the
+answer on the screen, not a silent 500.
 
 `09-ui-strings.sql` is what makes `/admin/translations` able to save. Skipping it
 does not break the site — every string falls back to the wording compiled into
@@ -239,7 +246,9 @@ misconfiguration is found deliberately rather than by a visitor. If it exits 1 i
 prints each problem, what will happen because of it, and the fix.
 
 If a migration changed, import the new `db/sql/*.sql` in phpMyAdmin — **after an
-Export backup** — before touching `tmp/restart.txt`.
+Export backup** — before touching `tmp/restart.txt`. `node preflight.mjs` tells
+you which files the database is missing; run it before the import and again
+after, and expect `database  all N SQL files applied`.
 
 ---
 

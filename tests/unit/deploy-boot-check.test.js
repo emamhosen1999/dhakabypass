@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { assertBootEnvironment } from '../../lib/deploy/boot-check.js';
+import { MIGRATIONS } from '../../lib/db/migrations.js';
 
 /**
  * A real, writable directory. The boot check stats MEDIA_ROOT — a path that
@@ -27,8 +28,10 @@ afterAll(() => {
   fs.rmSync(MEDIA, { recursive: true, force: true });
 });
 
-/** Collects what would have gone to the log, and whether the process would die. */
-function harness(env, cwd = '/home/aeos365/apps/dhakabypass') {
+/** Collects what would have gone to the log, and whether the process would die.
+ *  `ledger` stands in for the schema_migrations read (W6.6): complete by
+ *  default, so the environment tests stay about the environment. */
+function harness(env, cwd = '/home/aeos365/apps/dhakabypass', ledger = { applied: [...MIGRATIONS], error: null }) {
   const out = [];
   let exited = null;
   return {
@@ -41,6 +44,7 @@ function harness(env, cwd = '/home/aeos365/apps/dhakabypass') {
         cwd,
         stderr: { write: (s) => out.push(s) },
         exit: (code) => { exited = code; },
+        readMigrations: async () => ledger,
       }),
   };
 }
@@ -161,5 +165,30 @@ describe('the media directory is checked on disk, not merely in the string', () 
     await h.run();
     expect(h.exited).toBe(1);
     expect(h.log).toMatch(/does not exist/);
+  });
+});
+
+describe('the schema gate at boot (W6.6)', () => {
+  it('refuses to start when the database is behind, naming the files to import', async () => {
+    const h = harness(good(), undefined, { applied: MIGRATIONS.filter((m) => m !== '24-legacy-content'), error: null });
+    await h.run();
+    expect(h.exited).toBe(1);
+    expect(h.log).toContain('REFUSING TO START');
+    expect(h.log).toContain('behind this build by 1 SQL file: 24-legacy-content');
+    expect(h.log).toContain('db/sql/24-legacy-content.sql');
+  });
+
+  it('refuses when the ledger cannot be read', async () => {
+    const h = harness(good(), undefined, { applied: [], error: 'ER_ACCESS_DENIED_ERROR' });
+    await h.run();
+    expect(h.exited).toBe(1);
+    expect(h.log).toContain('Could not read schema_migrations');
+  });
+
+  it('starts when every file is in the ledger', async () => {
+    const h = harness(good());
+    const r = await h.run();
+    expect(r.started).toBe(true);
+    expect(h.exited).toBeNull();
   });
 });

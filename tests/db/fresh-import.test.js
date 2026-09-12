@@ -65,8 +65,11 @@ const one = async (sql, params = []) => (await conn.query(sql, params))[0][0];
 const all = async (sql, params = []) => (await conn.query(sql, params))[0];
 
 describe('a database built from db/sql/*.sql alone', () => {
-  it('imports every numbered file in order', () => {
+  it('imports every numbered file in order, and the ledger records all of them (W6.6)', async () => {
     expect(files.length).toBeGreaterThanOrEqual(18);
+    const { MIGRATIONS } = await import('../../lib/db/migrations.js');
+    const rows = await all('SELECT name FROM schema_migrations ORDER BY name');
+    expect(rows.map((r) => r.name)).toEqual([...MIGRATIONS]);
   });
 
   it('carries no inline provenance marker after 22-callout-migration.sql', async () => {

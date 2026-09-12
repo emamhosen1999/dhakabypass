@@ -142,3 +142,17 @@ MariaDB has no real `JSON` type — `JSON` in a `CREATE TABLE` is an alias for
 MariaDB 11.4. If you write a migration that touches a JSON column, pass the value
 as a string and do not cast it; `scripts/db-seed.mjs` carries a note at the exact
 line where this was got wrong once.
+
+## The ledger (from 26-schema-migrations.sql)
+
+`schema_migrations` records every file applied, by name. Every file after 26
+must end with
+
+```sql
+INSERT IGNORE INTO `schema_migrations` (`name`) VALUES ('NN-its-name');
+```
+
+and its name must be appended to `MIGRATIONS` in `lib/db/migrations.js` —
+`tests/unit/migrations-list.test.js` fails otherwise. The production server
+refuses to boot while any listed file is missing from the ledger, and names
+the files to import.

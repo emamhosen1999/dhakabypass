@@ -1,4 +1,4 @@
--- 23-partner-logos.sql — the four brand marks in the media library, and on
+-- 25-partner-logos.sql — the four brand marks in the media library, and on
 -- the home page's partner row (W1.27).
 --
 -- DBEDC supplied one combined PNG of the RHD, SDIG/SRBG, UDC and DBEDC marks

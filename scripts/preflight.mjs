@@ -60,6 +60,28 @@ if (!result.problems.some((p) => p.key === 'MEDIA_ROOT') && env.MEDIA_ROOT) {
   result.problems.push(...(await checkMediaRootWritable(env.MEDIA_ROOT)));
 }
 
+// The schema gate (W6.6): which of the numbered SQL files the database has
+// not been given. Same rule as boot: only asked once the connection variables
+// are present, and answered with the exact files to import.
+if (!result.problems.some((p) => String(p.key).startsWith('DB'))) {
+  process.env.DB_HOST = env.DB_HOST; process.env.DB_PORT = env.DB_PORT; process.env.DB_NAME = env.DB_NAME;
+  process.env.DB_USER = env.DB_USER; process.env.DB_PASSWORD = env.DB_PASSWORD;
+  const { query, dbEnabled } = await import('../lib/db.js');
+  const { readAppliedMigrations, missingMigrations, migrationProblem, MIGRATIONS } = await import('../lib/db/migrations.js');
+  if (dbEnabled()) {
+    let ledger;
+    try {
+      ledger = await readAppliedMigrations(query);
+    } catch (err) {
+      ledger = { applied: [], error: err?.code || err?.message || 'unknown' };
+    }
+    const problem = migrationProblem(missingMigrations(ledger.applied), ledger.error);
+    if (problem) result.problems.push(problem);
+    else console.log(`
+  database  all ${MIGRATIONS.length} SQL files applied (through ${MIGRATIONS[MIGRATIONS.length - 1]})`);
+  }
+}
+
 if (buildInfo) {
   console.log('');
   console.log(`  artifact  ${buildInfo.commitShort || '?'} on ${buildInfo.branch || '?'}, built ${buildInfo.builtAt || '?'}`);
