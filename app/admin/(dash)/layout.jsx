@@ -4,7 +4,6 @@ import AdminNotice from '../../../components/admin/AdminNotice';
 import { redirect } from 'next/navigation';
 import { auth, signOut } from '../../../auth';
 import ThemeToggle from '../../../components/chrome/ThemeToggle.jsx';
-import BrandMark from '../../../components/chrome/BrandMark.jsx';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,8 +64,8 @@ export default async function DashLayout({ children }) {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-8 min-w-0">
             <Link href="/admin" className="flex items-center gap-2 font-bold shrink-0">
-              {/* The same mark as the public header, in currentColor. */}
-              <BrandMark className="db-brand-mark" />
+              {/* DBEDC's own emblem, the same file the public header uses. */}
+              <img src="/brand/dbedc-mark.webp" alt="" width={43} height={34} className="db-brand-mark db-brand-mark-img" />
               <span className="whitespace-nowrap">DBEDC Admin</span>
             </Link>
           </div>

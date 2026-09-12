@@ -92,12 +92,12 @@ describe('getSeoSettings', () => {
     expect(seo.ogImage).toBe('');
   });
 
-  it('carries the header logo (W1.10): blank means the built-in mark, and only a publishable path is kept', async () => {
-    expect(SEO_DEFAULTS.headerLogo).toBe('');
+  it("carries the header logo (W1.10): blank means DBEDC's own emblem, and only a publishable path is kept", async () => {
+    expect(SEO_DEFAULTS.headerLogo).toBe('/brand/dbedc-mark.webp');
     query.mockResolvedValue(rows({ [SEO_KEYS.headerLogo]: '/brand/dbedc.webp' }));
     expect((await getSeoSettings('en')).headerLogo).toBe('/brand/dbedc.webp');
     query.mockResolvedValue(rows({ [SEO_KEYS.headerLogo]: 'javascript:alert(1)' }));
-    expect((await getSeoSettings('en')).headerLogo).toBe('');
+    expect((await getSeoSettings('en')).headerLogo).toBe('/brand/dbedc-mark.webp');
   });
 });
 

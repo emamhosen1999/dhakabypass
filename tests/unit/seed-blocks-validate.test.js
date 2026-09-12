@@ -40,7 +40,7 @@ describe('seeded blocks validate against their types', () => {
   const { types, data } = seededBlocks();
 
   it('found the generated legacy-content blocks', () => {
-    expect([...types.keys()].filter((id) => id >= 400).length).toBeGreaterThanOrEqual(33);
+    expect([...types.keys()].filter((id) => id >= 400).length).toBeGreaterThanOrEqual(26);
   });
 
   it('every seeded block is a registered type', () => {
@@ -56,6 +56,6 @@ describe('seeded blocks validate against their types', () => {
       expect(v.ok, `${t.file}: block ${id} (${t.type}): ${v.errors.join('; ')}`).toBe(true);
       checked += 1;
     }
-    expect(checked).toBeGreaterThanOrEqual(33);
+    expect(checked).toBeGreaterThanOrEqual(26);
   });
 });

@@ -239,10 +239,10 @@ export default async function SettingsPage() {
           />
           <Text
             name="header_logo" label="Header logo" defaultValue={seo.headerLogo}
-            placeholder="(blank = the built-in DBEDC mark)"
-            hint="Shown at the top of every page beside the short name. Leave blank to keep
-                  the built-in mark, which recolours itself for the dark header. A picture
-                  here is shown at 30 pixels high; use a transparent PNG or WebP."
+            placeholder="(blank = DBEDC's emblem, /brand/dbedc-mark.webp)"
+            hint="Shown at the top of every page beside the short name, 30 pixels high.
+                  Leave blank for DBEDC's own emblem. To change it, upload a transparent
+                  PNG or WebP under Media and paste its path here."
           />
           <Text
             name="logo_path" label="Logo" defaultValue={seo.logoPath}

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import BrandMark from './BrandMark.jsx';
 import LocaleSwitch from './LocaleSwitch.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { t } from '../../lib/i18n/ui.js';
@@ -56,15 +55,13 @@ export default async function SiteHeaderV2({ locale }) {
     <header className="db-header">
       <a href="#main" className="db-skip">{t(locale, 'skipToContent')}</a>
       <div className="db-header-inner">
-        {/* W1.10: the short name and an optional header picture come from
+        {/* W1.10: the short name and the header picture come from
             /admin/settings (Organisation); the tagline is the brandTagline
             string under Wording, per language. Nothing on this line is typed
-            here. The built-in mark stays the default because it is drawn in
-            currentColor and needs no second file for the dark header. */}
+            here. The default picture is DBEDC's own emblem, cropped from the
+            logo file DBEDC supplied — not a redrawn SVG. */}
         <Link href={`/${locale}`} className="db-brand">
-          {brand.headerLogo
-            ? <img className="db-brand-mark db-brand-mark-img" src={brand.headerLogo} alt="" width={41} height={30} />
-            : <BrandMark className="db-brand-mark" />}
+          <img className="db-brand-mark db-brand-mark-img" src={brand.headerLogo} alt="" width={43} height={34} />
           <span>
             <b className="db-brand-name">{brand.orgShortName}</b>
             <small className="db-brand-tag">{t(locale, 'brandTagline')}</small>

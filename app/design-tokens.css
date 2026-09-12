@@ -277,10 +277,12 @@
    41px is 30px at the glyph's 212:156 ratio. */
 
 .db-brand-mark{height:30px;width:41px;display:block;flex:none;}
-/* An operator-supplied header picture: same height, its own width. */
-/* `.db-root img{height:auto}` (line ~172) outranks the shared rule above by
-   specificity, so the height is restated at the same specificity here. */
-.db-root .db-brand-mark-img{height:30px;width:auto;max-width:120px;object-fit:contain;}
+/* The header emblem: DBEDC's own mark, cropped from the supplied logo. A
+   blue disc on the blue plate has no edge, so it sits on a small white tile,
+   the way the mark is printed on dark stationery. Same tile in both themes;
+   `.db-root img{height:auto}` is outranked by the extra selector. */
+.db-root .db-brand-mark-img,.db-admin .db-brand-mark-img{height:34px;width:auto;max-width:120px;
+  object-fit:contain;background:#FFFFFF;border-radius:6px;padding:3px 4px;box-sizing:border-box;}
 .db-brand-name{font-family:var(--db-font-display);font-size:1.02rem;letter-spacing:.06em;display:block;line-height:1.1;}
 .db-brand-tag{font-size:.68rem;opacity:.6;}
 /* Visible from md so the nav never disappears on a landscape tablet.

@@ -77,11 +77,17 @@ describe('a database built from db/sql/*.sql alone', () => {
       WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.body')) LIKE '%db-pending%'
          OR JSON_UNQUOTE(JSON_EXTRACT(data, '$.body')) LIKE '%db-archive%'`);
     expect(r.c).toBe(0);
-    // 15 from the migration (22) plus the 8 legacy notices 24-legacy-content
-    // places, one at the head of each restored group.
-    const c = await one("SELECT COUNT(*) AS c FROM blocks WHERE type = 'callout'");
-    expect(c.c).toBe(23);
-    expect((await one('SELECT COUNT(*) AS c FROM blocks WHERE id >= 400')).c).toBe(33);
+    // 29-legacy-as-current: no block is framed as "from the previous website"
+    // any more — the six legacy-tone notices are deleted or plain rich-text,
+    // and the restored facts carry no notice. What remains is the 9 pending
+    // notices (information DBEDC still has to supply).
+    const legacy = await one(`SELECT COUNT(*) AS c FROM block_translations WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.tone')) = 'legacy'`);
+    expect(legacy.c).toBe(0);
+    const framed = await one(`SELECT COUNT(*) AS c FROM block_translations
+      WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.body')) LIKE '%previous website%' OR JSON_UNQUOTE(JSON_EXTRACT(data, '$.heading')) LIKE '%previously published%'`);
+    expect(framed.c).toBe(0);
+    expect((await one("SELECT COUNT(*) AS c FROM blocks WHERE type = 'callout'")).c).toBe(9);
+    expect((await one('SELECT COUNT(*) AS c FROM blocks WHERE id BETWEEN 400 AND 432')).c).toBe(26);
   });
 
   it('put the home corridor blocks on the home page, after the hero (18)', async () => {
@@ -95,7 +101,7 @@ describe('a database built from db/sql/*.sql alone', () => {
   it('put the grievance form on the grievances page and rewrote its cta-band (20)', async () => {
     const rows = await all(`SELECT b.type, b.sort_order FROM blocks b JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'grievances' ORDER BY b.sort_order, b.id`);
-    expect(rows.map((r) => r.type)).toEqual(['hero', 'card-grid', 'rich-text', 'callout', 'request-form', 'cta-band']);
+    expect(rows.map((r) => r.type)).toEqual(['hero', 'card-grid', 'rich-text', 'request-form', 'cta-band']);
     const cta = await one(`SELECT JSON_UNQUOTE(JSON_EXTRACT(t.data, '$.body')) AS body
       FROM block_translations t JOIN blocks b ON b.id = t.block_id JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'grievances' AND b.type = 'cta-band' AND t.locale = 'en'`);
