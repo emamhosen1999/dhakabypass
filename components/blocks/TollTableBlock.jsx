@@ -3,6 +3,7 @@ import { formatTaka, classLabel } from '../../lib/corridor/tolls';
 import { selectRates, hasSectionColumn, tollCitation, inForceSince } from '../../lib/blocks/tollTable.js';
 import { text } from '../../lib/blocks/items.js';
 import { t } from '../../lib/i18n/ui';
+import PrintShare from './PrintShare.jsx';
 
 /**
  * The full toll schedule — a HYBRID block, and the clearest example of why
@@ -80,6 +81,10 @@ export default async function TollTableBlock({ data, locale }) {
     <section className="db-block">
       {heading ? <h2 className="db-h2">{heading}</h2> : null}
       {intro ? <p className="db-lede">{intro}</p> : null}
+      {rows.length ? (
+        <PrintShare printLabel={t(locale, 'printTable')} shareLabel={t(locale, 'shareLink')}
+          copiedLabel={t(locale, 'linkCopied')} title={heading || caption} />
+      ) : null}
 
       {rows.length === 0 ? (
         /* Never a blank hole. No rows, a mistyped section filter and a
