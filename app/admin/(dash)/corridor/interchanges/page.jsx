@@ -34,9 +34,15 @@ function InterchangeForm({ interchange }) {
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </label>
-      <label className="flex flex-col text-sm">Connects to
-        <input name="connects_to" defaultValue={interchange?.connects_to ?? ''}
+      <label className="flex flex-col text-sm">Connects to (English)
+        <input name="connects_to.en" defaultValue={interchange?.connects_to_labels?.en ?? interchange?.connects_to ?? ''}
           placeholder="N2 · Dhaka–Sylhet" className="border rounded px-2 py-1" />
+      </label>
+      <label className="flex flex-col text-sm">Connects to (বাংলা)
+        <input name="connects_to.bn" defaultValue={interchange?.connects_to_labels?.bn ?? ''} className="border rounded px-2 py-1" />
+      </label>
+      <label className="flex flex-col text-sm">Connects to (中文)
+        <input name="connects_to.zh" defaultValue={interchange?.connects_to_labels?.zh ?? ''} className="border rounded px-2 py-1" />
       </label>
       <label className="flex flex-col text-sm">Facilities
         <input name="facilities" defaultValue={(interchange?.facilities ?? []).join(', ')}

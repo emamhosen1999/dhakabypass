@@ -99,15 +99,12 @@ describe('TollTableBlock', () => {
     expect(await render(TollTableBlock, { data, locale: 'en' })).toContain('db-datatable');
   });
 
-  it('binds the gazette citation to the table inside one figure', async () => {
+  it('binds the gazette citation from the rate records to the table inside one figure', async () => {
+    tollRates.mockResolvedValue(RATES.map((r) => ({
+      ...r, sro_number: 'S.R.O. No. 128-Law/2023', sro_date: '14 May 2023', sro_link: '/uploads/sro-128.pdf',
+    })));
     const html = await render(TollTableBlock, {
-      data: {
-        ...data,
-        sroNumber: 'S.R.O. No. 128-Law/2023',
-        sroDate: '14 May 2023',
-        sroLink: '/uploads/sro-128.pdf',
-        revisionMechanism: 'Revised every three years.',
-      },
+      data: { ...data, revisionMechanism: 'Revised every three years.' },
       locale: 'en',
     });
     expect(html).toContain('<figure');

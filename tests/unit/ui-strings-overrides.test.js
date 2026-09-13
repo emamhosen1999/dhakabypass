@@ -35,7 +35,7 @@ describe('t() with no overrides — today\'s behaviour, unchanged', () => {
   it('keeps the (locale, key) signature and the code values', () => {
     expect(t('en', 'navTravel')).toBe(UI.en.navTravel);
     expect(t('bn', 'navTravel')).toBe(UI.bn.navTravel);
-    expect(t('zh', 'contactHeading')).toBe(UI.zh.contactHeading);
+    expect(t('zh', 'contactWriteHeading')).toBe(UI.zh.contactWriteHeading);
   });
 
   it('falls back to English for an unknown locale, and to the key for an unknown key', () => {
@@ -53,9 +53,9 @@ describe('t() with overrides', () => {
   });
 
   it('falls back to the code value for that locale when only another locale is overridden', () => {
-    applyUiOverrides('en', { 'ui.newsHeading': 'Press room' });
-    expect(t('en', 'newsHeading')).toBe('Press room');
-    expect(t('bn', 'newsHeading')).toBe(UI.bn.newsHeading);
+    applyUiOverrides('en', { 'ui.newsEmpty': 'Press room' });
+    expect(t('en', 'newsEmpty')).toBe('Press room');
+    expect(t('bn', 'newsEmpty')).toBe(UI.bn.newsEmpty);
   });
 
   it('never returns a blank string when the stored value is empty or whitespace', () => {
@@ -189,9 +189,9 @@ describe('groupForKey', () => {
   });
 
   it('separates the surfaces an editor thinks in', () => {
-    expect(groupForKey('ui.navTravel')).not.toBe(groupForKey('ui.contactHeading'));
-    expect(groupForKey('ui.formName')).toBe(groupForKey('ui.contactHeading'));
-    expect(groupForKey('ui.travelTollIntro')).toBe(groupForKey('ui.colToll'));
+    expect(groupForKey('ui.navTravel')).not.toBe(groupForKey('ui.contactWriteHeading'));
+    expect(groupForKey('ui.formName')).toBe(groupForKey('ui.contactWriteHeading'));
+    expect(groupForKey('ui.tollCaption')).toBe(groupForKey('ui.colToll'));
   });
 
   it('never invents a group that the screen cannot render', () => {
@@ -246,7 +246,7 @@ describe('loadUiStrings when the database is unavailable', () => {
     const repo = await withQuery(async () => { throw new Error('down'); });
     const overrides = await repo.loadUiStrings();
     for (const locale of LOCALES) applyUiOverrides(locale, overrides[locale] || {});
-    expect(t('bn', 'contactHeading')).toBe(UI.bn.contactHeading);
+    expect(t('bn', 'contactWriteHeading')).toBe(UI.bn.contactWriteHeading);
     expect(t('zh', 'formSend')).toBe(UI.zh.formSend);
     expect(mapUi('bn')).toEqual(MAP_UI.bn);
   });

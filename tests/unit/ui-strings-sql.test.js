@@ -51,7 +51,7 @@ describe('db/sql/09-ui-strings.sql creates the table', () => {
   });
 
   it('holds the value column wide enough for a full sentence', () => {
-    // consentBody and legacyDataNotice are paragraphs; a truncated legal
+    // consentBody and contactDetailsPending are paragraphs; a truncated legal
     // notice is worse than a long column.
     expect(statements).toMatch(/`value`\s+text/i);
   });

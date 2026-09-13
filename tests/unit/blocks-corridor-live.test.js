@@ -82,18 +82,16 @@ describe('hasSectionColumn', () => {
 });
 
 describe('tollCitation', () => {
-  it('is null when nothing has been authored — no empty citation line', () => {
+  it('is null when nothing has been entered — no empty citation line', () => {
     expect(tollCitation({})).toBeNull();
-    expect(tollCitation({ sroNumber: '  ', sroDate: '', revisionMechanism: '' })).toBeNull();
+    expect(tollCitation({ revisionMechanism: '' }, [{ sro_number: '  ', sro_date: '' }])).toBeNull();
   });
 
-  it('carries the number, date, link and revision mechanism', () => {
-    expect(tollCitation({
-      sroNumber: 'S.R.O. No. 128-Law/2023',
-      sroDate: '14 May 2023',
-      sroLink: '/uploads/sro-128.pdf',
-      revisionMechanism: 'Revised every three years under the concession agreement.',
-    })).toEqual({
+  it('reads the number, date and link from the rate records, the mechanism from the block (audit 5.1)', () => {
+    expect(tollCitation(
+      { revisionMechanism: 'Revised every three years under the concession agreement.', sroNumber: 'IGNORED' },
+      [{ sro_number: '' }, { sro_number: 'S.R.O. No. 128-Law/2023', sro_date: '14 May 2023', sro_link: '/uploads/sro-128.pdf' }],
+    )).toEqual({
       number: 'S.R.O. No. 128-Law/2023',
       date: '14 May 2023',
       href: '/uploads/sro-128.pdf',
@@ -102,15 +100,29 @@ describe('tollCitation', () => {
   });
 
   it('drops a link that has no S.R.O. number to name it', () => {
-    // The number is the link text. A link whose only available label is its
-    // own URL is one a screen-reader user cannot tell from any other.
-    expect(tollCitation({ sroLink: 'https://example.gov.bd/x.pdf', sroDate: '2023' }))
-      .toEqual({ number: '', date: '2023', href: '', mechanism: '' });
+    expect(tollCitation({ revisionMechanism: 'x' }, [{ sro_link: 'https://example.gov.bd/x.pdf', sro_date: '2023' }]))
+      .toEqual({ number: '', date: '', href: '', mechanism: 'x' });
   });
 
   it('still renders a citation with a mechanism and no number', () => {
     expect(tollCitation({ revisionMechanism: 'Fixed by gazette notification.' }).mechanism)
       .toBe('Fixed by gazette notification.');
+  });
+
+  it('has no citation field on the block type any more', async () => {
+    const def = (await import('../../lib/blocks/types/toll-table.js')).default;
+    expect(def.fields.map((f) => f.name)).not.toEqual(expect.arrayContaining(['sroNumber']));
+    expect(def.fields.some((f) => /^sro/.test(f.name))).toBe(false);
+  });
+});
+
+describe('inForceSince', () => {
+  it('is the latest effective date among the rows shown', async () => {
+    const { inForceSince } = await import('../../lib/blocks/tollTable.js');
+    const d = inForceSince([{ effective_from: '2025-03-27' }, { effective_from: new Date(2025, 6, 1) }, {}]);
+    expect(d.getFullYear()).toBe(2025);
+    expect(d.getMonth()).toBe(6);
+    expect(inForceSince([])).toBeNull();
   });
 });
 

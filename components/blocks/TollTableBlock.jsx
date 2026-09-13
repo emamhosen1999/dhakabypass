@@ -1,6 +1,6 @@
 import { getTollRatesCached } from '../../lib/corridor/cache';
 import { formatTaka, classLabel } from '../../lib/corridor/tolls';
-import { selectRates, hasSectionColumn, tollCitation } from '../../lib/blocks/tollTable.js';
+import { selectRates, hasSectionColumn, tollCitation, inForceSince } from '../../lib/blocks/tollTable.js';
 import { text } from '../../lib/blocks/items.js';
 import { t } from '../../lib/i18n/ui';
 
@@ -39,7 +39,13 @@ export default async function TollTableBlock({ data, locale }) {
   const heading = text(data.heading);
   const intro = text(data.intro);
   const caption = text(data.caption) || t(locale, 'tollCaption');
-  const citation = tollCitation(data);
+  const citation = tollCitation(data, rows);
+  const since = data.showInForce === 'no' ? null : inForceSince(rows);
+  const sinceText = since
+    ? t(locale, 'tollInForceSince').replace('{date}', new Intl.DateTimeFormat(
+      locale === 'bn' ? 'bn-BD' : locale === 'zh' ? 'zh-CN' : 'en-GB', { dateStyle: 'long' },
+    ).format(since))
+    : '';
   const withSection = hasSectionColumn(rows);
 
   const table = (
@@ -81,7 +87,7 @@ export default async function TollTableBlock({ data, locale }) {
            in the operator's own words, falling back to the editable
            `noTollRates` string when none has been authored. */
         <p className="db-empty-inline">{text(data.emptyMessage) || t(locale, 'noTollRates')}</p>
-      ) : citation ? (
+      ) : citation || sinceText ? (
         /* <figure> is what binds the schedule to its authority: the figcaption
            names the figure, so entering the group announces the notification
            the prices come from. A <p> after the table would be a footnote a
@@ -89,7 +95,7 @@ export default async function TollTableBlock({ data, locale }) {
         <figure className="db-tollschedule">
           {table}
           <figcaption className="db-table-note db-toll-provenance">
-            {citation.number ? (
+            {citation?.number ? (
               citation.href ? (
                 /* The S.R.O. number IS the link text. A link labelled with the
                    URL, or with a generic word, is a link a screen-reader user
@@ -98,8 +104,9 @@ export default async function TollTableBlock({ data, locale }) {
                 <a className="db-toll-sro" href={citation.href}>{citation.number}</a>
               ) : <span className="db-toll-sro">{citation.number}</span>
             ) : null}
-            {citation.date ? <span className="db-toll-srodate">{citation.date}</span> : null}
-            {citation.mechanism ? <span className="db-toll-revision">{citation.mechanism}</span> : null}
+            {citation?.date ? <span className="db-toll-srodate">{citation.date}</span> : null}
+            {sinceText ? <span className="db-toll-inforce">{sinceText}</span> : null}
+            {citation?.mechanism ? <span className="db-toll-revision">{citation.mechanism}</span> : null}
           </figcaption>
         </figure>
       ) : table}

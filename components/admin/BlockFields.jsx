@@ -84,6 +84,8 @@ export default function BlockFields({ fields, data }) {
             <input
               name={name}
               type={field.type === 'number' ? 'number' : 'text'}
+              min={field.type === 'number' && Number.isFinite(field.min) ? field.min : undefined}
+              max={field.type === 'number' && Number.isFinite(field.max) ? field.max : undefined}
               defaultValue={value ?? (field.type === 'number' ? 0 : '')}
               className="border rounded px-3 py-2"
             />

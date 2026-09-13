@@ -14,23 +14,26 @@ const severityTag = (s) => (Object.hasOwn(SEVERITY_TAG, s ?? '') ? SEVERITY_TAG[
 const INTL = { bn: 'bn-BD', zh: 'zh-CN' };
 
 /**
- * Bangladesh Standard Time is a fixed UTC+6 with no daylight saving (none
- * observed since 2009), so shifting the instant by six hours and formatting in
- * UTC is exact — and needs no timezone database. That is the same trick, and
- * the same reasoning, as lib/corridor/tolls.js and lib/corridor/advisories.js.
- * Formatting in the SERVER's timezone instead would print a Dhaka measurement
- * in whatever zone the shared host happens to be set to.
+ * A measurement is printed in Dhaka's own time, named as a time zone rather
+ * than as a number of minutes (audit 2.13), so the label and the machine
+ * value both follow the zone database instead of a constant. Formatting in
+ * the SERVER's zone would print a Dhaka measurement in whatever zone the
+ * shared host happens to be set to.
  */
-const DHAKA_UTC_OFFSET_MINUTES = 360;
+const CORRIDOR_TIME_ZONE = 'Asia/Dhaka';
 
 function measuredParts(date, intlLocale) {
-  const shifted = new Date(date.getTime() + DHAKA_UTC_OFFSET_MINUTES * 60000);
   const label = new Intl.DateTimeFormat(intlLocale, {
-    dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC',
-  }).format(shifted);
-  // The machine-readable half carries the offset explicitly, so the value is
-  // an instant rather than an ambiguous wall clock.
-  const iso = `${shifted.toISOString().slice(0, 19)}+06:00`;
+    dateStyle: 'medium', timeStyle: 'short', timeZone: CORRIDOR_TIME_ZONE,
+  }).format(date);
+  // The machine-readable half carries the zone's offset explicitly, so the
+  // value is an instant rather than an ambiguous wall clock.
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
+    timeZone: CORRIDOR_TIME_ZONE, hourCycle: 'h23', timeZoneName: 'longOffset',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(date).map((x) => [x.type, x.value]));
+  const offset = (parts.timeZoneName || '').replace(/^GMT/, '') || 'Z';
+  const iso = `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}${offset}`;
   return { label, iso };
 }
 

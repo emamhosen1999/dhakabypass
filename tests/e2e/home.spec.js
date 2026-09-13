@@ -57,8 +57,8 @@ test.describe('home page', () => {
     // The corridor summary must come before every other section: the first
     // actionable thing on a road operator's front door is the state of the
     // road, not marketing copy.
-    const headings = page.locator('h1, h2');
-    await expect(headings.nth(1)).toHaveText(t('en', 'homeCorridorHeading'));
+    // Its heading is the progress-bar block's own label, from ui strings.
+    await expect(page.locator('.db-progress-label').first()).toHaveText(t('en', 'openToTraffic'));
   });
 
   test('shows live toll amounts that match the toll page', async ({ page }) => {
@@ -153,7 +153,7 @@ test.describe('home page', () => {
       expect(bodyText, `"${name}" fell back to English on /bn`).not.toContain(name);
     }
     // The chrome's own strings come from lib/i18n/ui.js, not from content.
-    await expect(page.locator('h2').first()).toHaveText(t('bn', 'homeCorridorHeading'));
+    await expect(page.locator('.db-progress-label').first()).toHaveText(t('bn', 'openToTraffic'));
   });
 
   // ---- Defects found in this build, now nailed down --------------------

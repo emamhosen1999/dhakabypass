@@ -8,7 +8,9 @@ export const dynamic = 'force-dynamic';
 
 const TITLES = {
   main: 'Main navigation (top of every page)',
+  cta: 'Header button (the highlighted link beside the main navigation)',
   footer: 'Footer navigation',
+  legal: 'Footer policy links (privacy, terms, accessibility)',
   travel: 'Travel section menu (the "Travel section menu" block)',
 };
 

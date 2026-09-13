@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { localeHref } from '../../lib/blocks/href.js';
 import { getInterchangesCached } from '../../lib/corridor/cache';
-import { localeName } from '../../lib/corridor/interchanges';
+import { localeName, localeConnectsTo } from '../../lib/corridor/interchanges';
 import { formatChainage } from '../../lib/corridor/chainage';
 import { kindKey, statusKey, statusTagClass } from '../../lib/corridor/interchange-labels';
 import { selectInterchanges, visibleColumns } from '../../lib/blocks/interchangeTable.js';
@@ -35,7 +35,7 @@ export default async function InterchangeTableBlock({ data, locale }) {
   let records = [];
   try { records = await getInterchangesCached(); } catch { records = []; }
 
-  const rows = selectInterchanges(records, data, (r) => localeName(r, locale));
+  const rows = selectInterchanges(records, data, (r) => localeName(r, locale), (r) => localeConnectsTo(r, locale));
   const show = visibleColumns(data);
   const heading = text(data.heading);
   const intro = text(data.intro);

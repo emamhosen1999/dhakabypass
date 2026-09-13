@@ -3,9 +3,10 @@ import LocaleSwitch from './LocaleSwitch.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { t } from '../../lib/i18n/ui.js';
 import { getMenuCached } from '../../lib/menus/cache.js';
-import { MAIN_NAV } from '../../lib/menus/builtin.js';
+import { MAIN_NAV, CTA_NAV } from '../../lib/menus/builtin.js';
 import { siteSeoCached } from '../../lib/seo/cache.js';
 import { localeHref } from '../../lib/blocks/href.js';
+import { resolveLogo } from '../../lib/seo/identity.js';
 
 /**
  * The primary navigation.
@@ -40,12 +41,27 @@ export default async function SiteHeaderV2({ locale }) {
    * had.
    */
   let items = [];
+  let ctaItems = [];
   try {
-    items = await getMenuCached('main', locale);
+    [items, ctaItems] = await Promise.all([getMenuCached('main', locale), getMenuCached('cta', locale)]);
   } catch {
     items = [];
+    ctaItems = [];
   }
+  // The button is the `cta` menu (audit 4.3); built-in: Contact.
+  const ctas = (ctaItems || []).length
+    ? ctaItems.filter((i) => i.href).map((i) => ({ key: i.id, href: localeHref(i.href, locale), label: i.label }))
+    : CTA_NAV.map((n) => ({ key: n.href, href: `/${locale}${n.href}`, label: t(locale, n.key) }));
   const brand = await siteSeoCached(locale);
+  // The picture's own proportions, measured (audit 2.14): the mark is drawn
+  // 34px tall, so the width attribute follows whatever file is configured.
+  let logoWidth = null;
+  try {
+    const logo = await resolveLogo(brand.headerLogo);
+    if (logo.width > 0 && logo.height > 0) logoWidth = Math.round((34 * logo.width) / logo.height);
+  } catch {
+    logoWidth = null;
+  }
 
   const links = items.length
     ? items.map((i) => ({ key: i.id, href: localeHref(i.href, locale), label: i.label }))
@@ -61,7 +77,7 @@ export default async function SiteHeaderV2({ locale }) {
             here. The default picture is DBEDC's own emblem, cropped from the
             logo file DBEDC supplied — not a redrawn SVG. */}
         <Link href={`/${locale}`} className="db-brand">
-          <img className="db-brand-mark db-brand-mark-img" src={brand.headerLogo} alt="" width={43} height={34} />
+          <img className="db-brand-mark db-brand-mark-img" src={brand.headerLogo} alt="" width={logoWidth || undefined} height={34} />
           <span>
             <b className="db-brand-name">{brand.orgShortName}</b>
             <small className="db-brand-tag">{t(locale, 'brandTagline')}</small>
@@ -75,7 +91,7 @@ export default async function SiteHeaderV2({ locale }) {
               {item.label}
             </Link>
           ))}
-          <Link href={`/${locale}/contact`} className="db-nav-cta">{t(locale, 'navContact')}</Link>
+          {ctas.map((c) => <Link key={c.key} href={c.href} className="db-nav-cta">{c.label}</Link>)}
         </nav>
 
         <div className="db-header-utils">
@@ -91,7 +107,7 @@ export default async function SiteHeaderV2({ locale }) {
               {item.label}
             </Link>
           ))}
-          <Link href={`/${locale}/contact`} className="db-nav-cta">{t(locale, 'navContact')}</Link>
+          {ctas.map((c) => <Link key={c.key} href={c.href} className="db-nav-cta">{c.label}</Link>)}
         </nav>
       </div>
     </header>

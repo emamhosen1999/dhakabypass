@@ -38,6 +38,7 @@ export const revalidate = 3600;
 
 export default async function sitemap() {
   let pages = [];
+  let pagesReadFailed = false;
   let news = [];
   // Returns [] on failure rather than throwing, on purpose: an empty list
   // leaves a hidden URL listed, which is a Search Console warning, where a
@@ -62,6 +63,7 @@ export default async function sitemap() {
     // sitemap dropped from Search Console, while a short sitemap just gets
     // fewer URLs crawled until the database comes back.
     pages = [];
+    pagesReadFailed = true;
   }
-  return buildSitemap({ pages, news, noindex });
+  return buildSitemap({ pages, news, noindex, pagesReadFailed });
 }

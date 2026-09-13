@@ -33,8 +33,8 @@ describe('list fields declare their row shape', () => {
     expect(listItemFields(listField('figure-grid', 'items'))[0].type).toBe('image');
   });
 
-  it('stat-row.stats is value / unit / label', () => {
-    expect(names('stat-row', 'stats')).toEqual(['value', 'unit', 'label']);
+  it('stat-row.stats is a live source or a typed value / unit / label', () => {
+    expect(names('stat-row', 'stats')).toEqual(['source', 'value', 'unit', 'label']);
   });
 
   it('partner-row.items is name / logo / role / share plus an optional link', () => {
@@ -85,7 +85,7 @@ describe('registerBlock validates itemFields', () => {
 
 describe('emptyListItem', () => {
   it('builds a blank row from the declared shape', () => {
-    expect(emptyListItem(listField('stat-row', 'stats'))).toEqual({ value: '', unit: '', label: '' });
+    expect(emptyListItem(listField('stat-row', 'stats'))).toEqual({ source: '', value: '', unit: '', label: '' });
   });
 
   it('returns an empty string for a scalar list', () => {
@@ -109,6 +109,11 @@ describe('normalizeListItems', () => {
   it('drops rows where every declared field is empty', () => {
     const rows = [{ value: '', unit: '', label: '' }, { value: '48', unit: '', label: 'x' }];
     expect(normalizeListItems(stats(), rows)).toHaveLength(1);
+  });
+
+  it('keeps a live-source row with no typed value, and refuses an unknown source', () => {
+    expect(normalizeListItems(stats(), [{ source: 'corridor-open-length', label: 'Open' }])[0].source).toBe('corridor-open-length');
+    expect(normalizeListItems(stats(), [{ source: 'made-up', value: '1', label: 'x' }])[0].source).toBe('');
   });
 
   it('drops non-object rows from an object list', () => {

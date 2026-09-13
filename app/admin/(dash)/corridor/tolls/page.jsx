@@ -34,6 +34,15 @@ function TollForm({ toll }) {
           defaultValue={toll?.effective_from ? String(toll.effective_from).slice(0, 10) : ''}
           className="border rounded px-2 py-1" />
       </label>
+      <label className="flex flex-col text-sm">Gazette / S.R.O. number
+        <input name="sro_number" defaultValue={toll?.sro_number ?? ''} className="border rounded px-2 py-1" />
+      </label>
+      <label className="flex flex-col text-sm">Notification date
+        <input name="sro_date" defaultValue={toll?.sro_date ?? ''} placeholder="14 May 2025" className="border rounded px-2 py-1" />
+      </label>
+      <label className="flex flex-col text-sm">Link to the notification
+        <input name="sro_link" defaultValue={toll?.sro_link ?? ''} placeholder="https://… or /uploads/…" className="border rounded px-2 py-1" />
+      </label>
       <button type="submit" className="px-3 py-1 rounded bg-black text-white h-8">Save</button>
     </form>
   );

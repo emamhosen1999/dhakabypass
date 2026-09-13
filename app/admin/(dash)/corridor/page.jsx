@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { listCorridorAction, setIllustrativeAction } from './actions';
+import { listCorridorAction, setIllustrativeAction, saveCorridorFactsAction } from './actions';
+import { LOCALES } from '../../../../lib/i18n/locales';
 import { listWaypointsForAdmin } from '../../../../lib/corridor/waypoints-admin';
 import { getGeometryOverview } from '../../../../lib/corridor/geometry-admin';
 import { listTollMatrixAction } from './toll-matrix-actions';
@@ -8,7 +9,7 @@ import { isProvisional } from '../../../../lib/corridor/toll-matrix';
 export const dynamic = 'force-dynamic';
 
 export default async function CorridorHub() {
-  const [{ segments, interchanges, tolls, advisories, illustrative }, waypoints, geometry, matrix] =
+  const [{ segments, interchanges, tolls, advisories, illustrative, publishedLengthKm, prohibited, roadCode }, waypoints, geometry, matrix] =
     await Promise.all([
       listCorridorAction(), listWaypointsForAdmin(), getGeometryOverview(), listTollMatrixAction(),
     ]);
@@ -55,6 +56,37 @@ export default async function CorridorHub() {
           they await official confirmation. Turn it off only once DBEDC has confirmed the
           toll table, the interchange schedule and the section statuses.
         </p>
+        <button type="submit" className="px-4 py-2 rounded bg-black text-white">Save</button>
+      </form>
+
+      <form action={saveCorridorFactsAction} className="border rounded p-4 space-y-3">
+        <h2 className="font-semibold">Corridor facts</h2>
+        <label className="flex flex-col gap-1 text-sm max-w-xs">
+          Published corridor length (km)
+          <input
+            type="number" step="0.001" min="0" name="published_length_km"
+            defaultValue={publishedLengthKm ?? ''} className="border rounded px-3 py-2"
+          />
+          <span className="text-gray-500">The figure every progress bar shows as its total (“18 km / 48 km”) and any statistic set to “Corridor length, published”. Blank uses the measured length of the sections.</span>
+        </label>
+        <label className="flex flex-col gap-1 text-sm max-w-xs">
+          National road number
+          <input name="road_code" defaultValue={roadCode || ''} maxLength={16} className="border rounded px-3 py-2" />
+          <span className="text-gray-500">Shown on the corridor map's title plate, for example N105. Blank shows none.</span>
+        </label>
+        <fieldset className="grid gap-3 sm:grid-cols-3">
+          <legend className="text-sm">Vehicles not permitted on the expressway — one per line</legend>
+          {LOCALES.map((locale) => (
+            <label key={locale} className="flex flex-col gap-1 text-sm">
+              {locale.toUpperCase()}
+              <textarea
+                name={`prohibited_${locale}`} rows={4} className="border rounded px-3 py-2"
+                defaultValue={Array.isArray(prohibited?.[locale]) ? prohibited[locale].join('\n') : ''}
+              />
+            </label>
+          ))}
+        </fieldset>
+        <p className="text-sm text-gray-500">Shown by every “Prohibited vehicles” block. A language left blank shows the English list.</p>
         <button type="submit" className="px-4 py-2 rounded bg-black text-white">Save</button>
       </form>
 

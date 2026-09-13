@@ -269,7 +269,7 @@ export default function CorridorExplorer({ view, ui, initialSelected = null }) {
           </div>
         ) : null}
 
-        <div className="db-map-titleplate" data-map-ui><strong>{ui.title}</strong><span>N105 · {ui.subtitle}</span></div>
+        <div className="db-map-titleplate" data-map-ui><strong>{ui.title}</strong><span>{ui.roadCode ? `${ui.roadCode} · ` : ''}{ui.subtitle}</span></div>
         {enhanced ? <div className="db-map-layers" data-map-ui>
           <span className="db-map-active-layer">{ui.map}</span>
           <button type="button" aria-expanded={layersOpen} onClick={() => setLayersOpen(!layersOpen)}>{ui.layers}<span aria-hidden="true"> ▱</span></button>

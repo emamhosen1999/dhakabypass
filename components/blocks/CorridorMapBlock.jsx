@@ -4,6 +4,7 @@ import { buildMapView } from '../../lib/corridor/view.js';
 import { getMapTrafficCached } from '../../lib/corridor/traffic-cache.js';
 import { getInterchangesCached } from '../../lib/corridor/cache.js';
 import { localeName } from '../../lib/corridor/interchanges.js';
+import { getSetting } from '../../lib/settings.js';
 import CorridorExplorer from '../corridor/CorridorExplorer.jsx';
 
 const text = (v) => (typeof v === 'string' ? v.trim() : '');
@@ -41,6 +42,12 @@ const CONDITION_KEYS = ['free', 'moderate', 'slow', 'heavy', 'closed', 'unknown'
  *   also what keeps the client bundle free of the 546-string UI catalogue.
  */
 export default async function CorridorMapBlock({ data, locale }) {
+  let roadCode = '';
+  try {
+    roadCode = String((await getSetting('corridor.road_code', '')) || '').trim();
+  } catch {
+    roadCode = '';
+  }
   let waypoints = [];
   let sections = [];
   let interchanges = [];
@@ -107,6 +114,8 @@ export default async function CorridorMapBlock({ data, locale }) {
             view={view}
             ui={{
               ...mapUi(locale),
+              // The corridor's national road number, from /admin/corridor.
+              roadCode,
               locale: intlLocale,
               kmUnit: t(locale, 'mapKm'),
               mUnit: t(locale, 'mapM'),

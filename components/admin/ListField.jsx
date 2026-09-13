@@ -247,6 +247,21 @@ function RowField({ field, value, onChange }) {
       />
     );
   }
+  if (field.type === 'select') {
+    const options = Array.isArray(field.options) ? field.options : [];
+    return (
+      <label className="flex flex-col text-xs font-medium gap-1">
+        {field.label}
+        <select
+          value={value ?? ''}
+          onChange={(e) => onChange(e.target.value)}
+          className="border rounded px-2 py-1 text-sm font-normal"
+        >
+          {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </label>
+    );
+  }
   if (field.type === 'number') {
     return (
       <label className="flex flex-col text-xs font-medium gap-1">

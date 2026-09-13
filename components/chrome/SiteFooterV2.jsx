@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { t } from '../../lib/i18n/ui.js';
 import { getMenuCached } from '../../lib/menus/cache.js';
-import { FOOTER_GROUPS } from '../../lib/menus/builtin.js';
+import { FOOTER_GROUPS, LEGAL_NAV } from '../../lib/menus/builtin.js';
 import { localeHref } from '../../lib/blocks/href.js';
 import { getContactDetailsCached } from '../../lib/settings-cache.js';
 import EmergencyNumbers from '../contact/EmergencyNumbers.jsx';
@@ -35,11 +35,16 @@ export default async function SiteFooterV2({ locale }) {
    * landowner or a supplier comes here for cannot vanish because a query failed.
    */
   let menu = [];
+  let legalMenu = [];
   try {
-    menu = await getMenuCached('footer', locale);
+    [menu, legalMenu] = await Promise.all([getMenuCached('footer', locale), getMenuCached('legal', locale)]);
   } catch {
     menu = [];
+    legalMenu = [];
   }
+  const legal = (legalMenu || []).length
+    ? legalMenu.filter((i) => i.href).map((i) => ({ key: i.id, href: localeHref(i.href, locale), label: i.label }))
+    : LEGAL_NAV.map((n) => ({ key: n.href, href: `/${locale}${n.href}`, label: t(locale, n.key) }));
 
   /**
    * The emergency number sits on every page, in the footer, because that is
@@ -101,16 +106,13 @@ export default async function SiteFooterV2({ locale }) {
       <div className="db-footer-inner">
         {/* The organisation's full name from /admin/settings (W1.10). */}
         <p className="db-footer-brand">{brand.orgName}</p>
-        {/* The legacy footer carried these three and the rebuild dropped them,
-            which left the site running Google Analytics behind a consent banner
-            with no policy to consent to. They sit in the bottom bar rather than
-            a nav column because that is where a reader looks for them, and
-            because the columns above are operator-editable while these must not
+        {/* The policy links sit in the bottom bar, where a reader looks for
+            them. They are the `legal` menu (audit 4.2) — an operator can rename,
+            re-point or add one — and fall back to the three built-in policy
+            pages whenever that menu is empty or unreadable, so they cannot
             quietly disappear. */}
         <ul className="db-footer-legal-links">
-          <li><Link href={localeHref('privacy', locale)}>{t(locale, 'footerPrivacy')}</Link></li>
-          <li><Link href={localeHref('terms', locale)}>{t(locale, 'footerTerms')}</Link></li>
-          <li><Link href={localeHref('accessibility', locale)}>{t(locale, 'footerAccessibility')}</Link></li>
+          {legal.map((l) => <li key={l.key}><Link href={l.href}>{l.label}</Link></li>)}
         </ul>
         {/* DBEDC's official accounts, from /admin/settings (Contact). Only
             https links are ever stored, and none renders until one is set. */}

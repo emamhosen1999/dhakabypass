@@ -15,7 +15,8 @@ import { saveSegment, deleteSegment, listSegments } from '../../../../lib/corrid
 import { saveInterchange, deleteInterchange, listInterchanges } from '../../../../lib/corridor/interchanges';
 import { saveTollRate, deleteTollRate, listAllTollRates } from '../../../../lib/corridor/tolls';
 import { saveAdvisory, deleteAdvisory, listAllAdvisories } from '../../../../lib/corridor/advisories';
-import { setSetting, isDataIllustrative } from '../../../../lib/settings';
+import { setSetting, getSetting, isDataIllustrative, getPublishedLengthKm } from '../../../../lib/settings';
+import { LOCALES } from '../../../../lib/i18n/locales';
 
 const ADMIN = '/admin/corridor';
 
@@ -28,10 +29,11 @@ const SEVERITIES = ['info', 'warning', 'closure'];
 
 async function listCorridorAction$inner() {
   await assertCan(ACTION);
-  const [segments, interchanges, tolls, advisories, illustrative] = await Promise.all([
+  const [segments, interchanges, tolls, advisories, illustrative, publishedLengthKm, prohibited, roadCode] = await Promise.all([
     listSegments(), listInterchanges(), listAllTollRates(), listAllAdvisories(), isDataIllustrative(),
+    getPublishedLengthKm(), getSetting('corridor.prohibited_vehicles', {}), getSetting('corridor.road_code', ''),
   ]);
-  return { segments, interchanges, tolls, advisories, illustrative };
+  return { segments, interchanges, tolls, advisories, illustrative, publishedLengthKm, prohibited, roadCode };
 }
 
 async function saveSegmentAction$inner(formData) {
@@ -77,7 +79,7 @@ async function saveInterchangeAction$inner(formData) {
     await saveInterchange({
       id: Number(formData.get('id')) || null,
       chainage_m, names, kind, status,
-      connects_to: String(formData.get('connects_to') || ''),
+      connects_to_labels: localeMap(formData, 'connects_to'),
       facilities: String(formData.get('facilities') || '')
         .split(',').map((s) => s.trim()).filter(Boolean),
       lat: String(formData.get('lat') || '') || null,
@@ -108,6 +110,9 @@ async function saveTollRateAction$inner(formData) {
       section: String(formData.get('section') || ''),
       amount_bdt: Number(formData.get('amount_bdt')),
       effective_from: String(formData.get('effective_from') || ''),
+      sro_number: String(formData.get('sro_number') || ''),
+      sro_date: String(formData.get('sro_date') || ''),
+      sro_link: String(formData.get('sro_link') || ''),
     });
   } catch (err) {
     // toll_rates has UNIQUE KEY uq_class_effective (vehicle_class, effective_from).
@@ -176,6 +181,41 @@ async function setIllustrativeAction$inner(formData) {
   revalidatePath(ADMIN);
 }
 
+/**
+ * The corridor facts that are settings rather than rows (audit 4.4/4.5): the
+ * published length every progress bar divides by, and the vehicle classes
+ * barred from the expressway, one per line per language.
+ */
+async function saveCorridorFactsAction$inner(formData) {
+  await assertCan(ACTION);
+  const rawLength = String(formData.get('published_length_km') ?? '').trim();
+  let length = null;
+  if (rawLength !== '') {
+    length = Number(rawLength);
+    if (!Number.isFinite(length) || length <= 0 || length > 1000) {
+      throw validationError('Published length must be a number of kilometres greater than 0, for example 48.');
+    }
+  }
+  const roadCode = String(formData.get('road_code') ?? '').trim();
+  if (roadCode.length > 16) throw validationError('Road number must be 16 characters or fewer, for example N105.');
+  const prohibited = {};
+  for (const locale of LOCALES) {
+    const lines = String(formData.get(`prohibited_${locale}`) ?? '')
+      .split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (lines.some((l) => l.length > 120)) {
+      throw validationError(`Each prohibited vehicle class (${locale}) must be 120 characters or fewer, one per line.`);
+    }
+    if (lines.length) prohibited[locale] = lines;
+  }
+  try {
+    await setSetting('corridor.published_length_km', length);
+    await setSetting('corridor.prohibited_vehicles', prohibited);
+    await setSetting('corridor.road_code', roadCode);
+  } catch { throw validationError('Could not save the corridor facts. Please try again.'); }
+  revalidateCorridor();
+  revalidatePath(ADMIN);
+}
+
 // ---------------------------------------------------------------------------
 // Every exported action runs through runAction(): a thrown validation error
 // becomes a redirect back to the form with the sentence in `?notice=`, which
@@ -208,6 +248,9 @@ export async function saveAdvisoryAction(formData) {
 }
 export async function deleteAdvisoryAction(formData) {
   return runAction(() => deleteAdvisoryAction$inner(formData));
+}
+export async function saveCorridorFactsAction(formData) {
+  return runAction(() => saveCorridorFactsAction$inner(formData));
 }
 export async function setIllustrativeAction(formData) {
   return runAction(() => setIllustrativeAction$inner(formData));

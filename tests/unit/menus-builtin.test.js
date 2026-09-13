@@ -10,14 +10,14 @@ import { t } from '../../lib/i18n/ui.js';
 describe('builtinRows', () => {
   it('copies the main and travel lists flat, in order, with a label per locale', () => {
     const main = builtinRows('main');
-    expect(main.map((r) => r.href)).toEqual(MAIN_NAV.map((n) => n.href));
+    expect(main.map((r) => r.href)).toEqual(MAIN_NAV.map((n) => n.href.slice(1)));
     expect(main.map((r) => r.sortOrder)).toEqual([0, 1, 2, 3, 4, 5]);
     for (const r of main) {
       expect(r.parentIndex).toBeNull();
       for (const l of LOCALES) expect(r.labels[l]).toBeTruthy();
     }
     expect(main[0].labels.bn).toBe(t('bn', 'navTravel'));
-    expect(builtinRows('travel').map((r) => r.href)).toEqual(TRAVEL_NAV.map((n) => n.href));
+    expect(builtinRows('travel').map((r) => r.href)).toEqual(TRAVEL_NAV.map((n) => n.href.slice(1)));
   });
 
   it('copies the footer as headings with their links nested one level', () => {
@@ -34,6 +34,18 @@ describe('builtinRows', () => {
       expect(rows.indexOf(parent)).toBeLessThan(rows.indexOf(l));
     }
     expect(rows[1].labels.en).toBe(t('en', 'travelStatus'));
+  });
+
+  it('seeds links in the authored form, so each reader gets their own locale', async () => {
+    const { localeHref } = await import('../../lib/blocks/href.js');
+    for (const slug of ['main', 'cta', 'footer', 'legal', 'travel']) {
+      for (const r of builtinRows(slug).filter((x) => x.href)) {
+        expect(r.href.startsWith('/'), `${slug} ${r.href}`).toBe(false);
+        expect(localeHref(r.href, 'bn').startsWith('/bn/')).toBe(true);
+      }
+    }
+    expect(builtinRows('legal').map((r) => r.href)).toEqual(['privacy', 'terms', 'accessibility']);
+    expect(builtinRows('cta').map((r) => r.href)).toEqual(['contact']);
   });
 
   it('yields nothing for a slug it does not know', () => {

@@ -52,8 +52,8 @@ describe('buildSitemap', () => {
     expect(got).toContain('https://dhakabypass.com/zh/about/partners');
   });
 
-  it('includes the travel routes for every locale', () => {
-    const got = urls(buildSitemap({ pages: [homeRow] }));
+  it('includes the travel routes for every locale on the outage path', () => {
+    const got = urls(buildSitemap({ pages: [homeRow], pagesReadFailed: true }));
     for (const locale of LOCALES) {
       expect(got).toContain(`https://dhakabypass.com/${locale}/travel/toll`);
       expect(got).toContain(`https://dhakabypass.com/${locale}/travel/route`);
@@ -126,10 +126,10 @@ describe('buildSitemap', () => {
   });
 
   it('omits lastModified on the outage fallback rather than inventing "now"', () => {
-    // No code route carries content any more. When the database returns no
-    // row for an essential path, the fallback entry carries no date — a
-    // fabricated "now" would tell a crawler the page changed when nothing did.
-    const entries = buildSitemap({ pages: [homeRow] });
+    // No code route carries content any more. When the pages read failed, the
+    // fallback entry carries no date — a fabricated "now" would tell a crawler
+    // the page changed when nothing did.
+    const entries = buildSitemap({ pages: [homeRow], pagesReadFailed: true });
     const contact = entries.find((e) => e.url === 'https://dhakabypass.com/en/contact');
     expect('lastModified' in contact).toBe(false);
   });
@@ -141,6 +141,14 @@ describe('buildSitemap', () => {
     for (const p of ESSENTIAL_CONTENT_PATHS) {
       expect(got, p).toContain(`https://dhakabypass.com/en${p}`);
     }
+  });
+
+  it('leaves out an essential route the operator unpublished when the pages read succeeded (audit 4.7)', () => {
+    const got = urls(buildSitemap({ pages: [homeRow] }));
+    expect(got).not.toContain('https://dhakabypass.com/en/gallery');
+    expect(got).not.toContain('https://dhakabypass.com/en/travel/toll');
+    const failed = urls(buildSitemap({ pages: [homeRow], pagesReadFailed: true }));
+    expect(failed).toContain('https://dhakabypass.com/en/gallery');
   });
 
   it('every essential content route is actually seeded as a pages row', () => {
@@ -223,7 +231,7 @@ describe('lastModifiedFor', () => {
  */
 describe('buildSitemap and noindex routes', () => {
   it('drops a code route the operator has marked noindex, in every locale', () => {
-    const got = urls(buildSitemap({ pages: [homeRow], noindex: ['/gallery'] }));
+    const got = urls(buildSitemap({ pages: [homeRow], noindex: ['/gallery'], pagesReadFailed: true }));
     expect(got).not.toContain('https://dhakabypass.com/en/gallery');
     expect(got).not.toContain('https://dhakabypass.com/bn/gallery');
     expect(got).not.toContain('https://dhakabypass.com/zh/gallery');
