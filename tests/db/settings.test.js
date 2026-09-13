@@ -14,6 +14,8 @@ beforeAll(async () => {
   execFileSync('node', ['scripts/db-setup-v5.mjs', `--database=${DB}`], { stdio: 'inherit' });
   // v6 adds media.original_path, which lib/media/replace.js reads and writes.
   execFileSync('node', ['scripts/db-setup-v6.mjs', `--database=${DB}`], { stdio: 'inherit' });
+  // v11 adds the toll citation, connects-to per language and corridor_roads (31).
+  execFileSync('node', ['scripts/db-setup-v11.mjs', `--database=${DB}`], { stdio: 'inherit' });
   S = await import('../../lib/settings.js');
 });
 

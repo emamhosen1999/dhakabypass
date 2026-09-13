@@ -17,6 +17,7 @@ import { saveTollRate, deleteTollRate, listAllTollRates } from '../../../../lib/
 import { saveAdvisory, deleteAdvisory, listAllAdvisories } from '../../../../lib/corridor/advisories';
 import { setSetting, getSetting, isDataIllustrative, getPublishedLengthKm } from '../../../../lib/settings';
 import { LOCALES } from '../../../../lib/i18n/locales';
+import { saveCorridorRoad } from '../../../../lib/corridor/roads';
 
 const ADMIN = '/admin/corridor';
 
@@ -216,6 +217,22 @@ async function saveCorridorFactsAction$inner(formData) {
   revalidatePath(ADMIN);
 }
 
+/** One road's names and reference link on the corridor map (audit 2.5/2.6). */
+async function saveCorridorRoadAction$inner(formData) {
+  await assertCan(ACTION);
+  try {
+    await saveCorridorRoad({
+      key: String(formData.get('road_key') || ''),
+      names: localeMap(formData, 'name'),
+      source: String(formData.get('source_url') || ''),
+    });
+  } catch (err) {
+    friendly(err, 'Could not save the road name. Please try again.');
+  }
+  revalidateCorridor();
+  revalidatePath(`${ADMIN}/roads`);
+}
+
 // ---------------------------------------------------------------------------
 // Every exported action runs through runAction(): a thrown validation error
 // becomes a redirect back to the form with the sentence in `?notice=`, which
@@ -248,6 +265,9 @@ export async function saveAdvisoryAction(formData) {
 }
 export async function deleteAdvisoryAction(formData) {
   return runAction(() => deleteAdvisoryAction$inner(formData));
+}
+export async function saveCorridorRoadAction(formData) {
+  return runAction(() => saveCorridorRoadAction$inner(formData));
 }
 export async function saveCorridorFactsAction(formData) {
   return runAction(() => saveCorridorFactsAction$inner(formData));

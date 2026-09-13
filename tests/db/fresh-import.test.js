@@ -89,7 +89,40 @@ describe('a database built from db/sql/*.sql alone', () => {
     // 30-pending-drafts: every "Not yet published" notice is content now.
     expect((await one(`SELECT COUNT(*) AS c FROM block_translations WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.tone')) = 'pending'`)).c).toBe(0);
     expect((await one("SELECT COUNT(*) AS c FROM blocks WHERE type = 'callout'")).c).toBe(0);
-    expect((await one('SELECT COUNT(*) AS c FROM blocks WHERE id BETWEEN 400 AND 432')).c).toBe(26);
+    // 31 deleted three of them: the retyped toll schedule, key locations and
+    // facility cards that copied records.
+    expect((await one('SELECT COUNT(*) AS c FROM blocks WHERE id BETWEEN 400 AND 432')).c).toBe(23);
+  });
+
+  it('gives the records the columns, rows and settings the code reads (31)', async () => {
+    const cols = await all(`SELECT TABLE_NAME AS t, COLUMN_NAME AS c FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND ((TABLE_NAME = 'toll_rates' AND COLUMN_NAME LIKE 'sro_%')
+        OR (TABLE_NAME = 'interchanges' AND COLUMN_NAME = 'connects_to_labels'))`);
+    expect(cols.map((r) => `${r.t}.${r.c}`).sort()).toEqual(
+      ['interchanges.connects_to_labels', 'toll_rates.sro_date', 'toll_rates.sro_link', 'toll_rates.sro_number']);
+    expect((await one('SELECT COUNT(*) AS c FROM corridor_roads')).c).toBe(7);
+    const setting = async (k) => (await one('SELECT value FROM site_settings WHERE setting_key = ?', [k]))?.value;
+    expect(await setting('contact.national_emergency_phone')).toBe('999');
+    expect(await setting('corridor.road_code')).toBe('N105');
+    for (const k of ['seo.site_title', 'seo.site_description']) {
+      const v = await setting(k);
+      expect(Object.keys(v).sort(), k).toEqual(['bn', 'en', 'zh']);
+      expect(JSON.stringify(v), k).not.toMatch(/\d/);
+    }
+  });
+
+  it('keeps no copy of a corridor length, open length or chainage in content (31, audit 6.18)', async () => {
+    const rows = await all(`SELECT p.slug, b.type, t.locale, CONVERT(CAST(t.data AS CHAR) USING utf8mb4) COLLATE utf8mb4_unicode_ci AS d FROM block_translations t
+      JOIN blocks b ON b.id = t.block_id JOIN pages p ON p.id = b.page_id
+      UNION ALL SELECT p.slug, 'page', pt.locale, CONVERT(CONCAT_WS(' ', pt.title, pt.seo_title, pt.seo_description) USING utf8mb4) COLLATE utf8mb4_unicode_ci
+      FROM page_translations pt JOIN pages p ON p.id = pt.page_id`);
+    const FACT = /K\d+\+\d{2,3}|(18|48|47\.611|48\.07) ?(km|kilomet)|eighteen kilomet|forty-eight|[১৪]৮ ?(কিমি|কিলোমিটার)|আঠারো কিলো|(18|48) ?公里/i;
+    const hits = rows.filter((r) => FACT.test(r.d)).map((r) => `${r.slug} ${r.type} ${r.locale}: ${r.d.match(FACT)[0]}`);
+    expect(hits).toEqual([]);
+    // Statistics that show a length read it from the records.
+    const typed = rows.filter((r) => r.type === 'stat-row'
+      && (JSON.parse(r.d).stats || []).some((st) => /^(km|কিমি|公里)$/.test(st.unit || '') && !st.source));
+    expect(typed.map((r) => `${r.slug} ${r.locale}`)).toEqual([]);
   });
 
   it('put the home corridor blocks on the home page, after the hero (18)', async () => {

@@ -23,6 +23,8 @@ export default async function CorridorHub() {
       note: 'The surveyed points that name every stretch of road. An unnamed one is published as “Waypoint 4”.' },
     { href: '/admin/corridor/geometry', name: 'Alignment', count: `${geometry.points} points`,
       note: 'The centreline the public map draws. Replaced whole, and only when it passes both acceptance tests.' },
+    { href: '/admin/corridor/roads', name: 'Road names', count: '',
+      note: 'The names and references of the highways the map shows, in each language.' },
     { href: '/admin/corridor/sections', name: 'Section traffic', count: '',
       note: 'Current conditions and average speeds, with deliberate publication controls.' },
     { href: '/admin/corridor/monthly', name: 'Monthly traffic', count: '',

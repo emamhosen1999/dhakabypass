@@ -2,7 +2,7 @@ import { t } from '../../lib/i18n/ui.js';
 import { mapUi } from '../../lib/i18n/map-ui.js';
 import { buildMapView } from '../../lib/corridor/view.js';
 import { getMapTrafficCached } from '../../lib/corridor/traffic-cache.js';
-import { getInterchangesCached } from '../../lib/corridor/cache.js';
+import { getInterchangesCached, getCorridorRoadsCached } from '../../lib/corridor/cache.js';
 import { localeName } from '../../lib/corridor/interchanges.js';
 import { getSetting } from '../../lib/settings.js';
 import CorridorExplorer from '../corridor/CorridorExplorer.jsx';
@@ -80,8 +80,10 @@ export default async function CorridorMapBlock({ data, locale }) {
     return name || `${t(locale, 'mapWaypoint')} ${code}`;
   };
 
+  let roads = [];
+  try { roads = await getCorridorRoadsCached(); } catch { roads = []; }
   const view = buildMapView({
-    waypoints, sections, features, geometry, locale, km, waypointName: wpLabel,
+    waypoints, sections, features, geometry, locale, km, waypointName: wpLabel, roads,
   });
 
   const heading = text(data?.heading);

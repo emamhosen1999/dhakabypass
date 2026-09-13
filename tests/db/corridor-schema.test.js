@@ -22,6 +22,8 @@ beforeAll(async () => {
   execFileSync('node', ['scripts/db-setup-v5.mjs', `--database=${DB}`], { stdio: 'inherit' });
   // v6 adds media.original_path, which lib/media/replace.js reads and writes.
   execFileSync('node', ['scripts/db-setup-v6.mjs', `--database=${DB}`], { stdio: 'inherit' });
+  // v11 adds the toll citation, connects-to per language and corridor_roads (31).
+  execFileSync('node', ['scripts/db-setup-v11.mjs', `--database=${DB}`], { stdio: 'inherit' });
   conn = await mysql.createConnection({
     host: process.env.DB_HOST, port: Number(process.env.DB_PORT || 3306),
     user: process.env.DB_USER, password: process.env.DB_PASSWORD || '', database: DB,
