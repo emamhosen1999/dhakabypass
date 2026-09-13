@@ -109,7 +109,7 @@ export default async function CorridorMapBlock({ data, locale }) {
               ...mapUi(locale),
               locale: intlLocale,
               kmUnit: t(locale, 'mapKm'),
-              mUnit: locale === 'bn' ? 'মি' : locale === 'zh' ? '米' : 'm',
+              mUnit: t(locale, 'mapM'),
               zoomIn: t(locale, 'mapZoomIn'),
               zoomOut: t(locale, 'mapZoomOut'),
               resetView: t(locale, 'mapResetView'),

@@ -35,6 +35,7 @@ async function saveContactSettingsAction$inner(formData) {
   const phone = text('phone');
   const email = text('email');
   const emergency = text('emergency');
+  const nationalEmergency = text('national_emergency');
 
   // Shape-only validation. Anything stricter rejects real addresses — and the
   // cost of a rejected valid entry here is that the page keeps saying the detail
@@ -48,7 +49,7 @@ async function saveContactSettingsAction$inner(formData) {
   // and t anywhere in the number — so "16xxx" was accepted and then rendered as
   // `tel:16`, a link that dials the wrong thing silently.
   const PHONE = /^[\d\s+()./-]+(\s*(?:ext|x)\.?\s*\d+)?$/i;
-  for (const [label, value] of [['Telephone', phone], ['Emergency number', emergency]]) {
+  for (const [label, value] of [['Telephone', phone], ['Emergency number', emergency], ['National emergency number', nationalEmergency]]) {
     if (value && !PHONE.test(value)) {
       throw validationError(
         `${label} does not look like a dialable number. Use digits, spaces and + ( ) - only, `
@@ -79,6 +80,7 @@ async function saveContactSettingsAction$inner(formData) {
     await setSetting(CONTACT_KEYS.phone, phone);
     await setSetting(CONTACT_KEYS.email, email);
     await setSetting(CONTACT_KEYS.emergency, emergency);
+    await setSetting(CONTACT_KEYS.nationalEmergency, nationalEmergency);
     await setSetting(CONTACT_KEYS.address, perLocale('address'));
     await setSetting(CONTACT_KEYS.hours, perLocale('hours'));
     for (const [name, key] of Object.entries(SOCIAL_KEYS)) {

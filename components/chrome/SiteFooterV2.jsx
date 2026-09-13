@@ -3,7 +3,8 @@ import { t } from '../../lib/i18n/ui.js';
 import { getMenuCached } from '../../lib/menus/cache.js';
 import { FOOTER_GROUPS } from '../../lib/menus/builtin.js';
 import { localeHref } from '../../lib/blocks/href.js';
-import { getSetting, CONTACT_KEYS } from '../../lib/settings.js';
+import { getContactDetailsCached } from '../../lib/settings-cache.js';
+import EmergencyNumbers from '../contact/EmergencyNumbers.jsx';
 import { siteSeoCached } from '../../lib/seo/cache.js';
 
 /**
@@ -50,12 +51,13 @@ export default async function SiteFooterV2({ locale }) {
    * placeholder — a number nobody answers is worse than no number.
    */
   const brand = await siteSeoCached(locale);
-  let emergency = '';
+  let details = {};
   try {
-    emergency = String((await getSetting(CONTACT_KEYS.emergency, '')) || '').trim();
+    details = await getContactDetailsCached(locale);
   } catch {
-    emergency = '';
+    details = {};
   }
+  const social = details.social || {};
 
   const groups = menu.length
     ? menu.map((g) => ({
@@ -91,16 +93,9 @@ export default async function SiteFooterV2({ locale }) {
           </div>
         ))}
       </nav>
-      {emergency ? (
+      {details.emergency || details.nationalEmergency ? (
         <div className="db-footer-emergency">
-          <div className="db-footer-emergency-inner">
-            <span className="db-footer-emergency-label">{t(locale, 'emergency')}</span>
-            <a className="db-footer-emergency-number" href={`tel:${emergency.replace(/[^\d+]/g, '')}`}>
-              {emergency}
-            </a>
-            <span className="db-footer-emergency-label">{t(locale, 'emergencyNational')}</span>
-            <a className="db-footer-emergency-number" href="tel:999">999</a>
-          </div>
+          <EmergencyNumbers locale={locale} emergency={details.emergency} national={details.nationalEmergency} />
         </div>
       ) : null}
       <div className="db-footer-inner">
@@ -117,6 +112,15 @@ export default async function SiteFooterV2({ locale }) {
           <li><Link href={localeHref('terms', locale)}>{t(locale, 'footerTerms')}</Link></li>
           <li><Link href={localeHref('accessibility', locale)}>{t(locale, 'footerAccessibility')}</Link></li>
         </ul>
+        {/* DBEDC's official accounts, from /admin/settings (Contact). Only
+            https links are ever stored, and none renders until one is set. */}
+        {Object.keys(social).length ? (
+          <ul className="db-footer-social" aria-label={t(locale, 'footerSocial')}>
+            {Object.entries(social).map(([name, url]) => (
+              <li key={name}><a href={url} rel="noopener me">{t(locale, `social_${name}`)}</a></li>
+            ))}
+          </ul>
+        ) : null}
         <p className="db-footer-legal">© {year} {brand.orgShortName}. {t(locale, 'allRights')}</p>
       </div>
     </footer>

@@ -360,6 +360,12 @@
 .db-footer-legal-links a{color:var(--db-ink-3);text-decoration:underline;
   text-underline-offset:2px;display:inline-block;padding:4px 0;}
 .db-footer-legal-links a:hover{color:var(--db-ink);}
+.db-card-image{margin:-4px -4px 12px;aspect-ratio:4/3;overflow:hidden;border-radius:2px;background:var(--db-surface-2);}
+.db-card-image img{width:100%;height:100%;object-fit:cover;display:block;}
+.db-blockfallback-note{max-width:var(--db-shell);margin:16px auto 0;padding:0 clamp(12px,3vw,20px);}
+.db-footer-social{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 18px;}
+.db-footer-social a{color:var(--db-ink-3);text-decoration:underline;text-underline-offset:2px;}
+.db-footer-social a:hover{color:var(--db-ink);}
 .db-block{max-width:var(--db-shell);margin:0 auto;padding:clamp(28px,5vw,40px) clamp(12px,3vw,20px);}
 
 /* ---- Block presentation (W1.15) ------------------------------------------

@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react';
 import { THEME_KEY, THEMES, DEFAULT_THEME, normalizeTheme } from '../../lib/theme.js';
 
-const LABELS = { light: 'Light', dark: 'Dark', system: 'System' };
+// English fallbacks for the admin, which has no locale; the public header
+// passes ui_strings (themeLight/themeDark/themeSystem) so every locale reads
+// its own words (audit 1.1).
+const DEFAULT_LABELS = { light: 'Light', dark: 'Dark', system: 'System' };
 
-export default function ThemeToggle({ label = 'Theme' }) {
+export default function ThemeToggle({ label = 'Theme', labels = DEFAULT_LABELS }) {
   const [theme, setTheme] = useState(DEFAULT_THEME);
 
   useEffect(() => {
@@ -31,7 +34,7 @@ export default function ThemeToggle({ label = 'Theme' }) {
           aria-pressed={theme === t}
           className="db-theme-btn"
         >
-          {LABELS[t]}
+          {labels[t] || DEFAULT_LABELS[t]}
         </button>
       ))}
     </div>

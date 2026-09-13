@@ -239,6 +239,7 @@ export default function CorridorExplorer({ view, ui, initialSelected = null }) {
         style={{ aspectRatio: `${home.w} / ${home.h}` }}
       >
         <CorridorMap
+          roadUi={ui}
           view={view}
           viewBox={enhanced ? viewBox : view.viewBox}
           hovered={hovered}

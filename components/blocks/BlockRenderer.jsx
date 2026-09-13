@@ -2,6 +2,7 @@ import { getBlock } from '../../lib/blocks/registry.js';
 import { resolveTranslation } from '../../lib/content/resolve.js';
 import { isPlainObject } from '../../lib/json.js';
 import { presentationClasses } from '../../lib/blocks/presentation.js';
+import { t } from '../../lib/i18n/ui.js';
 import '../../lib/blocks/index.js';
 
 /**
@@ -53,15 +54,25 @@ export default function BlockRenderer({ blocks = [], locale, searchParams }) {
         if (!resolved) return null;
         if (!isPlainObject(resolved.data)) return null;
         const Component = def.Component;
-        const element = (
+        // A block with no published row in this locale renders the English
+        // DATA, but its chrome — table headers, units, form labels — stays in
+        // the PAGE locale, and the reader is told the section is untranslated
+        // (audit 1.2/3.3), the same courtesy the news list already gives.
+        const rendered = (
           <Component
             key={block.id}
             data={resolved.data}
-            locale={resolved.locale}
+            locale={locale}
             blockId={block.id}
             searchParams={searchParams}
           />
         );
+        const element = resolved.fallback ? (
+          <div key={block.id} className="db-blockfallback" lang="en">
+            <p className="db-newsfallback db-blockfallback-note" lang={locale}>{t(locale, 'blockInEnglish')}</p>
+            {rendered}
+          </div>
+        ) : rendered;
         // Presentation settings (W1.15) — background, spacing, width,
         // alignment — are per BLOCK, not per language, and live in
         // blocks.settings. A block with none renders exactly as before: no

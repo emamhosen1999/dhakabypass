@@ -36,7 +36,7 @@ export default function ProgressBar({ summary, locale, publishedLengthKm }) {
         <span className="db-progress-fill" style={{ width: `${pct}%` }} />
       </div>
       <p className="db-progress-note">
-        {formatKm(summary?.openLength ?? 0)} km / {totalKm} km
+        {formatKm(summary?.openLength ?? 0)} {t(locale, 'mapKm')} / {totalKm} {t(locale, 'mapKm')}
       </p>
     </div>
   );

@@ -69,7 +69,7 @@ export default async function SiteHeaderV2({ locale }) {
         </Link>
 
         {/* Visible from md, not xl — the old header vanished between 1024 and 1279px. */}
-        <nav className="db-nav" aria-label="Primary">
+        <nav className="db-nav" aria-label={t(locale, 'navPrimary')}>
           {links.map((item) => (
             <Link key={item.key} href={item.href} className="db-nav-link">
               {item.label}
@@ -80,12 +80,12 @@ export default async function SiteHeaderV2({ locale }) {
 
         <div className="db-header-utils">
           <LocaleSwitch current={locale} label={t(locale, 'language')} />
-          <ThemeToggle label={t(locale, 'theme')} />
+          <ThemeToggle label={t(locale, 'theme')} labels={{ light: t(locale, 'themeLight'), dark: t(locale, 'themeDark'), system: t(locale, 'themeSystem') }} />
         </div>
 
         {/* Below 768px the same links live here, in a horizontally scrollable
             row, so no destination is ever unreachable on a narrow screen. */}
-        <nav className="db-nav-mobile" aria-label="Primary, compact">
+        <nav className="db-nav-mobile" aria-label={t(locale, 'navPrimaryCompact')}>
           {links.map((item) => (
             <Link key={item.key} href={item.href} className="db-nav-link">
               {item.label}

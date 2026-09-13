@@ -22,12 +22,13 @@ export const dynamic = 'force-dynamic';
 export default async function SettingsPage() {
   await assertCan('manage_users');
 
-  const [phone, email, emergency, address, hours] = await Promise.all([
+  const [phone, email, emergency, address, hours, nationalEmergency] = await Promise.all([
     getSetting(CONTACT_KEYS.phone, ''),
     getSetting(CONTACT_KEYS.email, ''),
     getSetting(CONTACT_KEYS.emergency, ''),
     getSetting(CONTACT_KEYS.address, {}),
     getSetting(CONTACT_KEYS.hours, {}),
+    getSetting(CONTACT_KEYS.nationalEmergency, ''),
   ]);
   const social = {};
   for (const [name, key] of Object.entries(SOCIAL_KEYS)) {
@@ -90,6 +91,10 @@ export default async function SettingsPage() {
             name="emergency" label="Emergency assistance number" defaultValue={emergency}
             hint="The number a driver calls from the expressway. The safety page and the breakdown
                   instructions both use this. Leave it blank until it is confirmed to be answered."
+          />
+          <Text
+            name="national_emergency" label="National emergency number" defaultValue={nationalEmergency}
+            hint="Shown beside DBEDC's own line in the footer and in any emergency strip; 999 in Bangladesh."
           />
         </section>
 

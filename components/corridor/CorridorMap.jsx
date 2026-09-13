@@ -2,6 +2,7 @@ import { nearbyLabels, roadBadges } from '../../lib/corridor/map-labels.js';
 
 /** Geographic drawing with a sourced centreline and diagrammatic lane widths. */
 export default function CorridorMap({
+  roadUi,
   view, viewBox, hovered, selected, onHoverSection, onSelectSection,
   connections = true, landmarks = true, traffic = false, pixelWidth = view.width,
   activeRoad = null, onHoverRoad, onSelectRoad,
@@ -26,7 +27,7 @@ export default function CorridorMap({
         <a key={r.id} href="#map-roads" aria-hidden="true" tabIndex={-1}
           onMouseEnter={()=>onHoverRoad?.(r.roadId)} onMouseLeave={()=>onHoverRoad?.(null)}
           onClick={onSelectRoad?e=>{e.preventDefault();onSelectRoad(r.roadId);}:undefined}>
-          <title>{`${r.roadId} · ${r.name || (r.kind === 'connection' ? 'Connecting road' : 'Crossing road')}`}</title>
+          <title>{`${r.roadId} · ${r.name || (r.kind === 'connection' ? (roadUi?.connected || '') : (roadUi?.crossing || ''))}`}</title>
           <path d={r.d} className="db-map-road-hit" style={roadStyle}/>
           <path d={r.d} className={`db-map-approach is-${r.kind}${r.major?' is-major':''}${activeRoad===r.roadId?' is-active':''}`} style={roadStyle}/>
         </a>)}

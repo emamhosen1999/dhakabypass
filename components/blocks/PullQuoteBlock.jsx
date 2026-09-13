@@ -1,3 +1,4 @@
+import { t } from '../../lib/i18n/ui.js';
 const text = (v) => (typeof v === 'string' ? v.trim() : '');
 
 /**
@@ -24,7 +25,7 @@ export default function PullQuoteBlock({ data }) {
           <figcaption className="db-pullquote-cite">
             {attribution ? <cite>{attribution}</cite> : null}
             {role ? <span className="db-pullquote-role">{role}</span> : null}
-            {sourceHref ? <a className="db-pullquote-source" href={sourceHref}>↗</a> : null}
+            {sourceHref ? <a className="db-pullquote-source" href={sourceHref}>{t(locale, 'quoteSource')} <span aria-hidden="true">↗</span></a> : null}
           </figcaption>
         ) : null}
       </figure>

@@ -43,10 +43,10 @@ describe('groupSiteIndex', () => {
     expect(all).not.toContain('/en/about');
   });
 
-  it('falls back to a humanised heading when no parent page exists', () => {
+  it('falls back to the first child page title when no parent page or nav label exists', () => {
     const groups = groupSiteIndex(PAGES, true);
     const land = groups.find((g) => g.key === 'land-acquisition');
-    expect(land.heading).toBe('Land acquisition');
+    expect(land.heading).toBe('Notices');
     expect(land.href).toBe('');
   });
 
@@ -57,13 +57,13 @@ describe('groupSiteIndex', () => {
 });
 
 describe('groupSiteIndex labelFor', () => {
-  it('prefers the translated label for a parentless section and humanises otherwise', () => {
+  it('prefers the translated label for a parentless section, else the first child title', () => {
     const pages = [
       { slug: 'travel/toll', title: 'Toll', href: '/bn/travel/toll' },
       { slug: 'land-acquisition/x', title: 'X', href: '/bn/land-acquisition/x' },
     ];
     const groups = groupSiteIndex(pages, true, (seg) => (seg === 'travel' ? 'ভ্রমণ তথ্য' : ''));
     expect(groups.find((g) => g.key === 'travel').heading).toBe('ভ্রমণ তথ্য');
-    expect(groups.find((g) => g.key === 'land-acquisition').heading).toBe('Land acquisition');
+    expect(groups.find((g) => g.key === 'land-acquisition').heading).toBe('X');
   });
 });
