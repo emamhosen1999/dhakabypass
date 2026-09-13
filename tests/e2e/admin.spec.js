@@ -93,11 +93,11 @@ test('an operator builds, translates and publishes a page from the admin', async
   // A first compile of the editor action under next dev can take a while.
   await expect(page.locator('input[name="f.heading"]').first()).toBeVisible({ timeout: 60_000 });
 
-  // English, published.
+  // English, published — and the admin says so.
   await page.locator('input[name="f.heading"]').first().fill(`E2E heading ${STAMP}`);
   await page.locator('[name="f.lede"]').first().fill('Written by the admin end-to-end test.');
   await page.getByRole('button', { name: 'Publish' }).first().click();
-  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('status').filter({ hasText: 'Published.' })).toBeVisible({ timeout: 30_000 });
 
   // Bangla, published.
   await page.goto(`${editor}?locale=bn`);
@@ -112,6 +112,21 @@ test('an operator builds, translates and publishes a page from the admin', async
   }, { timeout: 30_000 }).toBe(true);
   await expect.poll(async () => (await (await page.request.get(`/bn/${SLUG}`)).text()).includes(`ই২ই শিরোনাম ${STAMP}`),
     { timeout: 30_000 }).toBe(true);
+
+  // Deleting asks first: dismissing keeps the page, accepting removes it.
+  await page.goto('/admin/pages-v2');
+  const row = page.locator('tr').filter({ hasText: `/${SLUG}` });
+  page.once('dialog', (d) => d.dismiss());
+  await row.getByRole('button', { name: 'Delete' }).click();
+  await page.waitForTimeout(1500);
+  const [[still]] = await db.execute('SELECT COUNT(*) AS c FROM pages WHERE slug = ?', [SLUG]);
+  expect(still.c, 'a dismissed confirmation deletes nothing').toBe(1);
+  page.once('dialog', (d) => d.accept());
+  await row.getByRole('button', { name: 'Delete' }).click();
+  await expect.poll(async () => {
+    const [[left]] = await db.execute('SELECT COUNT(*) AS c FROM pages WHERE slug = ?', [SLUG]);
+    return left.c;
+  }, { timeout: 30_000 }).toBe(0);
 });
 
 test('an operator adds a picture to the library and replaces it', async ({ page }) => {

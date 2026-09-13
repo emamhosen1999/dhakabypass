@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 import AdminNotice from '../../../components/admin/AdminNotice';
+import AdminFormGuard from '../../../components/admin/AdminFormGuard';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth, signOut } from '../../../auth';
 import ThemeToggle from '../../../components/chrome/ThemeToggle.jsx';
@@ -58,6 +60,8 @@ export default async function DashLayout({ children }) {
   const session = await auth();
   if (!session?.user?.isAdmin) redirect('/admin/login');
 
+  // Present for thirty seconds after an action succeeded (lib/admin/run-action.js).
+  const flashKey = (await cookies()).get('admin_flash') ? String(Date.now()) : '';
   return (
     <>
       <header className="bg-blue-900 text-white shadow-md">
@@ -116,6 +120,8 @@ export default async function DashLayout({ children }) {
       </header>
       {/* useSearchParams needs a Suspense boundary above it in a layout. */}
       <Suspense fallback={null}><AdminNotice /></Suspense>
+      {/* Confirm before deleting; "Saved." after an action finishes. */}
+      <AdminFormGuard key={flashKey} flash={Boolean(flashKey)} />
 
       <main className="container mx-auto px-4 py-8">{children}</main>
     </>
