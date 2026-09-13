@@ -1,7 +1,8 @@
 import { ClipboardList, Trash2, AlertTriangle } from 'lucide-react';
 import { query, dbEnabled } from '../../../../lib/db';
-import { KINDS, STATUSES, KIND_VALUES } from '../../../../lib/requests/policy.js';
-import { updateRequestAction, deleteRequestAction } from './actions';
+import { KINDS, STATUSES, KIND_VALUES, standardDays } from '../../../../lib/requests/policy.js';
+import { getSetting } from '../../../../lib/settings';
+import { updateRequestAction, deleteRequestAction, saveStandardsAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +52,8 @@ export default async function AdminRequests({ searchParams }) {
   const status = typeof sp.status === 'string' ? sp.status : '';
   const rows = await getRequests({ kind, status });
   const overdue = rows.filter(isOverdue).length;
+  let standards = {};
+  try { standards = standardDays(await getSetting('requests.sla_days', {})); } catch { standards = {}; }
 
   const filterLink = (k, s, label, active) => (
     <a
@@ -76,6 +79,29 @@ export default async function AdminRequests({ searchParams }) {
           </p>
         ) : null}
       </div>
+
+      <details className="mb-6 bg-white rounded-lg border border-gray-200 p-4">
+        <summary className="font-semibold cursor-pointer">Standard response deadlines</summary>
+        <form action={saveStandardsAction} className="mt-3 space-y-3">
+          <p className="text-sm text-gray-600">
+            The number of days a new request of each kind has before it shows as overdue. A form block can set its
+            own deadline; blank uses the built-in standard shown.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-5">
+            {KIND_VALUES.map((k) => (
+              <label key={k} className="flex flex-col gap-1 text-sm">
+                {KIND_LABEL[k]}
+                <input
+                  type="number" min="1" max="365" step="1" name={`sla_${k}`}
+                  defaultValue={standards[k] ?? ''} placeholder={String(KINDS[k].slaDays)}
+                  className="border rounded px-2 py-1"
+                />
+              </label>
+            ))}
+          </div>
+          <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white text-sm font-semibold">Save deadlines</button>
+        </form>
+      </details>
 
       <div className="flex flex-wrap gap-2 mb-4">
         {filterLink('', status, 'All kinds', kind === '')}

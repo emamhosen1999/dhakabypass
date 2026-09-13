@@ -33,6 +33,18 @@ describe('makeTrackingNo', () => {
   });
 });
 
+describe('dueAt with the operator standard (audit 5.4)', () => {
+  const AT2 = new Date('2026-09-11T10:00:00Z');
+  it('uses the requests.sla_days setting before the code table, and the block before both', async () => {
+    const { standardDays } = await import('../../lib/requests/policy.js');
+    const standards = standardDays({ grievance: 10, breakdown: 'x', general: 0, nope: 3 });
+    expect(standards).toEqual({ grievance: 10 });
+    expect(dueAt('grievance', 0, AT2, standards)).toEqual(new Date('2026-09-21T10:00:00Z'));
+    expect(dueAt('grievance', 2, AT2, standards)).toEqual(new Date('2026-09-13T10:00:00Z'));
+    expect(dueAt('breakdown', 0, AT2, standards)).toEqual(new Date('2026-09-12T10:00:00Z'));
+  });
+});
+
 describe('dueAt', () => {
   it('uses the block value when positive', () => {
     expect(dueAt('grievance', 3, AT)).toEqual(new Date('2026-09-14T10:00:00Z'));

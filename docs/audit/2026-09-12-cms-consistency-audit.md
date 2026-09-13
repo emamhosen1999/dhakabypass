@@ -161,3 +161,23 @@ These are block rows, not code, but they are exactly what the client's rule forb
 * Dev server at `:3000` was not running during the audit (`curl` returned no response), so rendering claims were verified by reading the components and the metadata resolver (`next@15.5.25` `resolve-metadata.js:207` — an empty page description is assigned as-is, so only routes that return `{}` from `generateMetadata` inherit the root default).
 * Database facts came from read-only queries against the local `.env.local` database; no rows were written. Temporary query scripts were kept in the session scratchpad, outside the project.
 * No Playwright scripts or screenshots were created inside the project.
+
+---
+
+## Resolution — 2026-09-13
+
+Every finding above was acted on in commits `45c3e68`, `51556e4`, `26ef8b3` and the drift-guard commit that follows them. Summary by section:
+
+**1. Hardcoded public text** — theme labels, header nav labels, units (km, m), the pull-quote source link and the map's road-title fallback read `ui_strings`/map strings (1.1, 1.3–1.7). A block shown in English on a translated page keeps the page's locale for its chrome and prints `ui.blockInEnglish` (1.2/3.3). The sitemap block never humanises a slug (1.8).
+
+**2. Hardcoded facts** — `999` is `contact.national_emergency_phone` on `/admin/settings`, rendered by one component in the footer and the emergency strip (2.1/2.2). SEO defaults carry no claim or figure, and 31 seeds neutral per-locale `seo.site_title`/`seo.site_description` (2.3/2.4). Road names and references are the `corridor_roads` record at `/admin/corridor/roads`, per language, seeded from the RHD register; `lib/corridor/road-references.js` is deleted (2.5/2.6). The map's accessible name is a `{from}`/`{to}` template filled from the terminal waypoints (2.7). The 32 dead ui keys are deleted (2.8–2.10, 4.6). The map title plate's road number is `corridor.road_code` (was `N105` in code). Organisation defaults have one copy (2.12). Measured times format in `Asia/Dhaka` by name (2.13). The header logo's width is measured from the configured file (2.14). `seed-institutional.mjs --replace` refuses on a database with saved revisions unless `--discard-admin-edits` is passed (2.15).
+*Left as is:* `map.title` ("Dhaka Bypass") and `map.highlight` ("Up to 2 km…") are already editable strings (2.11); the 15 English strings naming DBEDC are editable strings (consistency note).
+
+**3. Admin ↔ public** — card-grid renders `items[].image` (3.1); social links render in the footer and as Organization `sameAs` (3.2); `limit` fields declare `min`/`max`, enforced by `validateBlockData` and the number input (3.4); the toll table prints "In force since" from `toll_rates.effective_from`, switchable per block (3.7).
+*Left as is:* a figure-grid row with no image is still skipped (3.5 — the preview shows the gap); `blocks.status` is still unused (3.6 — dropping a column needs its own migration and an audit of every seed that writes it).
+
+**4. Operator dead ends** — the footer policy links are the `legal` menu and the header button is the `cta` menu, both override-not-replace with built-in fallbacks (4.2/4.3); `/admin/corridor` edits published length, road number and prohibited vehicles per language (4.4/4.5); the sitemap lists essential pages only when the pages read failed (4.7); `connects_to` is per language (4.13). Built-in menu seeds now store the authored (localised) href form; 31 rewrites any seeded literal ones.
+
+**5. Records vs blocks** — the toll citation is on `toll_rates` (`sro_number`, `sro_date`, `sro_link`), entered at `/admin/corridor/tolls`; the block keeps only the revision prose (5.1). A statistic item can take its value from a record — published, measured and open length, tolled class count, interchange count (5.2/5.9). Response deadlines per request kind are `requests.sla_days` on `/admin/requests` (5.4). Migration 31 deletes blocks 425, 422 and 423 (5.6, 5.7, 5.10), strips lengths and chainages from 424, 326, 121, 142, 362, the home/about/project/safety prose, the home hero and the search descriptions (5.8, 5.11–5.14), and drops the contradictory "48.07 km" and "6 toll plazas" specification cards.
+
+**6. Tests** — added: `ui-keys-referenced` (6.13), `cms-drift-guards` (6.11 field parity both ways, 6.12 literal wording and facts, 6.14 settings ↔ admin, 6.16 fallback notice, 6.17 claim-free SEO defaults, 6.19 road names as a record, 6.20 chrome hrefs), the sitemap outage-only case (6.15), and in `tests/db/fresh-import` the 31 schema/settings guarantees plus a content lint for copied lengths and chainages (6.18). The two tests that locked the old behaviour in were updated.

@@ -54,6 +54,25 @@ const db = await mysql.createConnection({
   database: dbArg || process.env.DB_NAME,
 });
 
+// --replace discards whatever an operator has written (audit 2.15). A page
+// with a saved revision has been edited in the admin, so replacing is refused
+// on such a database unless the operator's loss is acknowledged explicitly.
+if (replace && !dryRun && !args.includes('--discard-admin-edits')) {
+  let edited = 0;
+  try {
+    const [[row]] = await db.execute("SELECT COUNT(*) AS c FROM revisions");
+    edited = Number(row?.c) || 0;
+  } catch {
+    edited = 0;
+  }
+  if (edited > 0) {
+    console.error(`Refusing --replace: ${edited} saved revision(s) show admin edits on this database.`);
+    console.error('Re-run with --replace --discard-admin-edits only if losing those edits is intended.');
+    await db.end();
+    process.exit(1);
+  }
+}
+
 let created = 0;
 let replaced = 0;
 let skipped = 0;

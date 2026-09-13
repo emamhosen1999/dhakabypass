@@ -5,7 +5,9 @@ import { runAction } from '../../../../lib/admin/run-action';
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { query, dbEnabled } from '../../../../lib/db';
-import { isStatus } from '../../../../lib/requests/policy.js';
+import { isStatus, KIND_VALUES, standardDays } from '../../../../lib/requests/policy.js';
+import { setSetting } from '../../../../lib/settings';
+import { validationError } from '../../../../lib/errors';
 
 const ADMIN = '/admin/requests';
 const NOTE_MAX = 4000;
@@ -56,6 +58,26 @@ async function deleteRequestAction$inner(formData) {
 // is the only way a message survives a production build. See
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
+/** The standard response deadline per kind (audit 5.4). */
+async function saveStandardsAction$inner(formData) {
+  await assertCan('manage_users');
+  const raw = {};
+  for (const k of KIND_VALUES) {
+    const v = String(formData.get(`sla_${k}`) ?? '').trim();
+    if (v === '') continue;
+    const n = Number(v);
+    if (!Number.isInteger(n) || n < 1 || n > 365) {
+      throw validationError('Each response deadline must be a whole number of days from 1 to 365, or blank for the built-in standard.');
+    }
+    raw[k] = n;
+  }
+  await setSetting('requests.sla_days', standardDays(raw));
+  revalidatePath(ADMIN);
+}
+
+export async function saveStandardsAction(formData) {
+  return runAction(() => saveStandardsAction$inner(formData));
+}
 export async function updateRequestAction(formData) {
   return runAction(() => updateRequestAction$inner(formData));
 }
