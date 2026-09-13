@@ -101,7 +101,11 @@ describe('a database built from db/sql/*.sql alone', () => {
     expect(cols.map((r) => `${r.t}.${r.c}`).sort()).toEqual(
       ['interchanges.connects_to_labels', 'toll_rates.sro_date', 'toll_rates.sro_link', 'toll_rates.sro_number']);
     expect((await one('SELECT COUNT(*) AS c FROM corridor_roads')).c).toBe(7);
-    const setting = async (k) => (await one('SELECT value FROM site_settings WHERE setting_key = ?', [k]))?.value;
+    // MariaDB (production, CI) hands a JSON column back as text; MySQL parses it.
+    const setting = async (k) => {
+      const v = (await one('SELECT value FROM site_settings WHERE setting_key = ?', [k]))?.value;
+      return typeof v === 'string' && /^[{["]/.test(v) ? JSON.parse(v) : v;
+    };
     expect(await setting('contact.national_emergency_phone')).toBe('999');
     expect(await setting('corridor.road_code')).toBe('N105');
     for (const k of ['seo.site_title', 'seo.site_description']) {
