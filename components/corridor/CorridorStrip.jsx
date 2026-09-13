@@ -2,6 +2,16 @@
 import { t } from '../../lib/i18n/ui';
 
 const STATUS_KEY = { open: 'statusOpen', construction: 'statusConstruction', planned: 'statusPlanned' };
+const INTL = { en: 'en-GB', bn: 'bn-BD', zh: 'zh-CN' };
+
+function openingText(band, locale) {
+  if (!band.openingDate) return '';
+  const [y, mo, d] = band.openingDate.split('-').map(Number);
+  const date = new Intl.DateTimeFormat(INTL[locale] || 'en-GB', { dateStyle: 'long', timeZone: 'UTC' })
+    .format(new Date(Date.UTC(y, mo - 1, d)));
+  return t(locale, band.status === 'open' ? 'segmentOpened' : 'segmentExpected').replace('{date}', date);
+}
+
 
 /**
  * The schematic corridor. aria-hidden by design: it is a diagram, and
@@ -41,6 +51,23 @@ export default function CorridorStrip({ model, locale }) {
           ))}
         </div>
       </div>
+
+      {/* The same segments as text, with their status and opening date —
+          what the diagram above cannot say to a screen reader or in words. */}
+      <ul className="db-strip-segments">
+        {model.bands.map((b) => {
+          const when = openingText(b, locale);
+          return (
+            <li key={b.id}>
+              <i className={`db-legend-swatch db-band-${b.status}`} aria-hidden="true" />
+              <span className="db-strip-seg-name">{b.label || `${b.fromChainage} – ${b.toChainage}`}</span>
+              {' '}<span className="db-strip-seg-ch">{b.fromChainage} – {b.toChainage}</span>
+              {' · '}{t(locale, STATUS_KEY[b.status] || 'statusPlanned')}
+              {when ? <>{' · '}<span className="db-strip-seg-date">{when}</span></> : null}
+            </li>
+          );
+        })}
+      </ul>
 
       <p className="db-strip-legend">
         {model.legend.map((s) => (

@@ -245,3 +245,15 @@ describe('marker row assignment keeps same-row labels apart', () => {
     expect(model.markers[0].row).toBe(0);
   });
 });
+
+describe('segment opening dates (admin segments screen)', () => {
+  it('carries the date as YYYY-MM-DD for any status, and blank when none is set', async () => {
+    const { buildStripModel } = await import('../../lib/corridor/strip.js');
+    const model = buildStripModel({ segments: [
+      { id: 1, from_m: 0, to_m: 1000, status: 'open', opened_on: new Date(2025, 7, 24), labels: {} },
+      { id: 2, from_m: 1000, to_m: 2000, status: 'planned', opened_on: '2027-06-30', labels: {} },
+      { id: 3, from_m: 2000, to_m: 3000, status: 'construction', opened_on: null, labels: {} },
+    ] });
+    expect(model.bands.map((b) => b.openingDate)).toEqual(['2025-08-24', '2027-06-30', '']);
+  });
+});

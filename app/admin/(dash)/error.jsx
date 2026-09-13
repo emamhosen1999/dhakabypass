@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { operatorMessage } from '../../../lib/errors';
+import { isStaleDeployment } from '../../../lib/admin/stale-deploy';
 
 /**
  * The admin's error boundary.
@@ -15,6 +16,29 @@ import { operatorMessage } from '../../../lib/errors';
  * and the error is logged for the console.
  */
 export default function AdminError({ error, reset }) {
+  if (isStaleDeployment(error)) {
+    return (
+      <div className="max-w-xl mx-auto mt-16 bg-white rounded-lg border border-amber-300 p-8 shadow-sm">
+        <h1 className="text-xl font-bold text-amber-900">The admin was updated while this page was open</h1>
+        <p className="mt-3 text-gray-800">
+          Nothing was saved. Reload the page to get the updated version, then make the change again.
+        </p>
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded-md bg-blue-900 text-white text-sm font-semibold hover:bg-blue-800"
+          >
+            Reload the page
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return <AdminFault error={error} reset={reset} />;
+}
+
+function AdminFault({ error, reset }) {
   const message = operatorMessage(error);
   useEffect(() => {
     if (!message) console.error(error);

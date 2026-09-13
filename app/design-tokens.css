@@ -360,6 +360,10 @@
 .db-footer-legal-links a{color:var(--db-ink-3);text-decoration:underline;
   text-underline-offset:2px;display:inline-block;padding:4px 0;}
 .db-footer-legal-links a:hover{color:var(--db-ink);}
+.db-strip-segments{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px;font-size:.9rem;color:var(--db-ink-2);}
+.db-strip-segments li{display:flex;flex-wrap:wrap;align-items:center;gap:0 6px;}
+.db-strip-seg-name{font-weight:600;color:var(--db-ink);}
+.db-strip-seg-ch{font-variant-numeric:tabular-nums;color:var(--db-ink-3);}
 .db-card-image{margin:-4px -4px 12px;aspect-ratio:4/3;overflow:hidden;border-radius:2px;background:var(--db-surface-2);}
 .db-card-image img{width:100%;height:100%;object-fit:cover;display:block;}
 .db-blockfallback-note{max-width:var(--db-shell);margin:16px auto 0;padding:0 clamp(12px,3vw,20px);}

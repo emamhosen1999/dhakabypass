@@ -6,8 +6,13 @@ export const dynamic = 'force-dynamic';
 const STATUSES = ['open', 'construction', 'planned'];
 
 function SegmentForm({ segment }) {
+  // Keyed on the saved values: React 19 resets an uncontrolled form to the
+  // defaults it was first rendered with after the action runs, so without a
+  // remount a status just saved as "planned" snapped back to the old value on
+  // screen and looked as though it had not saved.
+  const key = segment ? JSON.stringify([segment.from_m, segment.to_m, segment.status, segment.opened_on, segment.labels]) : 'new';
   return (
-    <form action={saveSegmentAction} className="grid gap-2 sm:grid-cols-6 items-end border-t py-3">
+    <form key={key} action={saveSegmentAction} className="grid gap-2 sm:grid-cols-6 items-end border-t py-3">
       <input type="hidden" name="id" value={segment?.id ?? ''} />
       <label className="flex flex-col text-sm">From
         <input name="from_m" required defaultValue={segment ? formatChainage(segment.from_m) : ''}
@@ -22,7 +27,7 @@ function SegmentForm({ segment }) {
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </label>
-      <label className="flex flex-col text-sm">Opened
+      <label className="flex flex-col text-sm">Opened, or expected to open
         <input type="date" name="opened_on"
           defaultValue={segment?.opened_on ? String(segment.opened_on).slice(0, 10) : ''}
           className="border rounded px-2 py-1" />
@@ -45,7 +50,10 @@ export default async function SegmentsAdmin() {
         <p className="text-sm text-gray-500">
           Chainage may be entered as K3+900 or as a plain number of metres. Segments may
           touch but must not overlap. The published progress figure is calculated from
-          these rows — it is never typed in.
+          these rows — it is never typed in. The date is the day an open segment opened,
+          or the day a planned or under-construction segment is expected to open; the
+          public corridor diagram shows it either way. Leave it blank when no date is
+          confirmed.
         </p>
       </header>
 
