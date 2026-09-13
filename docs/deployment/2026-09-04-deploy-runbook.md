@@ -338,9 +338,11 @@ That is the whole procedure, it needs no files moved, and it works because the
 artifact is complete in git rather than assembled on the server.
 
 If the app itself is the problem, stop it in cPanel's Node.js App screen. The
-legacy static site is untouched by any of this — it is 111 tracked files in
-`old_dhakabypass/`, plus `arch.zip` and `backup.zip` already sitting in the site
-folder.
+legacy static site is untouched by any of this. Since 13 September 2026 it is
+no longer on `main` (W6.15): its 111 files are preserved on the
+`legacy-site-archive` tag and the orphan branch of the same name
+(`git checkout legacy-site-archive` gives exactly the export), and the server's
+own copy is in `~/backups/old-static-site/`.
 
 **The database.** There is no automatic rollback and nothing in this project
 creates one. The only restore point is a phpMyAdmin **Export** taken before the

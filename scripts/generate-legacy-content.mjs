@@ -10,7 +10,8 @@
 // each group carried a "recovered from the previous website" notice; 29
 // removes those notices from a database that already has them.)
 //
-// Source: old_dhakabypass/*/index.html, read by hand into this file. Run:
+// Source: old_dhakabypass/*/index.html (now on the legacy-site-archive tag and
+// branch, W6.15), read by hand into this file. Run:
 //   node scripts/generate-legacy-content.mjs > db/sql/24-legacy-content.sql
 
 const FIRST_ID = 400;
