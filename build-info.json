@@ -1,13 +1,13 @@
 {
   "deployModel": "git-pull",
   "siteUrl": "https://dhakabypass.com",
-  "commit": "b1f7105d638ca85b003b66e08a224cdee813b0a6",
-  "commitShort": "b1f7105",
+  "commit": "9f28113952deeba35be87d128895dfe293c6ab05",
+  "commitShort": "9f28113",
   "branch": "main",
   "dirty": false,
-  "builtAt": "2026-09-13T08:33:53.696Z",
+  "builtAt": "2026-09-13T09:44:59.961Z",
   "node": "v22.23.2",
   "platform": "linux-x64",
   "next": "15.5.25",
-  "buildId": "Zw2eLvONmzwF0q0zD1GZC"
+  "buildId": "4qjXVk49-H4CKw5bHSTd9"
 }

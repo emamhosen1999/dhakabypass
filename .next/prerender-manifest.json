@@ -14,8 +14,7 @@
           "value": "multipart/form-data;.*"
         }
       ],
-      "initialRevalidateSeconds": 300,
-      "initialExpireSeconds": 31536000,
+      "initialRevalidateSeconds": false,
       "srcRoute": "/_not-found",
       "dataRoute": "/_not-found.rsc",
       "allowHeader": [
@@ -61,8 +60,8 @@
   "dynamicRoutes": {},
   "notFoundRoutes": [],
   "preview": {
-    "previewModeId": "45d178b8a59142f518cb17b10aa07ac1",
-    "previewModeSigningKey": "62ef1f11790d72737f0bf5d43cdb3980c3e7e16b9efb0b0fe5701f9d92facc02",
-    "previewModeEncryptionKey": "162837a50e0e05d87616c580313d4030cabbb4eed43b30d3bf13d0d647da6853"
+    "previewModeId": "ed97d154f9b62e3bc7ed737ddd125da7",
+    "previewModeSigningKey": "3abd3c394febff240a07cb98229dfd982584c65da8796b7f1afde5d8b8bb866e",
+    "previewModeEncryptionKey": "cc4747bb6b7da0b0905c3d73abb24d4b21701b0dc98bb1a326121acda74f6d74"
   }
 }
