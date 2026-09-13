@@ -145,9 +145,9 @@ export default async function WaypointsPage() {
                 <TrafficForm action={deleteWaypointAction} submitLabel="Delete waypoint" danger className="pt-3">
                   <input type="hidden" name="id" value={row.id} />
                   <p className="text-sm">
-                    {used.length
-                      ? `Waypoint ${row.code} still defines ${used.join(', ')}. Remove those sections first — this will be refused.`
-                      : `Removes waypoint ${row.code} from the map and from the alignment the centreline is checked against.`}
+                    {used.length > 1
+                      ? `Removes waypoint ${row.code} from the map. The sections either side of it (${used.join(', ')}) become one section, which starts as not measured.`
+                      : `Removes waypoint ${row.code} from the map and from the alignment the centreline is checked against. Sections are rebuilt from the remaining waypoints.`}
                   </p>
                 </TrafficForm>
               </details>

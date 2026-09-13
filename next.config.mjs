@@ -1,6 +1,13 @@
+import { fileURLToPath } from 'node:url';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Entries in memory, tag revalidations shared across Passenger processes
+  // through one small file (W6.18) — see cache-handler.cjs. Next's own memory
+  // store is turned off so there is exactly one cache, not two.
+  cacheHandler: fileURLToPath(new URL('./cache-handler.cjs', import.meta.url)),
+  cacheMaxMemorySize: 0,
   // Standalone output so the app can be built LOCALLY and run on cPanel's
   // Node.js app (Passenger) without running `next build` / `npm install` on
   // the memory-limited shared host.

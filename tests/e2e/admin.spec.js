@@ -20,7 +20,9 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 
 
-test.skip(Boolean(process.env.PLAYWRIGHT_BASE_URL), 'creates a throwaway admin account; local only');
+// E2E_LOCAL_BUILD=1 runs it against a local production build (PLAYWRIGHT_BASE_URL
+// pointing at the standalone server), where admin behaviour differs from dev.
+test.skip(Boolean(process.env.PLAYWRIGHT_BASE_URL) && !process.env.E2E_LOCAL_BUILD, 'creates a throwaway admin account; local only');
 test.describe.configure({ mode: 'serial' });
 
 const STAMP = Date.now();

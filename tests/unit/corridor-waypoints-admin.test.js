@@ -8,9 +8,9 @@
 //
 // The table has NO `kind` column. A waypoint's identity is its `code`, and
 // `corridor_sections` refers to it by that string (UNIQUE KEY
-// `section(from_code,to_code)`), so the two guards that matter are: a code may
-// never change under an existing row, and a waypoint that still defines a
-// section may never be deleted.
+// `section(from_code,to_code)`), so a code may never change under an existing
+// row — and the sections are rebuilt from the waypoints on every save and
+// delete, so a waypoint can always be removed.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -18,7 +18,7 @@ vi.mock('../../lib/db.js', () => ({ query: vi.fn(), withTransaction: vi.fn() }))
 
 import { withTransaction } from '../../lib/db.js';
 import {
-  parseWaypoint, saveWaypoint, deleteWaypoint, WAYPOINT_CODE,
+  parseWaypoint, saveWaypoint, deleteWaypoint, WAYPOINT_CODE, planSections,
 } from '../../lib/corridor/waypoints-admin.js';
 
 const form = (values) => new Map(Object.entries(values));
@@ -109,43 +109,66 @@ describe('parseWaypoint', () => {
   });
 });
 
-describe('saveWaypoint', () => {
-  it('updates an existing row and stores names as JSON', async () => {
-    const q = vi.fn()
-      .mockResolvedValueOnce([{ id: 4, code: '4' }]) // SELECT ... FOR UPDATE
-      .mockResolvedValueOnce({ affectedRows: 1 });
-    withTransaction.mockImplementation((fn) => fn(q));
+/**
+ * A fake transaction that answers by SQL text, so the tests read as the
+ * sequence of things the repository does rather than as call indexes.
+ */
+function fakeDb({ waypoints = [], sections = [], lock = [], count } = {}) {
+  const state = { waypoints: [...waypoints], sections: sections.map((x) => ({ ...x })), nextId: 100 };
+  const q = vi.fn(async (sql, params = []) => {
+    if (/SELECT id, code FROM corridor_waypoints WHERE id = \? FOR UPDATE/.test(sql)) return lock;
+    if (/SELECT code FROM corridor_waypoints WHERE id = \? FOR UPDATE/.test(sql)) return lock;
+    if (/SELECT id FROM corridor_waypoints WHERE code = \?/.test(sql)) return state.waypoints.filter((w) => w.code === params[0]);
+    if (/SELECT COUNT\(\*\) AS n FROM corridor_waypoints/.test(sql)) return [{ n: count ?? state.waypoints.length }];
+    if (/SELECT code, chainage_m FROM corridor_waypoints/.test(sql)) return state.waypoints;
+    if (/SELECT id, from_code, to_code FROM corridor_sections/.test(sql)) return state.sections;
+    if (/INSERT INTO corridor_waypoints/.test(sql)) { state.waypoints.push({ code: params[0], chainage_m: params[3] }); return { insertId: 9 }; }
+    if (/DELETE FROM corridor_waypoints/.test(sql)) { state.waypoints = state.waypoints.filter((w) => w.id !== params[0]); return { affectedRows: 1 }; }
+    if (/DELETE FROM corridor_sections/.test(sql)) { state.sections = state.sections.filter((x) => x.id !== params[0]); return {}; }
+    if (/INSERT INTO corridor_sections/.test(sql)) { state.sections.push({ id: state.nextId++, from_code: params[0], to_code: params[1] }); return {}; }
+    return { affectedRows: 1 };
+  });
+  withTransaction.mockImplementation((fn) => fn(q));
+  return { q, state };
+}
 
+describe('planSections', () => {
+  it('pairs consecutive waypoints by chainage, keeping pairs that still exist', () => {
+    const plan = planSections(
+      [{ code: 'E', chainage_m: 47611 }, { code: 'S', chainage_m: 0 }, { code: '6', chainage_m: 40000 }],
+      [{ id: 1, from_code: 'S', to_code: '6' }, { id: 6, from_code: '6', to_code: '7' }, { id: 7, from_code: '7', to_code: 'E' }],
+    );
+    expect(plan).toEqual({ keep: [{ id: 1, sort_order: 0 }], insert: [{ from_code: '6', to_code: 'E', sort_order: 1 }], remove: [6, 7] });
+  });
+});
+
+describe('saveWaypoint', () => {
+  it('updates an existing row, stores names as JSON, and rebuilds the sections', async () => {
+    const { q } = fakeDb({ lock: [{ id: 4, code: '4' }], waypoints: [{ id: 4, code: '4', chainage_m: 12090 }] });
     await saveWaypoint({
       id: 4, code: '4', lat: '23.93', lng: '90.45', chainage_m: 12090, sort_order: 3,
       names: { en: 'Bhulta' },
     });
-
-    const [sql, params] = q.mock.calls[1];
-    expect(sql).toMatch(/UPDATE corridor_waypoints/);
+    const [, params] = q.mock.calls.find(([x]) => /UPDATE corridor_waypoints/.test(x));
     expect(params).toContain('{"en":"Bhulta"}');
     expect(params.at(-1)).toBe(4);
+    expect(q.mock.calls.some(([x]) => /FROM corridor_sections/.test(x))).toBe(true);
   });
 
   it('writes SQL NULL, not the string "null", when a row is unnamed', async () => {
-    const q = vi.fn()
-      .mockResolvedValueOnce([{ id: 4, code: '4' }])
-      .mockResolvedValueOnce({ affectedRows: 1 });
-    withTransaction.mockImplementation((fn) => fn(q));
-
+    const { q } = fakeDb({ lock: [{ id: 4, code: '4' }] });
     await saveWaypoint({
       id: 4, code: '4', lat: '23.93', lng: '90.45', chainage_m: 12090, sort_order: 3, names: null,
     });
-
     // The CHECK constraint is (names IS NULL OR json_valid(names)); 'null' is
     // valid JSON and would pass, but every reader would then see a named row.
-    expect(q.mock.calls[1][1]).toContain(null);
-    expect(q.mock.calls[1][1]).not.toContain('null');
+    const params = q.mock.calls.find(([x]) => /UPDATE corridor_waypoints/.test(x))[1];
+    expect(params).toContain(null);
+    expect(params).not.toContain('null');
   });
 
   it('refuses to change the code of an existing waypoint', async () => {
-    const q = vi.fn().mockResolvedValueOnce([{ id: 4, code: '4' }]);
-    withTransaction.mockImplementation((fn) => fn(q));
+    const { q } = fakeDb({ lock: [{ id: 4, code: '4' }] });
     await expect(saveWaypoint({
       id: 4, code: '9', lat: '23.93', lng: '90.45', chainage_m: 12090, sort_order: 3, names: null,
     })).rejects.toThrow(/code/i);
@@ -153,56 +176,49 @@ describe('saveWaypoint', () => {
   });
 
   it('reports a row that has gone rather than silently inserting one', async () => {
-    const q = vi.fn().mockResolvedValueOnce([]);
-    withTransaction.mockImplementation((fn) => fn(q));
+    fakeDb({ lock: [] });
     await expect(saveWaypoint({
       id: 99, code: '9', lat: '23.93', lng: '90.45', chainage_m: 1, sort_order: 0, names: null,
     })).rejects.toThrow(/no longer exists/i);
   });
 
   it('refuses a new waypoint whose code is already taken', async () => {
-    const q = vi.fn().mockResolvedValueOnce([{ id: 4 }]);
-    withTransaction.mockImplementation((fn) => fn(q));
+    fakeDb({ waypoints: [{ id: 4, code: '4', chainage_m: 1 }] });
     await expect(saveWaypoint({
       id: null, code: '4', lat: '23.93', lng: '90.45', chainage_m: 1, sort_order: 0, names: null,
     })).rejects.toThrow(/already/i);
   });
 
-  it('inserts a new waypoint when the code is free', async () => {
-    const q = vi.fn()
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce({ insertId: 9 });
-    withTransaction.mockImplementation((fn) => fn(q));
-    await saveWaypoint({
-      id: null, code: '9', lat: '23.93', lng: '90.45', chainage_m: 1, sort_order: 8, names: null,
+  it('inserts a new waypoint and splits the section it falls in', async () => {
+    const { state } = fakeDb({
+      waypoints: [{ id: 1, code: 'S', chainage_m: 0 }, { id: 2, code: 'E', chainage_m: 47611 }],
+      sections: [{ id: 1, from_code: 'S', to_code: 'E' }],
     });
-    expect(q.mock.calls[1][0]).toMatch(/INSERT INTO corridor_waypoints/);
+    await saveWaypoint({ id: null, code: '9', lat: '23.93', lng: '90.45', chainage_m: 20000, sort_order: 8, names: null });
+    expect(state.sections.map((x) => `${x.from_code}-${x.to_code}`)).toEqual(['S-9', '9-E']);
   });
 });
 
 describe('deleteWaypoint', () => {
-  it('refuses while a corridor section still refers to the code', async () => {
-    const q = vi.fn()
-      .mockResolvedValueOnce([{ code: '4' }])
-      .mockResolvedValueOnce([{ from_code: '3', to_code: '4' }, { from_code: '4', to_code: '5' }]);
-    withTransaction.mockImplementation((fn) => fn(q));
-    await expect(deleteWaypoint(4)).rejects.toThrow(/section/i);
-    expect(q).toHaveBeenCalledTimes(2); // never reached the DELETE
+  it('removes a waypoint that ends two sections by joining them into one', async () => {
+    const { state } = fakeDb({
+      lock: [{ code: '7' }],
+      waypoints: [{ id: 6, code: '6', chainage_m: 40000 }, { id: 7, code: '7', chainage_m: 41371 }, { id: 8, code: 'E', chainage_m: 47611 }],
+      sections: [{ id: 6, from_code: '6', to_code: '7' }, { id: 7, from_code: '7', to_code: 'E' }],
+    });
+    await deleteWaypoint(7);
+    expect(state.waypoints.map((w) => w.code)).toEqual(['6', 'E']);
+    expect(state.sections.map((x) => `${x.from_code}-${x.to_code}`)).toEqual(['6-E']);
   });
 
-  it('deletes an unreferenced waypoint', async () => {
-    const q = vi.fn()
-      .mockResolvedValueOnce([{ code: '9' }])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce({ affectedRows: 1 });
-    withTransaction.mockImplementation((fn) => fn(q));
-    await deleteWaypoint(9);
-    expect(q.mock.calls[2][0]).toMatch(/DELETE FROM corridor_waypoints/);
+  it('refuses to remove one of the last two waypoints', async () => {
+    const { q } = fakeDb({ lock: [{ code: 'E' }], count: 2 });
+    await expect(deleteWaypoint(8)).rejects.toThrow(/start and an end/i);
+    expect(q.mock.calls.some(([x]) => /DELETE/.test(x))).toBe(false);
   });
 
   it('reports a waypoint that has already gone', async () => {
-    const q = vi.fn().mockResolvedValueOnce([]);
-    withTransaction.mockImplementation((fn) => fn(q));
+    fakeDb({ lock: [] });
     await expect(deleteWaypoint(9)).rejects.toThrow(/already removed/i);
   });
 });
