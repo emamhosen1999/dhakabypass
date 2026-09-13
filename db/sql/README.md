@@ -27,6 +27,8 @@ install).
 ```
 09-ui-strings.sql        creates `ui_strings` — the editable UI strings (W1.6)
 12-toll-od-matrix.sql    creates `toll_od_rates` — the O–D fare matrix (INT.1)
+31-cms-consistency.sql   adds the toll citation columns, `interchanges.connects_to_labels`
+                         and `corridor_roads`; takes copied facts out of content (audit)
 ```
 
 `12-toll-od-matrix.sql` **does** seed rows, and is the deliberate exception to

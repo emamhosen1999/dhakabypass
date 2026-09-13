@@ -354,6 +354,12 @@
       "namedRegex": "^/admin/corridor/monthly(?:/)?$"
     },
     {
+      "page": "/admin/corridor/roads",
+      "regex": "^/admin/corridor/roads(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/corridor/roads(?:/)?$"
+    },
+    {
       "page": "/admin/corridor/sections",
       "regex": "^/admin/corridor/sections(?:/)?$",
       "routeKeys": {},
