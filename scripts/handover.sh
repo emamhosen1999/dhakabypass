@@ -83,4 +83,18 @@ for entry in "${CANDIDATES[@]}"; do
     sleep 20; echo "handover done via $U: serving build $BUILD_ID"; exit 0
   fi
 done
+# Last resort, and the one that worked on 13 September 2026: the detached
+# process is visible to its own account as `next-server`. End every one whose
+# working directory is this app root; LiteSpeed spawns the current build on
+# the next request.
+APP_ROOT="$(pwd -P)"
+for PID in $(ps -u "$(id -u)" -o pid=,args= | awk '/next-server/ {print $1}'); do
+  if [ "$(readlink "/proc/$PID/cwd" 2>/dev/null)" = "$APP_ROOT" ]; then
+    echo "ending stale next-server $PID"; kill "$PID"
+  fi
+done
+sleep 5
+curl -sk --resolve "$HOST:443:$ORIGIN_IP" -o /dev/null -m 60 "https://$HOST/en"
+sleep 5
+if [ "$(probe)" = "200" ]; then echo "handover done by ending the old process: serving build $BUILD_ID"; exit 0; fi
 echo "STILL the old process. Ask Namecheap support to reset CageFS for the account (kills the detached Node process)."; exit 1
