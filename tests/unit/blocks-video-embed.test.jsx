@@ -72,8 +72,9 @@ describe('resolveVideo — the id is validated, the URL is a template', () => {
 describe('the CSP allows exactly the hosts the resolver can produce', () => {
   it('frame-src lists VIDEO_FRAME_HOSTS and nothing more', async () => {
     const headers = await nextConfig.headers();
-    const csp = headers.find((h) => h.source === '/:locale(en|bn|zh)/:path*')
-      .headers.find((x) => x.key === 'Content-Security-Policy').value;
+    const csp = headers.flatMap((h) => h.headers).find((x) => x.key === 'Content-Security-Policy').value;
+    // Enforced on every route, not report-only anywhere (W6.4).
+    expect(headers.flatMap((h) => h.headers).some((x) => x.key === 'Content-Security-Policy-Report-Only')).toBe(false);
     const frameSrc = csp.split(';').map((s) => s.trim()).find((s) => s.startsWith('frame-src'));
     expect(frameSrc).toBeTruthy();
     const hosts = frameSrc.split(/\s+/).slice(1).filter((h) => h !== "'self'");

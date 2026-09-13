@@ -82,7 +82,10 @@ const nextConfig = {
       "default-src 'self'",
       // 'unsafe-inline': the theme script and the analytics consent defaults
       // must run before paint. See the note above.
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://www.googletagmanager.com`,
+      // static.cloudflareinsights.com: Cloudflare injects its Web Analytics
+      // beacon into every page at the edge; refused, it logs a console error
+      // on every page load and buries real errors.
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://www.googletagmanager.com https://static.cloudflareinsights.com`,
       // Tailwind emits a stylesheet; 'unsafe-inline' covers the style attributes
       // React sets for the corridor strip's computed offsets.
       "style-src 'self' 'unsafe-inline'",
@@ -90,7 +93,7 @@ const nextConfig = {
       "font-src 'self'",
       // Analytics beacons. Everything else is refused.
       `connect-src 'self'${isDev ? ' ws: http://localhost:* http://127.0.0.1:*' : ''}`
-        + ' https://www.google-analytics.com https://region1.google-analytics.com https://api.tomtom.com',
+        + ' https://www.google-analytics.com https://region1.google-analytics.com https://api.tomtom.com https://cloudflareinsights.com',
       "object-src 'none'",
       // The video block, and ONLY the video block. Every other frame is
       // refused, and lib/html/sanitize.js strips <iframe> from every rich-text
@@ -138,14 +141,10 @@ const nextConfig = {
 
     return [
       { source: '/:path*', headers: common },
-      // Enforced on the trees we own and test.
-      { source: '/', headers: [{ key: 'Content-Security-Policy', value: csp }] },
-      { source: '/:locale(en|bn|zh)/:path*', headers: [{ key: 'Content-Security-Policy', value: csp }] },
-      { source: '/:locale(en|bn|zh)', headers: [{ key: 'Content-Security-Policy', value: csp }] },
-      { source: '/admin/:path*', headers: [{ key: 'Content-Security-Policy', value: csp }] },
-      // Report-only everywhere else, so the legacy site keeps working while we
-      // still learn what an enforcing policy would break at cutover.
-      { source: '/:path*', headers: [{ key: 'Content-Security-Policy-Report-Only', value: csp }] },
+      // Enforced everywhere (W6.4). It was report-only outside the localised
+      // and admin trees so the legacy site kept working; that site is gone
+      // (W6.1), and every route this app serves is one we own and test.
+      { source: '/:path*', headers: [{ key: 'Content-Security-Policy', value: csp }] },
     ];
   },
   async rewrites() {

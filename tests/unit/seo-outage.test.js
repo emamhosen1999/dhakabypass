@@ -3,7 +3,7 @@
  *
  * The other SEO test files check the readers in lib/seo/ one at a time, with
  * `query` mocked at the module boundary. This one checks the WIRING: it imports
- * the real `app/layout.jsx`, `app/robots.js` and `app/sitemap.js` — the three
+ * a real root layout (`app/[...unmatched]/layout.jsx`, the same metadata every root layout uses), `app/robots.js` and `app/sitemap.js` — the three
  * files whose output reaches a crawler — and runs them against a connection
  * that refuses.
  *
@@ -61,7 +61,7 @@ describe('the root layout with no database', () => {
   it('still emits the title and description that used to be literals', async () => {
     // app/layout.jsx wraps the localised site, the legacy tree AND the admin.
     // A throw here is a 500 on every page on the hostname.
-    const { generateMetadata } = await import('../../app/layout.jsx');
+    const { generateMetadata } = await import('../../app/[...unmatched]/layout.jsx');
     const meta = await generateMetadata();
 
     expect(meta.title).toBe(SEO_DEFAULTS.siteTitle);
@@ -83,7 +83,7 @@ describe('the root layout with no database', () => {
     // The icon path was hardcoded before W1.24, so it could not go missing.
     // Now it comes from a row, and this is the guard against the read that
     // replaced it returning nothing.
-    const { generateMetadata } = await import('../../app/layout.jsx');
+    const { generateMetadata } = await import('../../app/[...unmatched]/layout.jsx');
     const meta = await generateMetadata();
     expect(meta.icons.icon[0].url).toBe('/favicon.ico');
     expect(meta.icons.icon[0].type).toBe('image/x-icon');
@@ -92,7 +92,7 @@ describe('the root layout with no database', () => {
   it('claims no share image it cannot substantiate', async () => {
     // Degrading to "no og:image" is correct. Degrading to a guessed one would
     // publish a picture nobody chose onto every share card.
-    const { generateMetadata } = await import('../../app/layout.jsx');
+    const { generateMetadata } = await import('../../app/[...unmatched]/layout.jsx');
     expect((await generateMetadata()).openGraph).toBeUndefined();
   });
 });

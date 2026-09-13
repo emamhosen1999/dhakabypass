@@ -6,13 +6,20 @@ import SiteHeaderV2 from '../../components/chrome/SiteHeaderV2.jsx';
 import SiteFooterV2 from '../../components/chrome/SiteFooterV2.jsx';
 import AdvisoryBar from '../../components/corridor/AdvisoryBar.jsx';
 import Analytics from '../../components/chrome/Analytics.jsx';
-import DocumentLang from '../../components/chrome/DocumentLang.jsx';
+import RootDocument from '../../components/chrome/RootDocument.jsx';
+import { generateRootMetadata } from '../../lib/seo/root-metadata.js';
 import FontPreload from '../../components/chrome/FontPreload.jsx';
 import BrandTokens from '../../components/chrome/BrandTokens.jsx';
 import StructuredData from '../../components/chrome/StructuredData.jsx';
 import UiStringsBridge from '../../components/chrome/UiStringsBridge.jsx';
 import { loadOrganization } from '../../lib/seo/identity.js';
 import { primeUiStrings } from '../../lib/i18n/strings-cache.js';
+
+/** The site-level title, description and favicon, in this page's language. */
+export async function generateMetadata({ params }) {
+  const { locale } = await params;
+  return generateRootMetadata(isLocale(locale) ? locale : 'en');
+}
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -45,7 +52,7 @@ export default async function LocaleLayout({ children, params }) {
    * `notFound()` itself. A visitor sees exactly what they saw before: the same
    * 404 page, without localised chrome around it.
    */
-  if (!isLocale(locale)) return <>{children}</>;
+  if (!isLocale(locale)) return <RootDocument lang="en">{children}</RootDocument>;
 
   /**
    * Load the editable UI strings BEFORE anything under this layout renders.
@@ -70,13 +77,12 @@ export default async function LocaleLayout({ children, params }) {
   const uiStringTables = await primeUiStrings();
 
   return (
+    <RootDocument lang={LOCALE_HTML_LANG[locale]}>
     <div className="db-root" lang={LOCALE_HTML_LANG[locale]}>
       {/* Must stay above {children}: it fills the browser's copy of the string
           store, and the client components below read from it during render.
           Only this page's locale crosses to the browser — see the component. */}
       <UiStringsBridge locale={locale} table={uiStringTables[locale]} />
-      {/* Corrects <html lang> for this locale — see the component. */}
-      <DocumentLang locale={locale} />
       {/* Stops the header re-wrapping when the condensed face swaps in. */}
       <FontPreload />
       {/* Chinese: Noto Sans SC, self-hosted and sliced by unicode-range (W1.28).
@@ -104,5 +110,6 @@ export default async function LocaleLayout({ children, params }) {
           legacy tree is not touched. */}
       <Analytics locale={locale} />
     </div>
+    </RootDocument>
   );
 }

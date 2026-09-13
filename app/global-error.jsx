@@ -12,7 +12,7 @@ import { localeFromPath, DEFAULT_LOCALE, LOCALE_HTML_LANG } from '../lib/i18n/lo
 import { t } from '../lib/i18n/ui.js';
 
 /**
- * The last boundary: a throw in app/layout.jsx itself, or in a locale layout,
+ * The last boundary: a throw in a root layout (locale, admin or catch-all)
  * lands here. It REPLACES the whole document, which is why it renders its own
  * <html> and <body> — Next requires that, and it is also the honest statement
  * of what has happened: there is no chrome to sit inside because the thing

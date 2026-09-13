@@ -1,13 +1,20 @@
+// RootDocument first: it brings globals.css, which admin.css must follow.
+import RootDocument from '../../components/chrome/RootDocument.jsx';
 import './admin.css';
 import ThemeScript from '../../components/chrome/ThemeScript.jsx';
+import { generateRootMetadata } from '../../lib/seo/root-metadata.js';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
-  title: 'Admin — Dhaka Bypass Expressway',
-  // never let the admin surface into search results
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata() {
+  return {
+    ...(await generateRootMetadata('en')),
+    title: 'Admin — Dhaka Bypass Expressway',
+    description: undefined,
+    // never let the admin surface into search results
+    robots: { index: false, follow: false },
+  };
+}
 
 /**
  * Bare wrapper for everything under /admin. The auth guard lives in
@@ -21,9 +28,11 @@ export const metadata = {
  */
 export default function AdminRootLayout({ children }) {
   return (
-    <div className="db-admin min-h-screen bg-gray-50 text-gray-800">
-      <ThemeScript />
-      {children}
-    </div>
+    <RootDocument lang="en">
+      <div className="db-admin min-h-screen bg-gray-50 text-gray-800">
+        <ThemeScript />
+        {children}
+      </div>
+    </RootDocument>
   );
 }
