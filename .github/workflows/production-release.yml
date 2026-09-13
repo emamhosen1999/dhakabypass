@@ -50,6 +50,7 @@ jobs:
       # service above and the database prepared by the step before this one.
       # Run as one step and a service that failed to come up looks identical
       # to a broken assertion.
+      - run: npm run lint
       - run: npm run test:unit
       - run: npm run test:db
       - run: node scripts/verify-release-sql.mjs --database=dhakabypass_sql_test

@@ -48,6 +48,7 @@ jobs:
           node-version: '22.23.2'
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run test:unit
       # Production dependencies only. Dev-only advisories (the vitest mocker
       # path traversal, for one) never reach the artifact and would turn every

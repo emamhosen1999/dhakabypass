@@ -14,6 +14,21 @@
  * broke the build the first time this was written.
  */
 
+/**
+ * Every uncaught server error in a page, route handler or server action
+ * (W6.8): the error boundaries show the visitor a page, this makes sure the
+ * cause reaches the log as one structured line with its digest, which is the
+ * same id the boundary shows, so a screenshot can be matched to a log line.
+ */
+export async function onRequestError(err, request, context) {
+  if (process.env.NEXT_RUNTIME !== 'nodejs') return;
+  const { logError } = await import('./lib/log.js');
+  logError('request.error', err, {
+    path: request?.path, method: request?.method,
+    routerKind: context?.routerKind, routePath: context?.routePath, routeType: context?.routeType,
+  });
+}
+
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { assertBootEnvironment } = await import('./lib/deploy/boot-check.js');

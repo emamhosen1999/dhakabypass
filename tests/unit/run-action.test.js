@@ -38,10 +38,10 @@ describe('runAction', () => {
   });
 
   it('never forwards an internal error message; it logs it and shows the generic sentence', async () => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     await expect(runAction(async () => { throw new TypeError("Cannot read properties of null (reading 'id')"); }))
       .rejects.toThrow(/notice=The%20change%20was%20not%20made/);
-    expect(spy).toHaveBeenCalled();
+    expect(JSON.parse(spy.mock.calls[0][0]).event).toBe('admin.action_failed');
     const url = redirect.mock.calls[0][0];
     expect(url).not.toMatch(/Cannot%20read|null/);
   });
