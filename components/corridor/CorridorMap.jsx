@@ -18,7 +18,7 @@ export default function CorridorMap({
   const geo = view.geography;
   const badges = roadBadges(geo.roads,labels,view.linePoints,zoom,{x:vx,y:vy,w:vw,h:vh});
   return (
-    <svg className="db-map" viewBox={viewBox || view.viewBox} role="img" aria-label={view.alt} preserveAspectRatio="xMidYMid meet">
+    <svg className="db-map" viewBox={viewBox || view.viewBox} role="group" aria-label={view.alt} preserveAspectRatio="xMidYMid meet">
       <defs><pattern id="db-map-closed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
         <rect width="8" height="8" fill="var(--db-ink-3)"/><rect width="4" height="8" fill="var(--db-surface-2)"/>
       </pattern></defs>

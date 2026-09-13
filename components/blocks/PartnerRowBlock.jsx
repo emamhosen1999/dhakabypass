@@ -29,18 +29,21 @@ export default async function PartnerRowBlock({ data, locale }) {
           const href = p && typeof p.href === 'string' && p.href.trim() ? localeHref(p.href.trim(), locale) : '';
           return (
             <div key={i} className="db-partner">
-              {media ? (
-                <div className="db-partner-logo">
-                  <img
-                    src={media.path} alt={mediaAlt(media, locale) || name}
-                    width={media.width || undefined} height={media.height || undefined}
-                    loading="lazy" decoding="async"
-                  />
-                </div>
-              ) : null}
               {/* dt precedes dd: the project's dl convention, set in Task 17 of
-                  the foundations plan. Visual order is CSS's problem, not the DOM's. */}
-              <dt className="db-partner-name">{href ? <Link href={href}>{name}</Link> : name}</dt>
+                  the foundations plan. The logo sits inside the dt — a <dl>'s
+                  groups may hold only dt and dd (WCAG 1.3.1, axe definition-list). */}
+              <dt className="db-partner-name">
+                {media ? (
+                  <span className="db-partner-logo">
+                    <img
+                      src={media.path} alt={mediaAlt(media, locale) || name}
+                      width={media.width || undefined} height={media.height || undefined}
+                      loading="lazy" decoding="async"
+                    />
+                  </span>
+                ) : null}
+                {href ? <Link href={href}>{name}</Link> : name}
+              </dt>
               <dd className="db-partner-role">
                 {p && p.role ? p.role : ''}
                 {p && p.share ? <span className="db-partner-share">{p.share}</span> : null}
