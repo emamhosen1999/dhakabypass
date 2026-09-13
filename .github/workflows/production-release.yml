@@ -55,6 +55,8 @@ jobs:
       - run: npm run test:db
       - run: node scripts/verify-release-sql.mjs --database=dhakabypass_sql_test
       - run: npm run build
+      - name: Start the packaged server and request real pages
+        run: node scripts/smoke-standalone.mjs
       - name: Publish Linux artifact
         run: |
           git config user.name 'github-actions[bot]'

@@ -12,6 +12,19 @@ const nextConfig = {
   // Node.js app (Passenger) without running `next build` / `npm install` on
   // the memory-limited shared host.
   output: 'standalone',
+  // W6.11: the release branch carried ~2,700 files, including packages the
+  // running server never loads — sharp and its 18 MB libvips binary (this app
+  // does not use next/image), typescript (no TS config), and the browser
+  // compatibility tables. Excluded from the traced standalone output; the
+  // release verification starts the packaged server, so a missing runtime
+  // dependency fails the release rather than production.
+  outputFileTracingExcludes: {
+    '*': [
+      'node_modules/sharp/**', 'node_modules/@img/**', 'node_modules/detect-libc/**',
+      'node_modules/typescript/**', 'node_modules/caniuse-lite/**',
+      'node_modules/next/dist/compiled/amphtml-validator/**',
+    ],
+  },
   experimental: {
     // Keep static generation within the memory available on the local machine.
     cpus: 2,
