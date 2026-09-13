@@ -61,6 +61,7 @@
     "dotenv": "^16.6.1",
     "node-html-parser": "^9.0.0",
     "postcss": "^8.5.28",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.3.2",
     "vitest": "^3.2.7"
   },

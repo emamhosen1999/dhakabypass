@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Plus, Edit2, Trash2, Globe, Calendar, ExternalLink } from 'lucide-react';
-import { getNewsUpdates } from '../../../../lib/news';
+import { listNewsForAdmin } from '../../../../lib/newsroom/admin';
 import { deleteNewsAction } from '../../actions';
 
 export const dynamic = 'force-dynamic';
@@ -17,7 +17,7 @@ function formatDate(dateStr) {
 }
 
 export default async function AdminNewsPage() {
-  const news = await getNewsUpdates(false);
+  const news = await listNewsForAdmin();
 
   return (
     <div>

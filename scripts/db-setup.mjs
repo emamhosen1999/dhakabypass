@@ -39,29 +39,6 @@ const db = await mysql.createConnection({
 });
 
 await db.query(`
-  CREATE TABLE IF NOT EXISTS content (
-    section_key VARCHAR(191) NOT NULL PRIMARY KEY,
-    data        JSON NOT NULL,
-    updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-  CREATE TABLE IF NOT EXISTS gallery_images (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    file       VARCHAR(255) NOT NULL,
-    caption    VARCHAR(500) NOT NULL DEFAULT '',
-    sort_order INT NOT NULL DEFAULT 0,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_sort (sort_order)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-  CREATE TABLE IF NOT EXISTS admin_users (
-    id            INT AUTO_INCREMENT PRIMARY KEY,
-    email         VARCHAR(191) NOT NULL UNIQUE,
-    name          VARCHAR(191) NOT NULL DEFAULT '',
-    password_hash VARCHAR(255) NULL,
-    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
   CREATE TABLE IF NOT EXISTS contact_messages (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     name       VARCHAR(191) NOT NULL,
@@ -95,5 +72,8 @@ await db.query(`
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 `);
 
-console.log(`Schema ready on ${DB_NAME}: content, gallery_images, admin_users, contact_messages, news_updates, newsletter_subscribers`);
+// The legacy site's `content`, `gallery_images` and `admin_users` tables are no
+// longer created (W6.10): nothing reads them, and 32-drop-legacy-tables.sql
+// removes them from databases that still have them.
+console.log(`Schema ready on ${DB_NAME}: contact_messages, news_updates, newsletter_subscribers`);
 await db.end();

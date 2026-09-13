@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { assertCan } from '../../../../../../lib/auth/assert-can';
 import { LOCALES, DEFAULT_LOCALE, LOCALE_LABELS } from '../../../../../../lib/i18n/locales';
-import { getNewsPost } from '../../../../../../lib/news';
+import { getNewsForAdmin } from '../../../../../../lib/newsroom/admin';
 import { getNewsTranslations } from '../../../../../../lib/newsroom/admin';
 import { saveNewsTranslationAction, deleteNewsTranslationAction } from './actions';
 
@@ -23,7 +23,7 @@ export default async function NewsTranslations({ params }) {
   await assertCan('translate');
   const { id } = await params;
 
-  const post = await getNewsPost(id);
+  const post = await getNewsForAdmin(id);
   if (!post) notFound();
 
   const rows = await getNewsTranslations(post.id);

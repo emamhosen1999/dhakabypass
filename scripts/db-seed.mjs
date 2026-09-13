@@ -1,11 +1,12 @@
 /**
- * Seeds the DB from the JSON defaults (which were extracted from the original
- * site), so the dynamic site launches byte-identical to today's content.
+ * Seeds the newsroom from scripts/data/news.json when it is empty, and
+ * optionally the first admin account.
  *
- *   node scripts/db-seed.mjs            # content + gallery
+ *   node scripts/db-seed.mjs            # news (only into an empty table)
  *   node scripts/db-seed.mjs --admin    # also create/update the admin user
  *
- * Re-runnable: content upserts, gallery only seeds when empty.
+ * Page, block, corridor and media content is seeded by db/sql and the
+ * db:seed:* scripts; the legacy `content`/`gallery_images` seed is gone.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,49 +38,10 @@ const db = await mysql.createConnection({
   database: DB_NAME,
 });
 
-// ---- content ----
-const defaults = { ...read('content/seed.json'), ...read('content/pages.json') };
-let n = 0;
-for (const [key, data] of Object.entries(defaults)) {
-  // No CAST(? AS JSON) here. MariaDB has no JSON type — `JSON` in a CREATE
-  // TABLE is an alias for LONGTEXT with a validity constraint, and
-  // `CAST(x AS JSON)` is a parse error on it. This script therefore ran fine on
-  // a developer machine using MySQL and would have failed on the FIRST deploy:
-  // the production host is MariaDB 11.4. Passing the JSON string straight
-  // through is correct on both — MySQL casts it implicitly into a real JSON
-  // column, MariaDB stores the text.
-  await db.execute(
-    `INSERT INTO content (section_key, data) VALUES (?, ?)
-     ON DUPLICATE KEY UPDATE data = VALUES(data)`,
-    [key, JSON.stringify(data)]
-  );
-  n++;
-}
-const fields = Object.values(defaults).reduce(
-  (s, o) => s + (o && typeof o === 'object' ? Object.keys(o).length : 0),
-  0
-);
-console.log(`content: ${n} sections (${fields} fields) upserted`);
-
-// ---- gallery (only if empty, so admin edits are never clobbered) ----
-const [[{ c: galleryCount }]] = await db.query('SELECT COUNT(*) AS c FROM gallery_images');
-if (galleryCount === 0) {
-  const imgs = read('content/gallery.json');
-  for (const img of imgs) {
-    await db.execute(
-      'INSERT INTO gallery_images (file, caption, sort_order) VALUES (?, ?, ?)',
-      [img.file, img.caption || '', img.sort ?? 0]
-    );
-  }
-  console.log(`gallery: seeded ${imgs.length} photos`);
-} else {
-  console.log(`gallery: ${galleryCount} rows already present, left untouched`);
-}
-
 // ---- news updates (only if empty) ----
 const [[{ c: newsCount }]] = await db.query('SELECT COUNT(*) AS c FROM news_updates');
 if (newsCount === 0) {
-  const news = read('content/news.json');
+  const news = read('scripts/data/news.json');
   for (const item of news) {
     await db.execute(
       `INSERT INTO news_updates (title, slug, category, source, url, excerpt, body, image, published_at, is_published)
@@ -111,8 +73,10 @@ if (process.argv.includes('--admin')) {
   } else {
     const hash = await bcrypt.hash(ADMIN_PASSWORD, 12);
     await db.execute(
-      `INSERT INTO admin_users (email, name, password_hash) VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), name = VALUES(name)`,
+      // `users` is the table sign-in reads (lib/auth); the legacy admin_users
+      // table this used to write is gone (W6.10).
+      `INSERT INTO users (email, name, password_hash, role) VALUES (?, ?, ?, 'admin')
+       ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), name = VALUES(name), role = 'admin'`,
       [ADMIN_EMAIL.toLowerCase(), ADMIN_NAME, hash]
     );
     console.log(`admin user ready: ${ADMIN_EMAIL}`);

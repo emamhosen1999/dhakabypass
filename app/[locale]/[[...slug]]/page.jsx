@@ -141,7 +141,7 @@ export default async function CmsPage({ params, searchParams }) {
     notFound();
   }
 
-  const blocks = await getPageBlocksCached(page.id, page.slug);
+  const blocks = await getPageBlocksCached(page.id, page.slug, locale);
   // Handed on unawaited — see the note in BlockRenderer. A block document
   // carrying INT.2's toll calculator answers a journey straight out of the
   // query string, with no JavaScript; every other document — the home page

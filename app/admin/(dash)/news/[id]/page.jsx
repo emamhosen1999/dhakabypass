@@ -1,13 +1,13 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getNewsPost } from '../../../../../lib/news';
+import { getNewsForAdmin } from '../../../../../lib/newsroom/admin';
 import NewsForm from '../../../../../components/admin/NewsForm';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminEditNewsPage({ params }) {
   const resolvedParams = await params;
-  const post = await getNewsPost(resolvedParams.id);
+  const post = await getNewsForAdmin(resolvedParams.id);
 
   if (!post) {
     notFound();

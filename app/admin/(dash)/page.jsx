@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { FileText, Image as ImageIcon, Mail, LayoutGrid, Newspaper, Map, Type, ClipboardList } from 'lucide-react';
 import { listPages } from '../../../lib/content/pages';
 import { listMedia } from '../../../lib/media/repo';
-import { getNewsUpdates } from '../../../lib/news';
+import { listNewsForAdmin } from '../../../lib/newsroom/admin';
 import { query, dbEnabled } from '../../../lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,7 @@ export default async function AdminDashboard() {
     listPages().catch(() => []),
     listMedia().catch(() => []),
     countRows('SELECT COUNT(*) AS c FROM contact_messages WHERE read_at IS NULL'),
-    getNewsUpdates(false).catch(() => []),
+    listNewsForAdmin().catch(() => []),
     countRows('SELECT COUNT(*) AS c FROM blocks'),
     countRows("SELECT COUNT(*) AS c FROM service_requests WHERE status IN ('new','in_progress')"),
   ]);

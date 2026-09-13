@@ -24,7 +24,7 @@ export default async function LocaleNotFound() {
   let blocks = [];
   try {
     page = await getPageBySlugCached(NOT_FOUND_SLUG);
-    if (page?.status === 'published') blocks = await getPageBlocksCached(page.id, NOT_FOUND_SLUG);
+    if (page?.status === 'published') blocks = await getPageBlocksCached(page.id, NOT_FOUND_SLUG, locale);
   } catch {
     blocks = [];
   }

@@ -41,3 +41,8 @@ var/rate.mjs
 
 # Local Claude Code permission grants, never shared.
 .claude/settings.json
+
+# Scratch artifacts that must never be committed again (W6.13).
+.extract/
+admin-dash.png
+var/shots.mjs
