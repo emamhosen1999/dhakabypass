@@ -42,6 +42,8 @@ export const MIGRATIONS = Object.freeze([
   '30-pending-drafts',
   '31-cms-consistency',
   '32-drop-legacy-tables',
+  '33-translation-parity',
+  '34-remaining-pages',
 ]);
 
 /** Names in MIGRATIONS that the ledger does not carry, in import order. */
