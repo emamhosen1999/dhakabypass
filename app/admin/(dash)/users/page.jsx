@@ -103,25 +103,37 @@ export default async function AdminUsers() {
                       {ROLE_VALUES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                     </select>
                   </label>
-                  <button type="submit" className="text-xs px-2 py-2 rounded-md border border-gray-300 hover:bg-gray-100">Save</button>
+                  <button
+                    type="submit"
+                    data-confirm={`Change the role of ${u.email} from ${ROLE_LABEL[u.role] || u.role}?\n\nIt applies on their next page load. Administrators can manage staff, settings, messages and requests; editors can change pages and corridor data; translators can only translate.`}
+                    className="text-xs px-2 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
+                  >
+                    Save role
+                  </button>
                 </form>
                 <form action={setPasswordAction} className="flex items-end gap-2">
                   <input type="hidden" name="id" value={u.id} />
                   <label className="text-xs font-semibold text-gray-700">New password
                     <input name="password" type="password" minLength={MIN_PASSWORD} autoComplete="new-password" className={`${INPUT} w-44`} />
                   </label>
-                  <button type="submit" aria-label={`Set password for ${u.email}`} className="text-xs px-2 py-2 rounded-md border border-gray-300 hover:bg-gray-100 flex items-center gap-1">
+                  <button
+                    type="submit"
+                    aria-label={`Set password for ${u.email}`}
+                    data-confirm={`Replace the password of ${u.email}?\n\nThey will need the new password to sign in. Tell them through a channel other than email.`}
+                    className="text-xs px-2 py-2 rounded-md border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
+                  >
                     <KeyRound className="w-3.5 h-3.5" /> Set
                   </button>
                 </form>
                 <form action={removeUserAction} className="ml-auto self-center">
                   <input type="hidden" name="id" value={u.id} />
                   <button
-                    type="submit" aria-label={`Remove ${u.email}`} title={isMe ? 'You cannot remove yourself' : 'Remove'}
+                    type="submit" title={isMe ? 'You cannot remove yourself' : undefined}
                     disabled={isMe}
-                    className="text-red-500 hover:text-red-700 p-1.5 rounded-md hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    data-confirm={`Remove ${u.email} (${ROLE_LABEL[u.role] || u.role})?\n\nThey can no longer sign in, from their next page load. Their past changes stay in the activity log.`}
+                    className="inline-flex items-center gap-1 text-sm text-red-700 hover:text-red-900 px-2 py-1 rounded-md hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" /> Remove
                   </button>
                 </form>
               </div>

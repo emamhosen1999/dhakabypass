@@ -5,10 +5,12 @@ import { runAction } from '../../../../lib/admin/run-action';
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { LOCALES } from '../../../../lib/i18n/locales';
-import { saveRouteMeta, deleteRouteMeta, normaliseRoute, ROBOTS_DIRECTIVES } from '../../../../lib/seo/route-meta';
+import { saveRouteMeta, normaliseRoute, ROBOTS_DIRECTIVES } from '../../../../lib/seo/route-meta';
 import { publishablePath } from '../../../../lib/seo/settings';
 import { revalidateRouteMeta } from '../../../../lib/revalidate';
 import { validationError, friendly } from '../../../../lib/errors';
+import { saveRecord, deleteRecord } from '../../../../lib/admin/record-actions';
+import { setFlash } from '../../../../lib/admin/context';
 
 const ADMIN = '/admin/seo';
 
@@ -61,6 +63,7 @@ async function saveRouteMetaAction$inner(formData) {
   }
 
   try {
+    await saveRecord('route_meta', route, formData, async () => {
     for (const locale of LOCALES) {
       await saveRouteMeta({
         route,
@@ -77,9 +80,11 @@ async function saveRouteMetaAction$inner(formData) {
         canonical: locale === 'en' ? canonical : '',
       });
     }
+    });
   } catch (err) {
     friendly(err, 'Those settings could not be saved. Please try again.');
   }
+  setFlash(robots.includes('noindex') ? `Saved. Search engines are asked not to list ${route}.` : 'Search settings saved.');
 
   revalidateRouteMeta();
   // /sitemap.xml is an hourly ISR route, so evicting the cached data behind it
@@ -104,7 +109,7 @@ async function deleteRouteMetaAction$inner(formData) {
   if (!raw) throw validationError('Nothing to remove.');
 
   try {
-    await deleteRouteMeta(raw);
+    await deleteRecord('route_meta', normaliseRoute(raw), { formData });
   } catch (err) {
     friendly(err, 'That entry could not be removed. Please try again.');
   }

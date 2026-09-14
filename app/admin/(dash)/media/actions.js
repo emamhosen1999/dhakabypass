@@ -1,5 +1,9 @@
 'use server';
 
+import { saveRecord, deleteRecord } from '../../../../lib/admin/record-actions';
+import { setFlash } from '../../../../lib/admin/context';
+import { mediaUsages, usageCount, describeUsage } from '../../../../lib/media/usages';
+
 import { runAction } from '../../../../lib/admin/run-action';
 
 import { revalidatePath } from 'next/cache';
@@ -85,6 +89,7 @@ async function replaceMediaAction$inner(formData) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  if (buffer.length > 8 * 1024 * 1024) throw validationError('The file is larger than 8MB.');
   const size = imageSize(buffer);
   if (!size) {
     throw validationError('That file does not look like an image we can read. Send the original camera file.');
@@ -101,6 +106,9 @@ async function replaceMediaAction$inner(formData) {
     // INSERTs a media row of its own, returning { id, path }. We want the
     // file, not the row: the whole point is to keep the EXISTING row's id.
     const saved = await saveUpload({ buffer, filename: file.name, mime: file.type });
+    // The picture being replaced stays in history (its file is not deleted).
+    const { recordHistory } = await import('../../../../lib/admin/history');
+    await recordHistory('media', id, { action: 'replace' });
 
     slugs = await withTransaction((q) =>
       applyMediaReplacement(q, {
@@ -122,6 +130,7 @@ async function replaceMediaAction$inner(formData) {
   // pageTag(slug) and the page list under LIST_TAG, and revalidatePage() fires
   // both. There is no global 'pages' tag — invalidating one would be a no-op.
   for (const slug of slugs) revalidatePage(slug);
+  setFlash(slugs.length ? `Replaced on ${slugs.length} page${slugs.length === 1 ? '' : 's'}.` : 'Replaced.');
   // The public gallery reads the media library through its own cache entry,
   // which pageTag() does not touch. Replacing a photograph that is in the
   // gallery has to invalidate that too, or the old picture keeps serving there
@@ -154,10 +163,13 @@ async function setGalleryVisibilityAction$inner(formData) {
   const show = String(formData.get('show')) === '1' ? 1 : 0;
 
   try {
-    const result = await query('UPDATE media SET in_gallery = ? WHERE id = ?', [show, id]);
-    if (result && result.affectedRows === 0) {
-      throw validationError('That image no longer exists.');
-    }
+    await saveRecord('media', id, formData, async () => {
+      const result = await query('UPDATE media SET in_gallery = ? WHERE id = ?', [show, id]);
+      if (result && result.affectedRows === 0) {
+        throw validationError('That image no longer exists.');
+      }
+    });
+    setFlash(show ? 'Shown in the public gallery.' : 'Hidden from the public gallery. It stays in the library.');
   } catch (err) {
     friendly(err, 'The gallery could not be updated. Please try again.');
   }
@@ -208,7 +220,7 @@ async function updateMediaAltAction$inner(formData) {
   }
 
   try {
-    await setMediaAlt(id, alt);
+    await saveRecord('media', id, formData, () => setMediaAlt(id, alt));
   } catch (err) {
     friendly(err, 'The description could not be saved. Please try again.');
   }
@@ -217,7 +229,9 @@ async function updateMediaAltAction$inner(formData) {
   // the row through its own cached tree. Firing only one of the two leaves the
   // site reading the old sentence for up to the 300-second recovery floor.
   revalidateMedia();
-  for (const slug of await pageSlugsUsingMedia(row.path)) revalidatePage(slug);
+  // Two arguments: the one-argument call returned nothing, so pages kept the old sentence (audit F9).
+  for (const slug of await pageSlugsUsingMedia(query, row.path)) revalidatePage(slug);
+  setFlash(Object.keys(alt).length ? 'Description saved.' : 'Description cleared.');
   revalidatePath(ADMIN);
 }
 
@@ -276,7 +290,7 @@ async function setFocalPointAction$inner(formData) {
   try {
     const row = await getMediaById(id);
     if (!row) throw validationError('That image no longer exists.');
-    await query('UPDATE media SET focal_x = ?, focal_y = ? WHERE id = ?', [fx.toFixed(3), fy.toFixed(3), id]);
+    await saveRecord('media', id, formData, () => query('UPDATE media SET focal_x = ?, focal_y = ? WHERE id = ?', [fx.toFixed(3), fy.toFixed(3), id]));
     slugs = await pageSlugsUsingMedia(query, row.path);
   } catch (err) {
     friendly(err, 'The focal point could not be saved. Please try again.');
@@ -304,22 +318,17 @@ async function deleteMediaAction$inner(formData) {
   try {
     const row = await getMediaById(id);
     if (!row) throw validationError('That image no longer exists.');
-    const slugs = await pageSlugsUsingMedia(query, row.path);
-    if (slugs.length) {
-      throw validationError(
-        `Still used on ${slugs.map((s) => `/${s}`).join(', ')}. Replace or remove it there first.`,
-      );
+    // Everywhere it is shown, not only page blocks (audit M1).
+    const usage = await mediaUsages(query, row.path);
+    if (usageCount(usage)) {
+      throw validationError(`Still used by ${describeUsage(usage)}. Replace or remove it there first.`);
     }
     if (Number(row.in_gallery) === 1) {
-      throw validationError('This picture is in the public gallery. Remove it from the gallery first.');
+      throw validationError('This picture is in the public gallery. Hide it from the gallery first.');
     }
-    await query('DELETE FROM media WHERE id = ?', [id]);
-    if (String(row.path).startsWith('/uploads/')) {
-      const { unlink } = await import('node:fs/promises');
-      const { join, basename } = await import('node:path');
-      const { uploadRoot } = await import('../../../../lib/media');
-      await unlink(join(uploadRoot(), basename(row.path))).catch(() => {});
-    }
+    // To the trash. The file stays on disk until the trash entry is deleted for
+    // good, so a restore brings back a picture that still displays.
+    await deleteRecord('media', id, { formData });
   } catch (err) {
     friendly(err, 'The image could not be removed. Please try again.');
   }

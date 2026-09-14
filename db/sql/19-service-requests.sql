@@ -17,6 +17,10 @@
 -- DDL only, idempotent. No rows are seeded: the form is placed by an operator
 -- from the block editor.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `service_requests` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tracking_no` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,

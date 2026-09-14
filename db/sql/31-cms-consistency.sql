@@ -32,6 +32,10 @@
 -- ---------------------------------------------------------------------------
 -- Schema
 -- ---------------------------------------------------------------------------
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @c = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'toll_rates' AND COLUMN_NAME = 'sro_number');
 SET @s = IF(@c = 0, 'ALTER TABLE `toll_rates` ADD COLUMN `sro_number` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '''' AFTER `payment_methods`, ADD COLUMN `sro_date` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '''' AFTER `sro_number`, ADD COLUMN `sro_link` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '''' AFTER `sro_date`', 'DO 0');
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;

@@ -6,8 +6,10 @@ import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../../../lib/auth/assert-can';
 import { isLocale, DEFAULT_LOCALE } from '../../../../../../lib/i18n/locales';
 import { revalidateNews } from '../../../../../../lib/revalidate';
-import { saveNewsTranslation, deleteNewsTranslation } from '../../../../../../lib/newsroom/admin';
+import { saveNewsTranslation } from '../../../../../../lib/newsroom/admin';
 import { validationError, friendly } from '../../../../../../lib/errors';
+import { saveRecord, deleteRecord } from '../../../../../../lib/admin/record-actions';
+import { setFlash } from '../../../../../../lib/admin/context';
 
 const VALID_STATUSES = ['draft', 'published'];
 
@@ -56,14 +58,18 @@ async function saveNewsTranslationAction$inner(formData) {
     throw validationError('A published translation needs a title.');
   }
 
+  let outcome;
   try {
-    await saveNewsTranslation({ newsId, locale, title, excerpt, body, status });
+    outcome = await saveRecord('news_translation', `${newsId}:${locale}`, formData, () => saveNewsTranslation({ newsId, locale, title, excerpt, body, status }));
   } catch (err) {
     friendly(err, 'The translation could not be saved. Please try again.');
   }
 
   revalidateNews();
   revalidatePath(adminPath(newsId));
+  setFlash(outcome === 'draft_kept'
+    ? 'Draft saved. The published translation stays live until you publish.'
+    : status === 'published' ? 'Translation published.' : 'Draft saved.');
 }
 
 /** Remove a translation, so the article falls back to English in that locale. */
@@ -78,7 +84,7 @@ async function deleteNewsTranslationAction$inner(formData) {
   }
 
   try {
-    await deleteNewsTranslation(newsId, locale);
+    await deleteRecord('news_translation', `${newsId}:${locale}`, { formData });
   } catch (err) {
     friendly(err, 'The translation could not be removed. Please try again.');
   }

@@ -1,6 +1,7 @@
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { listRedirects, REDIRECT_STATUSES } from '../../../../lib/redirects/repo';
 import { saveRedirectAction, deleteRedirectAction } from './actions';
+import { HistoryLink } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,7 +74,11 @@ export default async function RedirectsPage() {
             If you are not certain the move is final, choose a temporary one.
           </p>
         </div>
-        <button type="submit" className="px-4 py-2 rounded bg-black text-white">Save redirect</button>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="overwrite" />
+          Replace the existing redirect if this address already has one
+        </label>
+        <button type="submit" data-noconfirm="" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">Save redirect</button>
       </form>
 
       <section className="space-y-2">
@@ -88,10 +93,13 @@ export default async function RedirectsPage() {
                   {r.source} <span aria-hidden="true">→</span> {r.destination}
                   <span className="ml-2 text-xs text-gray-500">{r.statusCode}</span>
                 </div>
-                <form action={deleteRedirectAction}>
-                  <input type="hidden" name="id" value={r.id} />
-                  <button type="submit" className="text-sm text-red-700 underline">Remove</button>
-                </form>
+                <div className="flex items-center gap-3">
+                  <HistoryLink type="redirect" id={r.id} />
+                  <form action={deleteRedirectAction}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <button type="submit" className="text-sm text-red-700 underline" data-confirm={`Remove the redirect ${r.source} → ${r.destination}?\n\nVisitors to ${r.source} will get "page not found". It goes to the trash and can be restored.`}>Remove</button>
+                  </form>
+                </div>
               </li>
             ))}
           </ul>

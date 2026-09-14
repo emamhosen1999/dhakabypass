@@ -1,12 +1,18 @@
 // app/admin/(dash)/pages-v2/actions.js
 'use server';
 
-import { validationError } from '../../../../lib/errors';
+import { validationError, friendly } from '../../../../lib/errors';
 import { runAction } from '../../../../lib/admin/run-action';
 
 import { revalidatePath } from 'next/cache';
 import { assertCan } from '../../../../lib/auth/assert-can';
-import { listPages, createPage, deletePageIfChildless, getPageBySlug, duplicatePage } from '../../../../lib/content/pages';
+import { listPages, createPage, getPageBySlug, duplicatePage } from '../../../../lib/content/pages';
+import { getPageForAdmin, parsePageSettings, savePageSettings, isProtectedPage } from '../../../../lib/content/page-settings';
+import { recordHistory, logAudit } from '../../../../lib/admin/history';
+import { deleteRecord } from '../../../../lib/admin/record-actions';
+import { setFlash, currentActor } from '../../../../lib/admin/context';
+import { revalidateRedirects, revalidateSeo } from '../../../../lib/revalidate';
+import { query } from '../../../../lib/db';
 import { normalizeSlug, isValidSlug, RESERVED_SLUGS } from '../../../../lib/content/slug';
 import { redirect } from 'next/navigation';
 import { revalidatePage } from '../../../../lib/revalidate';
@@ -33,14 +39,16 @@ async function createPageAction$inner(formData) {
     );
   }
   if (!isValidSlug(slug)) throw validationError(`"${slug}" is not a usable address`);
+  if (RESERVED_SLUGS.includes(slug)) throw validationError(`"${slug}" is reserved and cannot be a page address`);
 
+  let newId;
   try {
     if (await getPageBySlug(slug)) {
       const dup = new Error(`A page already lives at "${slug}"`);
       dup.code = 'DUPLICATE_SLUG';
       throw dup;
     }
-    await createPage({ slug, title });
+    newId = await createPage({ slug, title, actor: currentActor() });
   } catch (err) {
     // Duplicate detected — by the pre-check above, or by the loser of a
     // concurrent create hitting the UNIQUE constraint on the INSERT (a
@@ -53,8 +61,11 @@ async function createPageAction$inner(formData) {
     }
     throw validationError('Could not create the page. Please try again.');
   }
+  await logAudit({ action: 'page.create', type: 'page', id: newId, label: `${title} (/${slug})` });
   revalidatePage(slug);
   revalidatePath(ADMIN_PATH);
+  setFlash(`Created "${title}" as a draft. Add blocks, then publish it from Page settings.`);
+  redirect(`${ADMIN_PATH}/${newId}`);
 }
 
 async function deletePageAction$inner(formData) {
@@ -63,23 +74,29 @@ async function deletePageAction$inner(formData) {
   const slug = String(formData.get('slug') || '');
   if (!id) throw validationError('No page selected');
 
-  // pages.parent_id has no foreign key constraint, so the database will not
-  // cascade or null it when a parent row is deleted — a child would be left
-  // pointing at a parent_id that no longer exists. deletePageIfChildless
-  // checks and deletes inside one transaction (children locked with
-  // FOR UPDATE) so a child created between the check and the delete can't
-  // slip through and be orphaned.
+  // The home and not-found pages are part of every visit (audit X1).
+  const current = await getPageForAdmin(id);
+  if (!current) throw validationError('That page no longer exists.');
+  if (isProtectedPage(current.slug)) {
+    throw validationError(`The ${current.slug === 'home' ? 'home' : 'not-found'} page cannot be deleted. Edit its blocks instead.`);
+  }
+
+  // pages.parent_id has no foreign key, so a child would be left pointing at
+  // a page that no longer exists; the check and the delete share the trash's
+  // transaction, with the children locked.
   try {
-    await deletePageIfChildless(id);
+    await deleteRecord('page', id, {
+      formData,
+      remove: async (q) => {
+        const children = await q('SELECT id FROM pages WHERE parent_id = ? FOR UPDATE', [id]);
+        if (children.length > 0) {
+          throw validationError(`This page has ${children.length} sub-page${children.length === 1 ? '' : 's'}. Delete or move them first.`);
+        }
+        await q('DELETE FROM pages WHERE id = ?', [id]);
+      },
+    });
   } catch (err) {
-    if (err?.code === 'HAS_CHILDREN') {
-      throw validationError(
-        `This page has ${err.childCount} sub-page${err.childCount === 1 ? '' : 's'}. Delete or move them first.`
-      );
-    }
-    // Anything else (a connection drop, a raw SQL error) must not leak the
-    // driver's text to the browser.
-    throw validationError('Could not delete the page. Please try again.');
+    friendly(err, 'Could not delete the page. Please try again.');
   }
 
   if (slug) revalidatePage(slug);
@@ -118,6 +135,62 @@ async function duplicatePageAction$inner(formData) {
   redirect(`${ADMIN_PATH}/${newId}`);
 }
 
+/**
+ * The page settings panel (W7.3): titles and search text per language,
+ * address (a moved page leaves permanent redirects behind), parent, status.
+ */
+async function savePageSettingsAction$inner(formData) {
+  await assertCan('manage_pages');
+  const id = Number(formData.get('id'));
+  const current = await getPageForAdmin(id);
+  if (!current) throw validationError('That page no longer exists.');
+  const stamp = String(formData.get('_stamp') || '');
+  const { stampOf, assertUnchanged } = await import('../../../../lib/admin/history');
+  if (stamp && stampOf(current.updated_at) !== stamp) await assertUnchanged('page_settings', id, stamp);
+  const input = parsePageSettings(formData, current);
+  await recordHistory('page_settings', id);
+  let result;
+  try {
+    result = await savePageSettings(id, input, { actor: currentActor() });
+  } catch (err) { friendly(err, 'Could not save the page settings. Please try again.'); }
+  const verb = input.status !== current.status ? (input.status === 'published' ? 'page.publish' : 'page.unpublish') : 'page_settings.update';
+  await logAudit({ action: verb, type: 'page_settings', id, label: `${input.translations.en.title} (/${input.slug})` });
+  revalidatePage(current.slug);
+  if (result.moved) { revalidatePage(input.slug); revalidateRedirects(); }
+  revalidateSeo();
+  revalidatePath(ADMIN_PATH);
+  revalidatePath(`${ADMIN_PATH}/${id}`);
+  const parts = [];
+  if (input.status !== current.status) parts.push(input.status === 'published' ? 'Published.' : 'Unpublished: the page is no longer on the public site.');
+  else parts.push('Page settings saved.');
+  if (result.moved) parts.push(`Moved to /${input.slug}; the old address redirects there.`);
+  setFlash(parts.join(' '));
+}
+
+/** Publish or unpublish from the list, with the same guard as the panel. */
+async function setPageStatusAction$inner(formData) {
+  await assertCan('manage_pages');
+  const id = Number(formData.get('id'));
+  const status = String(formData.get('status'));
+  const current = await getPageForAdmin(id);
+  if (!current) throw validationError('That page no longer exists.');
+  if (!['draft', 'published'].includes(status)) throw validationError('Choose Draft or Published.');
+  if (isProtectedPage(current.slug) && status !== 'published') throw validationError('This page cannot be unpublished.');
+  await recordHistory('page_settings', id);
+  await query(
+    `UPDATE pages SET status = ?, updated_by = ?,
+       published_at = CASE WHEN ? = 'published' AND status <> 'published' THEN CURRENT_TIMESTAMP ELSE published_at END
+      WHERE id = ?`,
+    [status, currentActor(), status, id],
+  );
+  const title = current.translations.en?.title || current.slug;
+  await logAudit({ action: status === 'published' ? 'page.publish' : 'page.unpublish', type: 'page_settings', id, label: `${title} (/${current.slug})` });
+  revalidatePage(current.slug);
+  revalidatePath(ADMIN_PATH);
+  revalidatePath(`${ADMIN_PATH}/${id}`);
+  setFlash(status === 'published' ? `Published "${title}".` : `Unpublished "${title}".`);
+}
+
 // ---------------------------------------------------------------------------
 // Every exported action runs through runAction(): a thrown validation error
 // becomes a redirect back to the form with the sentence in `?notice=`, which
@@ -132,6 +205,12 @@ export async function createPageAction(formData) {
 }
 export async function deletePageAction(formData) {
   return runAction(() => deletePageAction$inner(formData), { name: 'deletePageAction', form: formData });
+}
+export async function savePageSettingsAction(formData) {
+  return runAction(() => savePageSettingsAction$inner(formData), { name: 'savePageSettingsAction', form: formData });
+}
+export async function setPageStatusAction(formData) {
+  return runAction(() => setPageStatusAction$inner(formData), { name: 'setPageStatusAction', form: formData });
 }
 export async function duplicatePageAction(formData) {
   return runAction(() => duplicatePageAction$inner(formData), { name: 'duplicatePageAction', form: formData });

@@ -17,6 +17,10 @@
 --
 -- Idempotent throughout. ID map: media 300-303.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 /*!40000 ALTER TABLE `media` DISABLE KEYS */;
 INSERT IGNORE INTO `media` (`id`, `path`, `width`, `height`, `bytes`, `mime`, `focal_x`, `focal_y`, `alt`, `origin`, `credit`, `in_gallery`) VALUES
   (300,'/brand/rhd.webp',522,542,293992,'image/webp',0.500,0.500,'{"en":"Roads and Highways Department emblem","bn":"সড়ক ও জনপথ অধিদপ্তরের প্রতীক","zh":"道路与公路局徽标"}','legacy','RHD',0),

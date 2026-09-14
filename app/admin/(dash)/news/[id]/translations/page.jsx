@@ -48,7 +48,8 @@ export default async function NewsTranslations({ params }) {
 
       {targets.map((locale) => {
         const row = byLocale.get(locale);
-        const status = row ? row.status : 'missing';
+        const status = row ? (row.draft ? 'changes' : row.status) : 'missing';
+        const working = row?.draft || row;
         return (
           <section key={locale} className="border rounded p-4 space-y-4">
             <div className="flex items-center justify-between gap-3">
@@ -57,39 +58,40 @@ export default async function NewsTranslations({ params }) {
                 className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${
                   status === 'published'
                     ? 'bg-green-100 text-green-900'
-                    : status === 'draft'
+                    : status === 'draft' || status === 'changes'
                       ? 'bg-amber-100 text-amber-900'
                       : 'bg-gray-100 text-gray-600'
                 }`}
               >
-                {status === 'missing' ? 'Not translated' : status}
+                {{ missing: 'Not translated', draft: 'Not published', published: 'Published', changes: 'Published · unpublished changes' }[status]}
               </span>
             </div>
 
-            <form action={saveNewsTranslationAction} className="space-y-4">
+            <form key={`${locale}:${row?.updated_at || ''}`} action={saveNewsTranslationAction} className="space-y-4" data-record-label={`the ${LOCALE_LABELS[locale]} translation`}>
               <input type="hidden" name="newsId" value={post.id} />
               <input type="hidden" name="locale" value={locale} />
 
               <Field
-                label="Title" name="title" english={post.title}
-                defaultValue={row ? row.title : ''}
+                label="Title" name="title" english={post.title} locale={locale}
+                defaultValue={working ? working.title : ''}
               />
               <Field
-                label="Excerpt" name="excerpt" english={post.excerpt} textarea rows={3}
-                defaultValue={row ? row.excerpt : ''}
+                label="Excerpt" name="excerpt" english={post.excerpt} textarea rows={3} locale={locale}
+                defaultValue={working ? working.excerpt : ''}
               />
               <Field
-                label="Body" name="body" english={post.body} textarea rows={10} mono
-                defaultValue={row ? row.body || '' : ''}
+                label="Body" name="body" english={post.body} textarea rows={10} mono locale={locale}
+                defaultValue={working ? working.body || '' : ''}
               />
 
               <div className="flex flex-wrap gap-2">
-                <button type="submit" name="status" value="draft" className="px-4 py-2 border rounded">
+                <button type="submit" name="status" value="draft" data-noconfirm="" data-pending="Saving draft…" className="px-4 py-2 border border-blue-900 text-blue-900 rounded font-semibold">
                   Save draft
                 </button>
-                <button type="submit" name="status" value="published" className="px-4 py-2 rounded bg-black text-white">
-                  Publish
+                <button type="submit" name="status" value="published" data-noconfirm="" data-pending="Publishing…" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">
+                  {status === 'published' || status === 'changes' ? 'Publish changes' : 'Publish'}
                 </button>
+                {status === 'published' || status === 'changes' ? <span className="text-xs text-gray-500 self-center">Save draft keeps the live translation unchanged.</span> : null}
               </div>
             </form>
 
@@ -97,8 +99,12 @@ export default async function NewsTranslations({ params }) {
               <form action={deleteNewsTranslationAction}>
                 <input type="hidden" name="newsId" value={post.id} />
                 <input type="hidden" name="locale" value={locale} />
-                <button type="submit" className="text-sm text-red-700 underline">
-                  Remove this translation (readers fall back to English)
+                <button
+                  type="submit"
+                  className="text-sm text-red-700 underline"
+                  data-confirm={`Remove the ${LOCALE_LABELS[locale]} translation of "${post.title}"?\n\n${LOCALE_LABELS[locale]} readers will see the English article. The translation goes to the trash and can be restored.`}
+                >
+                  Remove the {LOCALE_LABELS[locale]} translation
                 </button>
               </form>
             ) : null}
@@ -110,8 +116,9 @@ export default async function NewsTranslations({ params }) {
 }
 
 /** A translation field with the English it translates shown directly above it. */
-function Field({ label, name, english, defaultValue, textarea, rows = 3, mono }) {
-  const id = `t-${name}`;
+function Field({ label, name, english, defaultValue, textarea, rows = 3, mono, locale }) {
+  // Unique per language: the Chinese labels used to focus the Bangla inputs (audit A1).
+  const id = `t-${locale}-${name}`;
   return (
     <div className="space-y-1">
       <label htmlFor={id} className="block text-sm font-semibold">{label}</label>

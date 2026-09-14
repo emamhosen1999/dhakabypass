@@ -8,6 +8,8 @@ import { query, dbEnabled } from '../../../../lib/db';
 import { isStatus, KIND_VALUES, standardDays } from '../../../../lib/requests/policy.js';
 import { setSetting } from '../../../../lib/settings';
 import { validationError } from '../../../../lib/errors';
+import { deleteRecord, saveRecord } from '../../../../lib/admin/record-actions';
+import { setFlash, currentActor } from '../../../../lib/admin/context';
 
 const ADMIN = '/admin/requests';
 const NOTE_MAX = 4000;
@@ -29,16 +31,28 @@ async function updateRequestAction$inner(formData) {
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
   const status = String(formData.get('status') || '');
-  const note = String(formData.get('admin_note') || '').trim().slice(0, NOTE_MAX);
-  if (!Number.isFinite(id) || !isStatus(status)) return;
+  const note = String(formData.get('note') || '').trim().slice(0, NOTE_MAX);
+  if (!Number.isFinite(id) || !isStatus(status)) throw validationError('Choose a status.');
+  const current = (await query('SELECT status, tracking_no FROM service_requests WHERE id = ? LIMIT 1', [id]))?.[0];
+  if (!current) throw validationError('That request no longer exists.');
+  if (current.status === status && !note) throw validationError('Nothing to save: choose a new status or write a note.');
   const done = status === 'resolved' || status === 'closed';
-  await query(
-    `UPDATE service_requests
-        SET status = ?, admin_note = ?,
-            resolved_at = CASE WHEN ? THEN COALESCE(resolved_at, NOW()) ELSE NULL END
-      WHERE id = ?`,
-    [status, note, done ? 1 : 0, id],
-  );
+  // The case file (audit H5): every status change and note is an event, and
+  // the latest note is also kept on the request for the list.
+  await saveRecord('service_request', id, formData, async () => {
+    await query(
+      `UPDATE service_requests
+          SET status = ?, admin_note = COALESCE(NULLIF(?, ''), admin_note),
+              resolved_at = CASE WHEN ? THEN COALESCE(resolved_at, NOW()) ELSE NULL END
+        WHERE id = ?`,
+      [status, note, done ? 1 : 0, id],
+    );
+    await query(
+      'INSERT INTO service_request_events (request_id, actor, from_status, to_status, note) VALUES (?, ?, ?, ?, ?)',
+      [id, currentActor(), current.status, status === current.status ? null : status, note || null],
+    );
+  });
+  setFlash(status !== current.status ? `${current.tracking_no} is now ${status.replace('_', ' ')}.` : `Note added to ${current.tracking_no}.`);
   revalidatePath(ADMIN);
   revalidatePath('/admin');
 }
@@ -47,7 +61,8 @@ async function deleteRequestAction$inner(formData) {
   await assertCan('manage_users');
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
-  if (Number.isFinite(id)) await query('DELETE FROM service_requests WHERE id = ?', [id]);
+  // A tracked case is never destroyed outright: it goes to the trash with its timeline.
+  if (Number.isFinite(id)) await deleteRecord('service_request', id, { formData });
   revalidatePath(ADMIN);
   revalidatePath('/admin');
 }

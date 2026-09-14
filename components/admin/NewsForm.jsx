@@ -237,7 +237,7 @@ export default function NewsForm({ post }) {
             name="is_published"
             type="checkbox"
             value="1"
-            defaultChecked={post ? Boolean(post.is_published) : true}
+            defaultChecked={post ? Boolean(post.is_published) : false}
             className="w-4 h-4 text-orange-500 rounded focus:ring-orange-400"
           />
           <label htmlFor="is_published" className="text-sm font-semibold text-gray-700 cursor-pointer">

@@ -12,8 +12,9 @@ import { revalidateCorridor } from '../../../../lib/revalidate';
 import { friendly } from '../../../../lib/errors';
 import { listInterchanges } from '../../../../lib/corridor/interchanges';
 import {
-  saveTollOdRate, deleteTollOdRate, listAllTollOdRates, tollPoints, DIRECTIONS,
+  saveTollOdRate, listAllTollOdRates, tollPoints, DIRECTIONS,
 } from '../../../../lib/corridor/toll-matrix';
+import { saveRecord, deleteRecord } from '../../../../lib/admin/record-actions';
 
 /**
  * The O–D fare matrix admin, at /admin/corridor/toll-matrix.
@@ -52,9 +53,10 @@ async function saveTollOdRateAction$inner(formData) {
     throw validationError('Choose which carriageway this fare applies to');
   }
 
+  const id = Number(formData.get('id')) || null;
   try {
-    await saveTollOdRate({
-      id: Number(formData.get('id')) || null,
+    await saveRecord('toll_od_rate', id, formData, () => saveTollOdRate({
+      id,
       // Coerced at the form boundary, so the repository receives ids and not
       // the strings a <select> submits. Number('') is 0, which intField()
       // rejects with "Choose an entry toll plaza" — the message an operator
@@ -70,7 +72,7 @@ async function saveTollOdRateAction$inner(formData) {
       sro_number: String(formData.get('sro_number') || ''),
       sro_date: String(formData.get('sro_date') || ''),
       sro_link: String(formData.get('sro_link') || ''),
-    });
+    }));
   } catch (err) {
     // uq_toll_od (origin, destination, class, effective_from). The screen's
     // own help text tells operators to schedule a change by adding a row with
@@ -90,8 +92,8 @@ async function saveTollOdRateAction$inner(formData) {
 async function deleteTollOdRateAction$inner(formData) {
   await assertCan(ACTION);
   try {
-    await deleteTollOdRate(Number(formData.get('id')));
-  } catch { throw validationError('Could not delete the fare. Please try again.'); }
+    await deleteRecord('toll_od_rate', Number(formData.get('id')), { formData });
+  } catch (err) { friendly(err, 'Could not delete the fare. Please try again.'); }
   revalidateCorridor();
   revalidatePath(`${ADMIN}/toll-matrix`);
 }

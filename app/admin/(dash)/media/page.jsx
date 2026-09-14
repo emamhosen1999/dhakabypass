@@ -1,4 +1,3 @@
-import { assertCan } from '../../../../lib/auth/assert-can';
 import { listMedia, mediaAlt } from '../../../../lib/media/repo';
 import {
   replaceMediaAction, setGalleryVisibilityAction, updateMediaAltAction,
@@ -6,6 +5,12 @@ import {
 } from './actions';
 import { LOCALES, LOCALE_LABELS, LOCALE_HTML_LANG } from '../../../../lib/i18n/locales';
 import GuideNotice from './GuideNotice';
+import { query } from '../../../../lib/db';
+import { mediaUsageMap, usageCount, describeUsage } from '../../../../lib/media/usages';
+import { HistoryLink } from '../../../../components/admin/ui';
+import { auth } from '../../../../auth';
+import { can } from '../../../../lib/auth/roles';
+import { NoAccess } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +28,9 @@ export const dynamic = 'force-dynamic';
  */
 const SOFT_WIDTH = 1600;
 
-function Row({ row }) {
+function Row({ row, usage }) {
+  const used = usageCount(usage);
+  const where = describeUsage(usage);
   const soft = row.width > 0 && row.width < SOFT_WIDTH;
   // Replacing a picture now KEEPS its description (lib/media/replace.js).
   // Swapping the file is not the same act as discarding the sentence that
@@ -67,7 +74,7 @@ function Row({ row }) {
             to English for a missing key, and a stored '' would satisfy the
             lookup and defeat the fallback — a Bangla reader would get silence
             where they should have got the English sentence. */}
-        <form action={updateMediaAltAction} className="space-y-2 pt-1">
+        <form key={`${row.id}:${JSON.stringify(row.alt || {})}`} action={updateMediaAltAction} className="space-y-2 pt-1">
           <input type="hidden" name="id" value={row.id} />
           <p className="text-xs text-gray-500">
             Describe what is in the frame, not the file. A reader who cannot see it
@@ -89,11 +96,13 @@ function Row({ row }) {
               />
             </label>
           ))}
-          <button type="submit" className="px-3 py-1.5 rounded border text-sm">
+          <button type="submit" data-noconfirm="" className="px-3 py-1.5 rounded border text-sm">
             Save description
           </button>
         </form>
         {row.credit ? <p className="text-sm text-gray-500">{row.credit}</p> : null}
+        <p className="text-sm text-gray-600">{used ? <>Used by {where}.</> : 'Not used anywhere on the site.'}</p>
+        <HistoryLink type="media" id={row.id} />
         {soft ? (
           <p className="text-sm text-gray-500">
             Fine in a small box; soft anywhere it fills the width of the screen.
@@ -118,8 +127,8 @@ function Row({ row }) {
           >
             {row.inGallery ? 'In the gallery' : 'Not in the gallery'}
           </span>
-          <button type="submit" className="px-3 py-1.5 rounded border text-sm">
-            {row.inGallery ? 'Remove from gallery' : 'Add to gallery'}
+          <button type="submit" data-noconfirm="" data-pending={row.inGallery ? 'Hiding…' : 'Showing…'} className="px-3 py-1.5 rounded border text-sm">
+            {row.inGallery ? 'Hide from gallery' : 'Show in gallery'}
           </button>
         </form>
 
@@ -132,7 +141,12 @@ function Row({ row }) {
           accept="image/jpeg,image/png,image/webp"
           className="text-sm max-w-[220px]"
         />
-        <button type="submit" className="px-3 py-1.5 rounded bg-black text-white text-sm">
+        <button
+          type="submit"
+          data-confirm={`Replace ${row.path}${used ? ` everywhere it is used (${where})` : ''}?\n\nThe new picture keeps this description and focus point. The current picture is kept in its history.`}
+          data-pending="Replacing…"
+          className="px-3 py-1.5 rounded bg-blue-900 text-white text-sm font-semibold"
+        >
           Replace
         </button>
       </form>
@@ -152,26 +166,50 @@ function Row({ row }) {
           <label className="text-xs text-gray-600">y
             <input type="number" name="focal_y" min="0" max="1" step="0.05" defaultValue={Number(row.focal_y ?? 0.5)} className="ml-1 w-16 rounded border px-1 py-0.5 text-sm" />
           </label>
-          <button type="submit" className="px-3 py-1.5 rounded border text-sm">Set focus</button>
+          <button type="submit" data-noconfirm="" className="px-3 py-1.5 rounded border text-sm">Set focus</button>
         </form>
 
         {/* Refused while any page or the gallery still shows it — the action
             names the pages — so this can never leave a broken picture live. */}
-        <form action={deleteMediaAction} className="sm:self-end">
-          <input type="hidden" name="id" value={row.id} />
-          <button type="submit" className="px-3 py-1.5 rounded border border-red-300 text-red-700 text-sm hover:bg-red-50">
-            Remove from library
-          </button>
-        </form>
+        {used || row.inGallery ? (
+          <p className="text-xs text-gray-500 sm:text-right max-w-[16rem]">
+            {used ? 'Replace or remove it where it is used before removing it from the library.' : 'Hide it from the gallery before removing it from the library.'}
+          </p>
+        ) : (
+          <form action={deleteMediaAction} className="sm:self-end">
+            <input type="hidden" name="id" value={row.id} />
+            <button
+              type="submit"
+              data-confirm={`Remove ${row.path} from the library?\n\nIt is not used anywhere. It goes to the trash and can be restored.`}
+              className="px-3 py-1.5 rounded border border-red-300 text-red-700 text-sm hover:bg-red-50"
+            >
+              Remove from library
+            </button>
+          </form>
+        )}
       </div>
     </li>
   );
 }
 
-export default async function MediaLibrary() {
-  await assertCan('edit_blocks');
+export default async function MediaLibrary({ searchParams }) {
+  const session = await auth();
+  if (!can(session?.user?.role, 'manage_media')) return <NoAccess what="the media library" />;
+  const sp = (await searchParams) || {};
+  const q = String(sp.q || '').trim().toLowerCase();
+  const show = ['undescribed', 'unused', 'gallery', 'small'].includes(sp.show) ? sp.show : '';
 
-  const all = await listMedia();
+  const library = await listMedia();
+  const usage = await mediaUsageMap(query, library.map((m) => m.path)).catch(() => new Map());
+  const all = library.filter((m) => {
+    if (q && !`${m.path} ${JSON.stringify(m.alt || {})} ${m.credit || ''}`.toLowerCase().includes(q)) return false;
+    if (show === 'undescribed' && mediaAlt(m, 'en')) return false;
+    if (show === 'unused' && usageCount(usage.get(m.path))) return false;
+    if (show === 'gallery' && !m.inGallery) return false;
+    if (show === 'small' && !(m.width > 0 && m.width < SOFT_WIDTH)) return false;
+    return true;
+  });
+  const filtering = Boolean(q || show);
   const byPath = (a, b) => a.path.localeCompare(b.path);
   const placeholders = all.filter((m) => m.origin === 'legacy').sort(byPath);
   const uploads = all.filter((m) => m.origin !== 'legacy').sort(byPath);
@@ -189,6 +227,26 @@ export default async function MediaLibrary() {
 
       <GuideNotice />
 
+      <form method="get" className="flex flex-wrap items-end gap-2">
+        <label className="flex-1 min-w-[12rem] text-sm">
+          <span className="block font-semibold mb-1">Find a picture</span>
+          <input type="search" name="q" defaultValue={sp.q || ''} placeholder="File name, description or credit" className="w-full rounded-md border px-3 py-1.5" />
+        </label>
+        <label className="text-sm">
+          <span className="block font-semibold mb-1">Show</span>
+          <select name="show" defaultValue={show} className="rounded-md border px-3 py-1.5">
+            <option value="">Every picture ({library.length})</option>
+            <option value="undescribed">Without an English description</option>
+            <option value="unused">Not used anywhere</option>
+            <option value="gallery">In the public gallery</option>
+            <option value="small">Under {SOFT_WIDTH} pixels wide</option>
+          </select>
+        </label>
+        <button type="submit" className="px-3 py-1.5 rounded-md border border-blue-900 text-blue-900 text-sm font-semibold">Filter</button>
+        {filtering ? <a href="/admin/media" className="text-sm underline text-blue-900 py-1.5">Clear</a> : null}
+        {filtering ? <span className="text-sm text-gray-600 basis-full">{all.length} of {library.length} pictures match.</span> : null}
+      </form>
+
       {/* Into the library directly, described on the way in. Until this form,
           the only door was the "Upload new" button inside a block's image
           field, which put a picture in use before anyone could describe it. */}
@@ -196,10 +254,11 @@ export default async function MediaLibrary() {
         <label className="text-xs font-semibold text-gray-700">Add a picture
           <input type="file" name="file" required accept="image/jpeg,image/png,image/webp" className="block mt-1 text-sm max-w-[260px]" />
         </label>
-        <label className="text-xs font-semibold text-gray-700 grow min-w-[260px]">Description (English — what is in the frame)
-          <input type="text" name="alt_en" maxLength={300} placeholder="Traffic on the open carriageway at Vogra" className="block mt-1 w-full rounded border px-2 py-1 text-sm font-normal" />
+        <label className="text-xs font-semibold text-gray-700 grow min-w-[260px]">Description (English — what is in the frame) <span aria-hidden="true" className="text-red-700">*</span>
+          <input type="text" name="alt_en" required maxLength={300} placeholder="Traffic on the open carriageway at Vogra" className="block mt-1 w-full rounded border px-2 py-1 text-sm font-normal" />
         </label>
-        <button type="submit" className="px-3 py-1.5 rounded bg-black text-white text-sm">Add to library</button>
+        <button type="submit" data-noconfirm="" className="px-3 py-1.5 rounded bg-blue-900 text-white text-sm font-semibold">Add to library</button>
+        <p className="text-xs text-gray-500 basis-full">JPEG, PNG or WebP, under 8 MB. At least {SOFT_WIDTH} pixels wide for anything shown across the screen.</p>
       </form>
 
       <section className="space-y-2">
@@ -217,7 +276,7 @@ export default async function MediaLibrary() {
           ) : null}
         </p>
         {placeholders.length > 0 ? (
-          <ul>{placeholders.map((m) => <Row key={m.id} row={m} />)}</ul>
+          <ul>{placeholders.map((m) => <Row key={m.id} row={m} usage={usage.get(m.path)} />)}</ul>
         ) : (
           <p className="text-sm text-gray-500 py-4">
             No placeholders left. Every image on the site is an original upload.
@@ -231,7 +290,7 @@ export default async function MediaLibrary() {
           Files sent in and uploaded through this screen. These are the real thing.
         </p>
         {uploads.length > 0 ? (
-          <ul>{uploads.map((m) => <Row key={m.id} row={m} />)}</ul>
+          <ul>{uploads.map((m) => <Row key={m.id} row={m} usage={usage.get(m.path)} />)}</ul>
         ) : (
           <p className="text-sm text-gray-500 py-4">Nothing uploaded yet.</p>
         )}

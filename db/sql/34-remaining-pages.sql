@@ -24,6 +24,10 @@
 -- import twice.
 
 -- ---------------------------------------------------------------- about/concession
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 INSERT IGNORE INTO `pages` (`slug`, `template`, `nav_order`, `status`, `published_at`) VALUES ('about/concession', 'default', 0, 'published', CURRENT_TIMESTAMP);
 SET @p = (SELECT `id` FROM `pages` WHERE `slug` = 'about/concession');
 INSERT IGNORE INTO `page_translations` (`page_id`, `locale`, `title`, `seo_description`, `status`) VALUES (@p, 'en', 'Concession and financing', 'The terms under which DBEDC builds, operates and hands back the Dhaka Bypass Expressway, and how it is financed.', 'published');

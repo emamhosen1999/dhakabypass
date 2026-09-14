@@ -12,6 +12,10 @@
 --
 -- Idempotent in effect: the UPDATE sets a value it may already have set.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 UPDATE `media` SET `in_gallery` = 1
  WHERE `origin` = 'legacy'
    AND (`path` LIKE '/photo/%' OR `path` IN ('/cp.webp', '/semi.webp', '/DSC02357.webp', '/IMG_6282.webp'));

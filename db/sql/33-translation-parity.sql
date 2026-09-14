@@ -14,6 +14,10 @@
 -- without all three languages.
 
 -- project · timeline · Project timeline
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @b = (SELECT b.`id` FROM `blocks` b JOIN `pages` p ON p.`id` = b.`page_id` JOIN `block_translations` t ON t.`block_id` = b.`id` AND t.`locale` = 'en'
   WHERE p.`slug` = 'project' AND b.`type` = 'timeline' AND JSON_UNQUOTE(JSON_EXTRACT(t.`data`, '$.heading')) = 'Project timeline' LIMIT 1);
 INSERT IGNORE INTO `block_translations` (`block_id`, `locale`, `data`, `status`) SELECT @b, 'bn', '{"intro":"","heading":"প্রকল্পের সময়রেখা","items":[{"date":"ডিসেম্বর ২০১৮","image":"","title":"পিপিপি চুক্তি স্বাক্ষর","datetime":"2018-12-06","progress":0,"description":"<p>সড়ক ও জনপথ অধিদপ্তর এবং DBEDC-এর মধ্যে পিপিপি চুক্তি স্বাক্ষরিত হয়।</p>"},{"date":"নভেম্বর ২০২০","image":"","title":"নির্মাণকাজ শুরু","datetime":"2020-11-01","progress":0,"description":"<p>প্রাথমিক নির্মাণকাজ শুরু হয়; অ্যাপয়েন্টেড ডেট নির্ধারণের পর মে ২০২২-এ চূড়ান্ত নির্মাণকাজ আনুষ্ঠানিকভাবে শুরু হয়।</p>"},{"date":"১৫ মে ২০২২","image":"","title":"অ্যাপয়েন্টেড ডেট","datetime":"2022-05-15","progress":0,"description":"<p>আনুষ্ঠানিক অ্যাপয়েন্টেড ডেট হিসেবে নির্ধারিত, যা নির্মাণকালের আনুষ্ঠানিক সূচনা চিহ্নিত করে।</p>"},{"date":"মার্চ ২০২৫","image":"","title":"প্রথম অংশ চালু","datetime":"2025-03-27","progress":0,"description":"<p>ঈদুল ফিতরের সময় ২৭ মার্চ থেকে ৫ এপ্রিল ২০২৫ পর্যন্ত K4 থেকে K22 অংশ পরীক্ষামূলকভাবে চালু করা হয়।</p>"},{"date":"ডিসেম্বর ২০২৫ (লক্ষ্য)","image":"","title":"দ্বিতীয় অংশ চালু","datetime":"2025-12-01","progress":0,"description":"<p>সার্ভিস রোডসহ K22 থেকে K35 অংশ ডিসেম্বর ২০২৫-এর মধ্যে চালুর লক্ষ্য ছিল।</p>"}]}', 'published' FROM DUAL WHERE @b IS NOT NULL;

@@ -10,6 +10,8 @@ import {
   createUser, deleteUser, getUserById, getUserByEmail, setUserRole, setUserPassword, countAdmins,
 } from '../../../../lib/auth/users-repo';
 import { validateNewUser, canRemoveOrDemote, isRole, MIN_PASSWORD } from '../../../../lib/auth/users-policy';
+import { recordHistory, logAudit } from '../../../../lib/admin/history';
+import { setFlash } from '../../../../lib/admin/context';
 
 const ADMIN = '/admin/users';
 
@@ -36,6 +38,8 @@ async function addUserAction$inner(formData) {
     if (err?.code === 'ER_DUP_ENTRY') throw validationError('That address is already on the list.');
     throw validationError('Could not add the person. Please try again.');
   }
+  await logAudit({ action: 'user.create', type: 'user', id: checked.value.email, label: `${checked.value.email} as ${checked.value.role}` });
+  setFlash(`${checked.value.email} can now sign in as ${checked.value.role}.`);
   revalidateUsers();
   revalidatePath(ADMIN);
 }
@@ -53,7 +57,10 @@ async function setRoleAction$inner(formData) {
     const rule = canRemoveOrDemote({ actorEmail: session.user.email, target, adminCount: await countAdmins() });
     if (!rule.ok) throw validationError(rule.error);
   }
+  await recordHistory('user', id);
   await setUserRole(id, role);
+  await logAudit({ action: 'user.role', type: 'user', id, label: `${target.email}: ${target.role} → ${role}` });
+  setFlash(`${target.email} is now ${role}. It applies on their next page load.`);
   revalidateUsers();
   revalidatePath(ADMIN);
 }
@@ -64,8 +71,11 @@ async function setPasswordAction$inner(formData) {
   const password = String(formData.get('password') || '');
   if (!id) throw validationError('No person selected.');
   if (password.length < MIN_PASSWORD) throw validationError(`The password must be at least ${MIN_PASSWORD} characters.`);
-  if (!(await getUserById(id))) throw validationError('That person is no longer on the list.');
+  const target = await getUserById(id);
+  if (!target) throw validationError('That person is no longer on the list.');
   await setUserPassword(id, password);
+  await logAudit({ action: 'user.password', type: 'user', id, label: target.email });
+  setFlash(`Password replaced for ${target.email}.`);
   revalidatePath(ADMIN);
 }
 
@@ -77,6 +87,9 @@ async function removeUserAction$inner(formData) {
   const rule = canRemoveOrDemote({ actorEmail: session.user.email, target, adminCount: await countAdmins() });
   if (!rule.ok) throw validationError(rule.error);
   await deleteUser(id);
+  // Revisions keep the removed person's name through the activity log.
+  await logAudit({ action: 'user.remove', type: 'user', id, label: `${target.email} (${target.role})` });
+  setFlash(`${target.email} can no longer sign in.`);
   revalidateUsers();
   revalidatePath(ADMIN);
 }

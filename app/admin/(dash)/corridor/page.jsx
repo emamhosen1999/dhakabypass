@@ -60,7 +60,16 @@ export default async function CorridorHub() {
           they await official confirmation. Turn it off only once DBEDC has confirmed the
           toll table, the interchange schedule and the section statuses.
         </p>
-        <button type="submit" className="px-4 py-2 rounded bg-black text-white">Save</button>
+        {illustrative ? (
+          <label className="flex items-center gap-2 text-sm text-red-900">
+            <input type="checkbox" name="confirm_real" />
+            DBEDC has confirmed the toll table, the interchange schedule and the section statuses (needed to turn the notice off)
+          </label>
+        ) : null}
+        <div className="flex items-center gap-3">
+          <button type="submit" data-noconfirm="" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">Save</button>
+          <a href="/admin/history?type=setting&id=corridor.illustrative" className="text-sm underline text-blue-900">History</a>
+        </div>
       </form>
 
       <form action={saveCorridorFactsAction} className="border rounded p-4 space-y-3">

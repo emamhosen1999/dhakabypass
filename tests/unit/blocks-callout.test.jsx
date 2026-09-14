@@ -25,7 +25,7 @@ describe('callout — registration and schema', () => {
   it('refuses a tone outside the set', () => {
     const r = validateBlockData('callout', { tone: 'urgent', body: '<p>x</p>' });
     expect(r.ok).toBe(false);
-    expect(r.errors.join(' ')).toMatch(/tone/);
+    expect(r.errors.join(' ')).toMatch(/kind of notice/i);
   });
 
   it('requires a body', () => {

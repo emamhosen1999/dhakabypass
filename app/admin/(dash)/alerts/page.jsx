@@ -3,6 +3,7 @@ import { listSubscribers, subscriberCounts, listBroadcasts } from '../../../../l
 import { providerStatus } from '../../../../lib/alerts/providers';
 import { maskPhone } from '../../../../lib/alerts/policy';
 import { sendBroadcastAction, deleteSubscriberAction } from './actions';
+import SmsComposer from '../../../../components/admin/SmsComposer';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,11 +33,9 @@ export default async function AlertsAdmin() {
       <section className="border rounded p-4 space-y-3 bg-white">
         <h2 className="font-semibold">Send an alert</h2>
         <form action={sendBroadcastAction} className="space-y-3">
-          {[['en', 'English (required)'], ['bn', 'বাংলা'], ['zh', '中文']].map(([l, label]) => (
-            <label key={l} className="flex flex-col text-sm">{label}
-              <textarea name={`message.${l}`} rows={3} maxLength={480} required={l === 'en'} className="border rounded px-2 py-1"
-                placeholder={l === 'en' ? 'Dhaka Bypass: northbound lane closed at Kanchan Bridge 22:00–05:00 tonight for maintenance. Use the service road.' : ''} />
-            </label>
+          {[['en', 'English'], ['bn', 'বাংলা (Bangla)'], ['zh', '中文 (Chinese)']].map(([l, label]) => (
+            <SmsComposer key={l} name={`message.${l}`} label={label} required={l === 'en'}
+              placeholder={l === 'en' ? 'Dhaka Bypass: northbound lane closed at Kanchan Bridge 22:00–05:00 tonight for maintenance. Use the service road.' : ''} />
           ))}
           <label className="flex flex-col text-sm max-w-xs">Send by
             <select name="channel" defaultValue="both" className="border rounded px-2 py-1">
@@ -44,17 +43,24 @@ export default async function AlertsAdmin() {
             </select>
           </label>
           <p className="text-xs text-gray-600">An SMS in Bangla or Chinese is billed per 70 characters, in English per 160.</p>
-          <button type="submit" className="px-4 py-2 rounded bg-black text-white" data-confirm="Send this alert to every subscriber now?">Send alert</button>
+          <button
+            type="submit"
+            className="px-4 py-2 rounded bg-blue-900 text-white font-semibold"
+            data-pending="Sending…"
+            data-confirm={`Send this alert now?\n\nSMS: ${total('sms')} subscribers${providers.sms ? '' : ' (no provider: will not be sent)'}\nWhatsApp: ${total('whatsapp')} subscribers${providers.whatsapp ? '' : ' (no provider: will not be sent)'}\n\nA sent alert cannot be recalled.`}
+          >
+            Send alert
+          </button>
         </form>
       </section>
 
       <section className="space-y-2">
         <h2 className="font-semibold">Recent alerts</h2>
         {broadcasts.length === 0 ? <p className="text-sm text-gray-500">None yet.</p> : (
-          <table className="w-full text-sm"><thead><tr className="text-left border-b"><th className="py-1">When</th><th>Message</th><th>Channel</th><th>Status</th><th>Sent</th></tr></thead>
+          <table className="w-full text-sm"><thead><tr className="text-left border-b"><th className="py-1">When</th><th>Message</th><th>Channel</th><th>Status</th><th>Sent</th><th>By</th></tr></thead>
             <tbody>{broadcasts.map((b) => (
               <tr key={b.id} className="border-b align-top"><td className="py-1 whitespace-nowrap">{new Date(b.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka' })}</td>
-                <td>{b.messages.en}</td><td>{b.channel}</td><td>{STATUS[b.status] || b.status}{b.error ? <div className="text-xs text-gray-600">{b.error}</div> : null}</td><td>{b.sent}/{b.recipients}</td></tr>
+                <td>{b.messages.en}</td><td>{b.channel}</td><td>{STATUS[b.status] || b.status}{b.error ? <div className="text-xs text-gray-600">{b.error}</div> : null}</td><td>{b.sent}/{b.recipients}</td><td className="text-xs">{b.sent_by || ''}</td></tr>
             ))}</tbody></table>
         )}
       </section>
@@ -66,7 +72,7 @@ export default async function AlertsAdmin() {
             <tbody>{subscribers.map((s) => (
               <tr key={s.id} className="border-b"><td className="py-1 font-mono">{maskPhone(s.phone)}</td><td>{s.channel}</td><td>{s.locale}</td><td>{s.status}</td>
                 <td>{new Date(s.created_at).toLocaleDateString('en-GB')}</td>
-                <td><form action={deleteSubscriberAction}><input type="hidden" name="id" value={s.id} /><button type="submit" className="text-red-600">Remove</button></form></td></tr>
+                <td><form action={deleteSubscriberAction}><input type="hidden" name="id" value={s.id} /><button type="submit" className="text-red-700 underline" data-confirm={`Remove ${maskPhone(s.phone)} from ${s.channel} alerts?\n\nThis is permanent; they can sign up again. The removal is recorded.`}>Remove</button></form></td></tr>
             ))}</tbody></table>
         )}
       </section>

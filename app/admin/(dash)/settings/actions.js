@@ -1,5 +1,8 @@
 'use server';
 
+import { getSetting } from '../../../../lib/settings';
+import { setFlash } from '../../../../lib/admin/context';
+
 import { runAction } from '../../../../lib/admin/run-action';
 
 import { revalidatePath } from 'next/cache';
@@ -67,6 +70,12 @@ async function saveContactSettingsAction$inner(formData) {
     return out;
   };
 
+  // Clearing the emergency number takes it off every page: only on purpose (audit C7).
+  const previousEmergency = String(await getSetting(CONTACT_KEYS.emergency, '') || '');
+  if (previousEmergency && !emergency && formData.get('confirm_clear_emergency') !== 'on') {
+    throw validationError(`Tick "Remove the emergency number from the site" to clear ${previousEmergency}. Every page stops showing it.`);
+  }
+
   const socials = {};
   for (const name of Object.keys(SOCIAL_KEYS)) {
     const url = text(`social_${name}`);
@@ -90,6 +99,7 @@ async function saveContactSettingsAction$inner(formData) {
     friendly(err, 'The settings could not be saved. Please try again.');
   }
 
+  setFlash('Contact details saved. They appear on the site within a few seconds.');
   revalidateSettings();
   revalidatePath(ADMIN);
 }
@@ -157,6 +167,11 @@ async function saveSeoSettingsAction$inner(formData) {
   if (robotsMode && !ROBOTS_MODES.includes(robotsMode)) {
     throw validationError('Choose one of the listed search-engine options.');
   }
+  // Hiding the whole site from search is never a side effect of another edit (audit C7).
+  const previousRobots = String(await getSetting(SEO_KEYS.robotsMode, 'default') || 'default');
+  if (robotsMode === 'block_all' && previousRobots !== 'block_all' && formData.get('confirm_block_all') !== 'on') {
+    throw validationError('Tick "I want to hide the whole site from search engines" to block search engines. Nothing else was saved.');
+  }
 
   try {
     await setSetting(SEO_KEYS.siteTitle, perLocale('site_title'));
@@ -173,6 +188,7 @@ async function saveSeoSettingsAction$inner(formData) {
     friendly(err, 'The SEO settings could not be saved. Please try again.');
   }
 
+  setFlash(robotsMode === 'block_all' ? 'Saved. Search engines are asked to skip the whole site.' : 'Search settings saved.');
   revalidateSeo();
   // robots.txt is force-dynamic so it needs nothing, but /sitemap.xml is an
   // hourly ISR route: without this a change to the robots posture would leave

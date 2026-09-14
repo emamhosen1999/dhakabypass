@@ -15,6 +15,10 @@
 -- updated_at      on the tables that lacked it, so a form can tell whether the
 --                 record changed since it was opened.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `record_history` (
   `id` int NOT NULL AUTO_INCREMENT,
   `entity_type` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,

@@ -23,6 +23,10 @@
 -- id`, and reordering now issues one UPDATE per block, so the index is load
 -- bearing. MySQL has no CREATE INDEX IF NOT EXISTS, hence the guard.
 -- ---------------------------------------------------------------------------
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @idx_exists := (
   SELECT COUNT(*) FROM information_schema.statistics
   WHERE table_schema = DATABASE()

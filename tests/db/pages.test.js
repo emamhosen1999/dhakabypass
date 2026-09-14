@@ -7,6 +7,16 @@ process.env.DB_NAME = DB; // lib/db.js reads this
 let P;
 beforeAll(async () => {
   execFileSync('node', ['scripts/db-setup-v2.mjs', `--database=${DB}`], { stdio: 'inherit' });
+  // The columns 37-admin-history.sql adds to these tables (the legacy setup
+  // script predates them).
+  const { query } = await import('../../lib/db.js');
+  const has = async (table, column) => (await query(
+    'SELECT COUNT(*) AS n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?', [table, column],
+  ))[0].n > 0;
+  if (!(await has('pages', 'updated_by'))) await query("ALTER TABLE pages ADD COLUMN updated_by varchar(191) NOT NULL DEFAULT ''");
+  if (!(await has('block_translations', 'draft_data'))) {
+    await query('ALTER TABLE block_translations ADD COLUMN draft_data json DEFAULT NULL, ADD COLUMN draft_updated_at timestamp NULL DEFAULT NULL, ADD COLUMN draft_updated_by int DEFAULT NULL');
+  }
   P = await import('../../lib/content/pages.js');
 });
 
@@ -39,7 +49,8 @@ describe('pages', () => {
     const b = await P.addBlock({ pageId, type: 'rich-text', data: { heading: 'B', body: '<p>b</p>' } });
     const blocks = await P.getPageBlocks(pageId);
     expect(blocks.map((x) => x.id)).toEqual([a, b]);
-    expect(blocks[0].translations[0]).toMatchObject({ locale: 'en', status: 'published' });
+    // A new block is not on the public page until it is published (W7.2).
+    expect(blocks[0].translations[0]).toMatchObject({ locale: 'en', status: 'draft' });
   });
 
   it('reorders blocks', async () => {
@@ -215,5 +226,46 @@ describe('pages', () => {
     const { query } = await import('../../lib/db.js');
     const rows = await query('SELECT id FROM pages WHERE slug = ?', ['unique']);
     expect(rows.length).toBe(1);
+  });
+});
+
+describe('draft and live copies (W7.2)', () => {
+  it('saving a draft on a live block leaves the live text alone; publishing replaces it', async () => {
+    const pageId = await P.createPage({ slug: 'live', title: 'Live' });
+    const id = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>v1</p>' } });
+    await P.saveBlockTranslation({ blockId: id, locale: 'en', data: { body: '<p>v1</p>' }, status: 'published' });
+
+    await P.saveBlockTranslation({ blockId: id, locale: 'en', data: { body: '<p>v2 draft</p>' }, status: 'draft' });
+    let t = (await P.getPageBlocks(pageId))[0].translations.find((x) => x.locale === 'en');
+    expect(t.status).toBe('published');
+    expect(t.data).toEqual({ body: '<p>v1</p>' });
+    expect(t.draft).toEqual({ body: '<p>v2 draft</p>' });
+
+    await P.saveBlockTranslation({ blockId: id, locale: 'en', data: { body: '<p>v2</p>' }, status: 'published' });
+    t = (await P.getPageBlocks(pageId))[0].translations.find((x) => x.locale === 'en');
+    expect(t).toMatchObject({ status: 'published', data: { body: '<p>v2</p>' }, draft: null });
+  });
+
+  it('discards a draft and unpublishes without losing text', async () => {
+    const pageId = await P.createPage({ slug: 'live2', title: 'Live 2' });
+    const id = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>a</p>' } });
+    await P.saveBlockTranslation({ blockId: id, locale: 'en', data: { body: '<p>live</p>' }, status: 'published' });
+    await P.saveBlockTranslation({ blockId: id, locale: 'en', data: { body: '<p>wip</p>' }, status: 'draft' });
+    await P.discardBlockDraft({ blockId: id, locale: 'en' });
+    let t = (await P.getPageBlocks(pageId))[0].translations[0];
+    expect(t).toMatchObject({ status: 'published', data: { body: '<p>live</p>' }, draft: null });
+
+    await P.unpublishBlockTranslation({ blockId: id, locale: 'en' });
+    t = (await P.getPageBlocks(pageId))[0].translations[0];
+    expect(t).toMatchObject({ status: 'draft', data: { body: '<p>live</p>' } });
+  });
+
+  it('a duplicated block starts unpublished in every language', async () => {
+    const pageId = await P.createPage({ slug: 'dup', title: 'Dup' });
+    const id = await P.addBlock({ pageId, type: 'rich-text', data: { body: '<p>x</p>' } });
+    await P.saveBlockTranslation({ blockId: id, locale: 'en', data: { body: '<p>x</p>' }, status: 'published' });
+    const copy = await P.duplicateBlock(id);
+    const dup = (await P.getPageBlocks(pageId)).find((b) => b.id === copy);
+    expect(dup.translations.every((t) => t.status === 'draft')).toBe(true);
   });
 });

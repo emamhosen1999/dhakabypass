@@ -23,5 +23,9 @@
 -- number through the admin, this file does not overwrite it — a hand-imported
 -- SQL file must never silently revert an operator's decision.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 INSERT IGNORE INTO `site_settings` (`setting_key`, `value`)
 VALUES ('contact.emergency_phone', '"01610285004"');

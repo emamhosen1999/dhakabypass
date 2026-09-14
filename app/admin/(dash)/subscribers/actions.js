@@ -15,7 +15,14 @@ async function deleteSubscriberAction$inner(formData) {
   await assertCan('manage_users');
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
-  if (Number.isFinite(id)) await query('DELETE FROM newsletter_subscribers WHERE id = ?', [id]);
+  if (Number.isFinite(id)) {
+    // Erasure is permanent by design; the act itself is recorded.
+    const rows = await query('SELECT email FROM newsletter_subscribers WHERE id = ? LIMIT 1', [id]);
+    await query('DELETE FROM newsletter_subscribers WHERE id = ?', [id]);
+    const { logAudit } = await import('../../../../lib/admin/history');
+    const email = String(rows?.[0]?.email || '');
+    await logAudit({ action: 'newsletter_subscriber.delete', id, label: email ? `${email.slice(0, 2)}…@${email.split('@')[1] || ''}` : `subscriber ${id}` });
+  }
   revalidatePath('/admin/subscribers');
 }
 

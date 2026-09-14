@@ -12,6 +12,10 @@
 --
 -- Idempotent: INSERT IGNORE against the UNIQUE `source`.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 INSERT IGNORE INTO `redirects` (`source`, `destination`, `status_code`) VALUES
   ('/en/travel', '/en/travel/status', 308),
   ('/bn/travel', '/bn/travel/status', 308),

@@ -21,6 +21,10 @@
 --
 -- Idempotent: CREATE IF NOT EXISTS, INSERT IGNORE.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `schema_migrations` (
   `name` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   `applied_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

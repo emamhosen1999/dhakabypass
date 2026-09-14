@@ -11,6 +11,10 @@
 -- "Sample" until each is given its camera's real snapshot and stream address.
 -- Safe to import twice.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `cameras` (
   `id` int NOT NULL AUTO_INCREMENT,
   `names` json NOT NULL,

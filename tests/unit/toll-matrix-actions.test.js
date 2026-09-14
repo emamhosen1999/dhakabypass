@@ -37,6 +37,8 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 // The production transport (redirect-with-notice) is tested on its own in
 // run-action.test.js; here the bodies' thrown messages are the subject.
 vi.mock('../../lib/admin/run-action.js', () => ({ runAction: (fn) => fn() }));
+vi.mock('../../lib/admin/record-actions.js', () => ({ saveRecord: (_t, _i, _f, m) => m(), deleteRecord: vi.fn() }));
+import { deleteRecord } from '../../lib/admin/record-actions.js';
 
 import { auth } from '../../auth.js';
 import { listInterchanges } from '../../lib/corridor/interchanges.js';
@@ -157,12 +159,12 @@ describe('saveTollOdRateAction', () => {
 describe('deleteTollOdRateAction', () => {
   it('deletes and revalidates', async () => {
     await deleteTollOdRateAction(formData({ id: '12' }));
-    expect(deleteTollOdRate).toHaveBeenCalledWith(12);
+    expect(deleteRecord).toHaveBeenCalledWith('toll_od_rate', 12, expect.anything());
     expect(revalidateCorridor).toHaveBeenCalled();
   });
 
   it('does not leak a driver error', async () => {
-    deleteTollOdRate.mockRejectedValue(new Error('ER_LOCK_WAIT_TIMEOUT: lock wait'));
+    deleteRecord.mockRejectedValue(new Error('ER_LOCK_WAIT_TIMEOUT: lock wait'));
     await expect(deleteTollOdRateAction(formData({ id: '12' }))).rejects.not.toThrow(/LOCK_WAIT/);
   });
 });

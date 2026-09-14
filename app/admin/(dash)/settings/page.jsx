@@ -136,7 +136,13 @@ export default async function SettingsPage() {
           ))}
         </section>
 
-        <button type="submit" className="px-4 py-2 rounded bg-black text-white">
+        {emergency ? (
+          <label className="flex items-center gap-2 text-sm text-red-900">
+            <input type="checkbox" name="confirm_clear_emergency" />
+            Remove the emergency number from the site (only needed if you empty that box)
+          </label>
+        ) : null}
+        <button type="submit" data-noconfirm="" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">
           Save contact details
         </button>
       </form>
@@ -290,7 +296,13 @@ export default async function SettingsPage() {
           </p>
         </section>
 
-        <button type="submit" className="px-4 py-2 rounded bg-black text-white">
+        {seo.robotsMode !== 'block_all' ? (
+          <label className="flex items-center gap-2 text-sm text-red-900">
+            <input type="checkbox" name="confirm_block_all" />
+            I want to hide the whole site from search engines (only needed if you choose &ldquo;Blocked&rdquo;)
+          </label>
+        ) : null}
+        <button type="submit" data-noconfirm="" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">
           Save SEO settings
         </button>
       </form>

@@ -32,6 +32,10 @@
 --
 -- ID map:  pages 320-324   blocks 320-349   (300 is travel/rules)
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 /*!40000 ALTER TABLE `pages` DISABLE KEYS */;
 INSERT IGNORE INTO `pages` (`id`, `slug`, `parent_id`, `template`, `nav_order`, `status`, `published_at`, `created_at`, `updated_at`) VALUES
   (320,'travel/status',NULL,'default',1,'published',NOW(),NOW(),NOW()),

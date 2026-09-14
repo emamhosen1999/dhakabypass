@@ -11,6 +11,8 @@ import { validationError, friendly } from '../../../../lib/errors';
 import { MENU_SLUGS } from '../../../../lib/menus/slugs';
 import { builtinRows } from '../../../../lib/menus/builtin';
 import { withTransaction } from '../../../../lib/db';
+import { saveRecord, deleteRecord } from '../../../../lib/admin/record-actions';
+import { setFlash, actionContext } from '../../../../lib/admin/context';
 
 const ADMIN = '/admin/menus';
 
@@ -61,26 +63,48 @@ async function saveMenuItemAction$inner(formData) {
     }
   }
 
+  if (parentId && parentId === id) throw validationError('A link cannot sit under itself.');
+
   try {
     const mid = await menuId(slug);
-    if (id > 0) {
-      await query(
-        `UPDATE menu_items SET href = ?, labels = ?, sort_order = ?, parent_id = ?
-          WHERE id = ? AND menu_id = ?`,
-        [href, JSON.stringify(labels), sortOrder, parentId, id, mid],
-      );
-    } else {
-      await query(
+    await saveRecord('menu_item', id > 0 ? id : null, formData, async () => {
+      if (id > 0) {
+        await query(
+          `UPDATE menu_items SET href = ?, labels = ?, sort_order = ?, parent_id = ?
+            WHERE id = ? AND menu_id = ?`,
+          [href, JSON.stringify(labels), sortOrder, parentId, id, mid],
+        );
+        return id;
+      }
+      const res = await query(
         'INSERT INTO menu_items (menu_id, parent_id, href, labels, sort_order) VALUES (?, ?, ?, ?, ?)',
         [mid, parentId, href, JSON.stringify(labels), sortOrder],
       );
-    }
+      return res.insertId;
+    });
   } catch (err) {
     friendly(err, 'The menu item could not be saved. Please try again.');
   }
 
+  // A link to a page that does not exist is saved, but said out loud (audit V7).
+  const warning = await missingPageWarning(href);
+  setFlash(warning ? `Saved, but ${warning}` : 'Link saved.');
+
   revalidateMenus();
   revalidatePath(ADMIN);
+}
+
+/** '' when an internal link leads to a page, a sentence when it does not. */
+async function missingPageWarning(href) {
+  if (!href || /^(https?:|mailto:|tel:|#)/i.test(href)) return '';
+  const path = href.replace(/^\//, '').split(/[?#]/)[0].replace(/\/+$/, '');
+  if (!path) return '';
+  // Routes that are not pages: article and search pages.
+  if (/^(news|search|preview)(\/|$)/.test(path)) return '';
+  const rows = await query("SELECT slug, status FROM pages WHERE slug = ? LIMIT 1", [path]);
+  if (!rows?.length) return `no page lives at /${path}. Check the link.`;
+  if (rows[0].status !== 'published') return `the page at /${path} is still a draft, so the link leads nowhere yet.`;
+  return '';
 }
 
 async function deleteMenuItemAction$inner(formData) {
@@ -89,10 +113,8 @@ async function deleteMenuItemAction$inner(formData) {
   if (!Number.isInteger(id) || id <= 0) throw validationError('That item no longer exists.');
 
   try {
-    // Children first: menu_items has no cascade, and an orphaned child would
-    // reappear as a top-level item rather than disappearing with its heading.
-    await query('DELETE FROM menu_items WHERE parent_id = ?', [id]);
-    await query('DELETE FROM menu_items WHERE id = ?', [id]);
+    // Children go with their heading (the entity carries them), to the trash.
+    await deleteRecord('menu_item', id, { formData });
   } catch (err) {
     friendly(err, 'The menu item could not be removed. Please try again.');
   }
@@ -115,10 +137,12 @@ async function resetMenuAction$inner(formData) {
   if (!MENU_SLUGS.includes(slug)) throw validationError('Unknown menu.');
 
   try {
-    await query(
-      'DELETE i FROM menu_items i JOIN menus m ON m.id = i.menu_id WHERE m.slug = ?',
-      [slug],
-    );
+    await deleteRecord('menu', slug, {
+      formData,
+      remove: (q, snap) => q('DELETE FROM menu_items WHERE menu_id = ?', [snap.rows.menus[0].id]),
+    });
+    const flash = actionContext()?.flash;
+    if (flash) setFlash(`The ${slug} menu is back to the built-in links. Its custom links are in the trash.`, { undo: flash.u });
   } catch (err) {
     friendly(err, 'The menu could not be reset. Please try again.');
   }

@@ -16,6 +16,10 @@
 -- Pages resolved by slug; new blocks share the sort_order of the block they
 -- follow with higher ids. Idempotent. ID map: blocks 440-442.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @toll = (SELECT `id` FROM `pages` WHERE `slug` = 'travel/toll' LIMIT 1);
 SET @home = (SELECT `id` FROM `pages` WHERE `slug` = 'home' LIMIT 1);
 

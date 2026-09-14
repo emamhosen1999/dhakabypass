@@ -16,7 +16,10 @@ vi.mock('../../lib/content/pages.js', () => ({
   deletePageIfChildless: vi.fn(),
   getPageBySlug: vi.fn(),
 }));
-vi.mock('../../lib/revalidate.js', () => ({ revalidatePage: vi.fn(), pageTag: vi.fn() }));
+vi.mock('../../lib/revalidate.js', () => ({ revalidatePage: vi.fn(), pageTag: vi.fn(), revalidateRedirects: vi.fn(), revalidateSeo: vi.fn() }));
+vi.mock('../../lib/admin/record-actions.js', () => ({ deleteRecord: vi.fn(), saveRecord: vi.fn() }));
+vi.mock('../../lib/admin/history.js', () => ({ logAudit: vi.fn(), recordHistory: vi.fn(), stampOf: (v) => String(v || '') }));
+vi.mock('../../lib/db.js', () => ({ query: vi.fn(async () => [{ page_id: 1 }]), withTransaction: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 // The production transport (redirect-with-notice) is tested on its own in
 // run-action.test.js; here the bodies' thrown messages are the subject.
@@ -27,6 +30,7 @@ import {
   getPageBlocks, addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation,
 } from '../../lib/content/pages.js';
 import { revalidatePage } from '../../lib/revalidate.js';
+import { deleteRecord } from '../../lib/admin/record-actions.js';
 import { revalidatePath } from 'next/cache';
 import { resetRegistry } from '../../lib/blocks/registry.js';
 import { registerAllBlocks } from '../../lib/blocks/index.js';
@@ -87,7 +91,7 @@ describe('addBlockAction — error handling', () => {
 
 describe('deleteBlockAction — error handling', () => {
   it('turns a database failure into the generic message, never the driver text', async () => {
-    deleteBlock.mockRejectedValue(driverError());
+    deleteRecord.mockRejectedValue(driverError());
     await expect(
       deleteBlockAction(formData({ pageId: '1', slug: 'home', blockId: '9' }))
     ).rejects.toThrow('Could not delete the block. Please try again.');
@@ -101,7 +105,7 @@ describe('deleteBlockAction — error handling', () => {
     await expect(
       deleteBlockAction(formData({ pageId: '1', slug: 'home', blockId: '9' }))
     ).rejects.toThrow('Sign in to continue');
-    expect(deleteBlock).not.toHaveBeenCalled();
+    expect(deleteRecord).not.toHaveBeenCalled();
   });
 });
 

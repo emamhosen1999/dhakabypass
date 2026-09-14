@@ -7,6 +7,10 @@ import { revalidatePath } from 'next/cache';
 import { revalidateNews } from '../../lib/revalidate.js';
 import { assertCan } from '../../lib/auth/assert-can';
 import { query, dbEnabled } from '../../lib/db';
+import { saveRecord, deleteRecord } from '../../lib/admin/record-actions';
+import { logAudit } from '../../lib/admin/history';
+import { setFlash } from '../../lib/admin/context';
+import { LOCALES } from '../../lib/i18n/locales';
 
 /**
  * Every action re-checks the session AND the caller's role.
@@ -40,7 +44,10 @@ async function deleteMessageAction$inner(formData) {
   if (!dbEnabled()) return;
   const id = Number(formData.get('id'));
   if (Number.isFinite(id)) {
+    // Personal data: deleted outright when asked, but the deletion is logged.
+    const rows = await query('SELECT email, subject FROM contact_messages WHERE id = ? LIMIT 1', [id]);
     await query('DELETE FROM contact_messages WHERE id = ?', [id]);
+    await logAudit({ action: 'contact_message.delete', id, label: rows?.[0] ? `message "${rows[0].subject || '(no subject)'}"` : `message ${id}` });
   }
   revalidatePath('/admin/messages');
   revalidatePath('/admin');
@@ -91,24 +98,53 @@ async function saveNewsAction$inner(formData) {
   const published_at = String(formData.get('published_at') || new Date().toISOString().slice(0, 10));
   const is_published = formData.get('is_published') === '1' || formData.get('is_published') === 'on' ? 1 : 0;
 
-  if (!title) {
-    return { ok: false, error: 'Title is required' };
+  if (!title) throw validationError('Title is required');
+
+  const existing = Number.isFinite(id) && id > 0
+    ? (await query('SELECT slug FROM news_updates WHERE id = ? LIMIT 1', [id]))?.[0]
+    : null;
+  const clash = await query('SELECT id FROM news_updates WHERE slug = ? AND id <> ? LIMIT 1', [slug, Number.isFinite(id) ? id : 0]);
+  if (clash?.length) throw validationError(`Another article already uses the address "${slug}". Choose a different one.`);
+
+  try {
+    await saveRecord('news', existing ? id : null, formData, async () => {
+      if (existing) {
+        await query(
+          `UPDATE news_updates
+           SET title = ?, slug = ?, category = ?, source = ?, url = ?, excerpt = ?, body = ?, image = ?, published_at = ?, is_published = ?
+           WHERE id = ?`,
+          [title, slug, category, source, url, excerpt, body, image, published_at, is_published, id]
+        );
+        return id;
+      }
+      const res = await query(
+        `INSERT INTO news_updates (title, slug, category, source, url, excerpt, body, image, published_at, is_published)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [title, slug, category, source, url, excerpt, body, image, published_at, is_published]
+      );
+      return res.insertId;
+    });
+  } catch (err) {
+    if (err?.code === 'ER_DUP_ENTRY') throw validationError(`Another article already uses the address "${slug}". Choose a different one.`);
+    throw err;
   }
 
-  if (Number.isFinite(id) && id > 0) {
-    await query(
-      `UPDATE news_updates
-       SET title = ?, slug = ?, category = ?, source = ?, url = ?, excerpt = ?, body = ?, image = ?, published_at = ?, is_published = ?
-       WHERE id = ?`,
-      [title, slug, category, source, url, excerpt, body, image, published_at, is_published, id]
-    );
-  } else {
-    await query(
-      `INSERT INTO news_updates (title, slug, category, source, url, excerpt, body, image, published_at, is_published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [title, slug, category, source, url, excerpt, body, image, published_at, is_published]
-    );
+  // A changed address keeps shared links working (audit M3).
+  let moved = false;
+  if (existing && existing.slug && existing.slug !== slug) {
+    moved = true;
+    for (const locale of LOCALES) {
+      const source = `/${locale}/news/${existing.slug}`;
+      const destination = `/${locale}/news/${slug}`;
+      await query(
+        `INSERT INTO redirects (source, destination, status_code) VALUES (?, ?, 301)
+         ON DUPLICATE KEY UPDATE destination = VALUES(destination), status_code = 301`,
+        [source, destination],
+      );
+      await query('DELETE FROM redirects WHERE source = ?', [destination]);
+    }
   }
+  setFlash(`${is_published ? 'Saved and published' : 'Saved as a draft'}.${moved ? ` The old address now redirects to /news/${slug}.` : ''}`);
 
   revalidatePath('/latest-updates');
   revalidatePath('/admin/news');
@@ -127,7 +163,8 @@ async function deleteNewsAction$inner(formData) {
 
   const id = Number(formData.get('id'));
   if (Number.isFinite(id)) {
-    await query('DELETE FROM news_updates WHERE id = ?', [id]);
+    // With its translations, to the trash.
+    await deleteRecord('news', id, { formData });
   }
 
   revalidatePath('/latest-updates');

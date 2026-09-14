@@ -17,6 +17,10 @@
 
 -- Resolved by SLUG: the grievances page is id 11 in 02-seed.sql and 13 on a
 -- re-seeded development database. Ids of seeded rows are never assumed.
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @grievances = (SELECT `id` FROM `pages` WHERE `slug` = 'grievances' LIMIT 1);
 
 /*!40000 ALTER TABLE `blocks` DISABLE KEYS */;

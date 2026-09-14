@@ -48,13 +48,13 @@ describe('validateBlockData', () => {
   it('reports a missing required field', () => {
     const r = validateBlockData('demo', { count: 1 });
     expect(r.ok).toBe(false);
-    expect(r.errors[0]).toMatch(/heading/);
+    expect(r.errors[0]).toMatch(/heading/i);
   });
 
   it('reports a wrong type', () => {
     const r = validateBlockData('demo', { heading: 'Hi', count: 'two' });
     expect(r.ok).toBe(false);
-    expect(r.errors[0]).toMatch(/count/);
+    expect(r.errors[0]).toMatch(/count/i);
   });
 
   it('rejects data for an unregistered block', () => {

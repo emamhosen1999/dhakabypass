@@ -37,6 +37,8 @@ vi.mock('../../lib/media/replace.js', () => ({
   pageSlugsUsingMedia: vi.fn(),
 }));
 vi.mock('../../lib/db.js', () => ({ query: vi.fn(), withTransaction: vi.fn() }));
+// History and trash have their own tests; here they pass the write through.
+vi.mock('../../lib/admin/record-actions.js', () => ({ saveRecord: (_t, _i, _f, m) => m(), deleteRecord: vi.fn() }));
 vi.mock('../../lib/media.js', () => ({
   saveUpload: vi.fn(),
   ALLOWED_MIME_TYPES: ['image/webp', 'image/jpeg', 'image/png', 'image/svg+xml'],
@@ -154,7 +156,7 @@ describe('updateMediaAltAction — cache invalidation', () => {
   it('revalidates every page that shows the picture', async () => {
     pageSlugsUsingMedia.mockResolvedValue(['home', 'project']);
     await updateMediaAltAction(formData({ id: '2', alt_en: EN }));
-    expect(pageSlugsUsingMedia).toHaveBeenCalledWith('/bypass-ex.webp');
+    expect(pageSlugsUsingMedia).toHaveBeenCalledWith(expect.anything(), '/bypass-ex.webp');
     expect(revalidatePage).toHaveBeenCalledWith('home');
     expect(revalidatePage).toHaveBeenCalledWith('project');
   });

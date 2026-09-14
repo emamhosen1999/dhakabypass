@@ -70,10 +70,11 @@ export default async function AdminSubscribers() {
                     <form action={deleteSubscriberAction}>
                       <input type="hidden" name="id" value={r.id} />
                       <button
-                        type="submit" aria-label={`Remove ${r.email}`} title="Remove"
-                        className="text-red-500 hover:text-red-700 p-1.5 rounded-md hover:bg-red-50"
+                        type="submit"
+                        data-confirm={`Remove ${r.email} from the sign-up list?\n\nThis is permanent (an erasure request). The removal is recorded.`}
+                        className="inline-flex items-center gap-1 text-sm text-red-700 hover:text-red-900 px-2 py-1 rounded-md hover:bg-red-50"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" aria-hidden="true" /> Remove
                       </button>
                     </form>
                   </td>

@@ -1,24 +1,43 @@
 import { Trash2, Mail, CheckCircle, Clock } from 'lucide-react';
 import { query, dbEnabled } from '../../../../lib/db';
 import { deleteMessageAction, toggleMessageReadAction } from '../../actions';
+import { auth } from '../../../../auth';
+import { can } from '../../../../lib/auth/roles';
+import { NoAccess, Pager, pageNumber, formatWhen } from '../../../../components/admin/ui';
+
+const PER_PAGE = 50;
 
 export const dynamic = 'force-dynamic';
 
-async function getMessages() {
-  if (!dbEnabled()) return [];
+async function getMessages({ q, unread, page }) {
+  if (!dbEnabled()) return { messages: [], total: 0 };
+  const where = [];
+  const params = [];
+  if (q) { where.push('(name LIKE ? OR email LIKE ? OR subject LIKE ? OR message LIKE ?)'); params.push(...Array(4).fill(`%${q}%`)); }
+  if (unread) where.push('read_at IS NULL');
+  const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
   try {
-    return (
-      (await query(
-        'SELECT id, name, email, subject, message, read_at, created_at FROM contact_messages ORDER BY created_at DESC LIMIT 200'
-      )) || []
-    );
+    const messages = (await query(
+      `SELECT id, name, email, subject, message, read_at, created_at FROM contact_messages ${clause}
+        ORDER BY created_at DESC LIMIT ${PER_PAGE} OFFSET ${(page - 1) * PER_PAGE}`,
+      params,
+    )) || [];
+    const total = Number((await query(`SELECT COUNT(*) AS n FROM contact_messages ${clause}`, params))?.[0]?.n || 0);
+    return { messages, total };
   } catch {
-    return [];
+    return { messages: [], total: 0 };
   }
 }
 
-export default async function AdminMessages() {
-  const messages = await getMessages();
+export default async function AdminMessages({ searchParams }) {
+  // Messages are personal data: administrators only (audit R2).
+  const session = await auth();
+  if (!can(session?.user?.role, 'manage_users')) return <NoAccess what="contact messages, which hold personal data" />;
+  const sp = (await searchParams) || {};
+  const q = typeof sp.q === 'string' ? sp.q.trim().slice(0, 80) : '';
+  const unread = sp.unread === '1';
+  const page = pageNumber(sp);
+  const { messages, total } = await getMessages({ q, unread, page });
 
   return (
     <div>
@@ -29,10 +48,22 @@ export default async function AdminMessages() {
         </p>
       </div>
 
+      <form method="get" className="mb-6 flex flex-wrap items-end gap-2">
+        <label className="flex-1 min-w-[14rem] text-sm">
+          <span className="block font-semibold mb-1">Find a message</span>
+          <input type="search" name="q" defaultValue={q} placeholder="Name, email, subject or text" className="w-full rounded-md border px-3 py-1.5" />
+        </label>
+        <label className="flex items-center gap-2 text-sm py-1.5">
+          <input type="checkbox" name="unread" value="1" defaultChecked={unread} /> Unread only
+        </label>
+        <button type="submit" className="px-3 py-1.5 rounded-md border border-blue-900 text-blue-900 text-sm font-semibold">Search</button>
+        {q || unread ? <a href="/admin/messages" className="text-sm underline text-blue-900 py-1.5">Clear</a> : null}
+      </form>
+
       {messages.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center shadow-sm">
           <Mail className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">No contact messages received yet.</p>
+          <p className="text-gray-500 font-medium">{q || unread ? 'No message matches.' : 'No contact messages received yet.'}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -84,13 +115,15 @@ export default async function AdminMessages() {
 
                   <div className="flex items-center gap-3 shrink-0">
                     <time className="text-xs text-gray-400">
-                      {new Date(m.created_at).toLocaleString()}
+                      {formatWhen(m.created_at)}
                     </time>
                     <form action={toggleMessageReadAction}>
                       <input type="hidden" name="id" value={m.id} />
                       <input type="hidden" name="read" value={String(isRead)} />
                       <button
                         type="submit"
+                        data-noconfirm=""
+                        data-flash={isRead ? 'Marked as unread.' : 'Marked as read.'}
                         className="text-xs px-3 py-1.5 rounded-md border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold transition-all"
                       >
                         {isRead ? 'Mark as Unread' : 'Mark as Read'}
@@ -100,11 +133,10 @@ export default async function AdminMessages() {
                       <input type="hidden" name="id" value={m.id} />
                       <button
                         type="submit"
-                        aria-label="Delete message"
-                        className="text-red-500 hover:text-red-700 p-1.5 rounded-md hover:bg-red-50 transition-all"
-                        title="Delete Message"
+                        data-confirm={`Delete the message "${m.subject || '(no subject)'}" from ${m.name}?\n\nMessages are personal data and are deleted permanently. The deletion is recorded in the activity log.`}
+                        className="inline-flex items-center gap-1 text-sm text-red-700 hover:text-red-900 px-2 py-1 rounded-md hover:bg-red-50 transition-all"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" aria-hidden="true" /> Delete
                       </button>
                     </form>
                   </div>
@@ -118,6 +150,7 @@ export default async function AdminMessages() {
           })}
         </div>
       )}
+      <div className="mt-6"><Pager total={total} page={page} perPage={PER_PAGE} basePath="/admin/messages" params={{ q, unread: unread ? '1' : '' }} /></div>
     </div>
   );
 }

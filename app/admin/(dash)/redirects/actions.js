@@ -8,6 +8,8 @@ import { query } from '../../../../lib/db';
 import { normalisePath, REDIRECT_STATUSES } from '../../../../lib/redirects/repo';
 import { revalidateRedirects } from '../../../../lib/revalidate';
 import { validationError, friendly } from '../../../../lib/errors';
+import { saveRecord, deleteRecord } from '../../../../lib/admin/record-actions';
+import { setFlash } from '../../../../lib/admin/context';
 
 const ADMIN = '/admin/redirects';
 
@@ -46,15 +48,41 @@ async function saveRedirectAction$inner(formData) {
     throw validationError('That redirects the page to itself.');
   }
 
+  const all = (await query('SELECT id, source, destination FROM redirects')) || [];
+  const existing = all.find((r) => normalisePath(r.source) === source);
+  // An existing rule is replaced only on purpose (audit C12).
+  if (existing && String(formData.get('overwrite') || '') !== 'on' && Number(formData.get('id') || 0) !== existing.id) {
+    throw validationError(`${existing.source} already redirects to ${existing.destination}. Tick "Replace the existing redirect" to change it.`);
+  }
+  // Follow the chain from the destination: refuse a loop, report a chain (audit V8).
+  let chain = 0;
+  if (destination.startsWith('/')) {
+    const bySource = new Map(all.filter((r) => !existing || r.id !== existing.id).map((r) => [normalisePath(r.source), r.destination]));
+    const seen = new Set([source]);
+    let next = normalisePath(destination);
+    while (bySource.has(next)) {
+      if (seen.has(next)) break;
+      seen.add(next);
+      chain += 1;
+      const to = bySource.get(next);
+      if (!to.startsWith('/')) break;
+      next = normalisePath(to);
+      if (next === source) throw validationError(`That makes a loop: ${destination} already leads back to ${source}.`);
+    }
+  }
+
   try {
-    await query(
-      `INSERT INTO redirects (source, destination, status_code) VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE destination = VALUES(destination), status_code = VALUES(status_code)`,
-      [source, destination, statusCode],
-    );
+    await saveRecord('redirect', existing?.id ?? null, formData, async () => {
+      await query(
+        `INSERT INTO redirects (source, destination, status_code) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE destination = VALUES(destination), status_code = VALUES(status_code)`,
+        [source, destination, statusCode],
+      );
+    });
   } catch (err) {
     friendly(err, 'The redirect could not be saved. Please try again.');
   }
+  setFlash(chain ? `Saved. ${destination} redirects again, so visitors take ${chain + 1} hops; point this straight at the final address if you can.` : 'Redirect saved.');
 
   revalidateRedirects();
   revalidatePath(ADMIN);
@@ -66,7 +94,7 @@ async function deleteRedirectAction$inner(formData) {
   if (!Number.isInteger(id) || id <= 0) throw validationError('That redirect no longer exists.');
 
   try {
-    await query('DELETE FROM redirects WHERE id = ?', [id]);
+    await deleteRecord('redirect', id, { formData });
   } catch (err) {
     friendly(err, 'The redirect could not be removed. Please try again.');
   }

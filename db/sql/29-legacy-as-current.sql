@@ -21,6 +21,10 @@
 -- guarded on the notice text still being present.
 -- Replace the blocks 24-legacy-content.sql placed (ids 400-432 in its first
 -- form, 400-425 now): same facts, current tense, no provenance notices.
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 DELETE FROM `block_translations` WHERE `block_id` BETWEEN 400 AND 432;
 DELETE FROM `blocks` WHERE `id` BETWEEN 400 AND 432;
 

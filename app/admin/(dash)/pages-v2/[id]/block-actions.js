@@ -1,6 +1,6 @@
 'use server';
 
-import { validationError } from '../../../../../lib/errors';
+import { validationError, friendly } from '../../../../../lib/errors';
 import { getRevision } from '../../../../../lib/content/revisions';
 import { parsePresentationForm } from '../../../../../lib/blocks/presentation';
 import { runAction } from '../../../../../lib/admin/run-action';
@@ -11,8 +11,13 @@ import { getBlock, validateBlockData, defaultBlockData } from '../../../../../li
 import { parseBlockForm } from '../../../../../lib/blocks/form';
 import '../../../../../lib/blocks/index';
 import {
-  addBlock, deleteBlock, reorderBlocks, duplicateBlock, saveBlockTranslation, getPageBlocks, setBlockSettings,
+  addBlock, reorderBlocks, duplicateBlock, saveBlockTranslation, getPageBlocks, setBlockSettings,
+  discardBlockDraft, unpublishBlockTranslation,
 } from '../../../../../lib/content/pages';
+import { deleteRecord } from '../../../../../lib/admin/record-actions';
+import { logAudit, recordHistory, stampOf } from '../../../../../lib/admin/history';
+import { setFlash } from '../../../../../lib/admin/context';
+import { query } from '../../../../../lib/db';
 import { revalidatePage } from '../../../../../lib/revalidate';
 import { isLocale } from '../../../../../lib/i18n/locales';
 
@@ -27,15 +32,28 @@ async function addBlockAction$inner(formData) {
   const type = String(formData.get('type') || '');
   if (!getBlock(type)) throw validationError(`"${type}" is not a block type`);
 
+  let blockId;
   try {
-    await addBlock({ pageId, type, data: defaultBlockData(type) });
+    blockId = await addBlock({ pageId, type, data: defaultBlockData(type) });
+    // "Add below" places it straight after the chosen block.
+    const after = Number(formData.get('after'));
+    if (Number.isInteger(after) && after > 0) {
+      const ids = (await getPageBlocks(pageId)).map((b) => b.id).filter((id) => id !== blockId);
+      const at = ids.indexOf(after);
+      if (at >= 0) {
+        ids.splice(at + 1, 0, blockId);
+        await reorderBlocks(pageId, ids);
+      }
+    }
   } catch {
     // Never leak driver text (a connection drop, an FK violation from a
     // forged pageId) to the browser.
     throw validationError('Could not add the block. Please try again.');
   }
+  await logAudit({ action: 'block.create', type: 'block', id: blockId, label: `"${getBlock(type).label}" block on /${slug}` });
   if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
+  setFlash(`Added a ${getBlock(type).label} block. It is not on the public page until you publish it.`);
 }
 
 async function deleteBlockAction$inner(formData) {
@@ -43,10 +61,14 @@ async function deleteBlockAction$inner(formData) {
   const pageId = Number(formData.get('pageId'));
   const slug = String(formData.get('slug') || '');
 
+  const blockId = Number(formData.get('blockId'));
+  const owner = await query('SELECT page_id FROM blocks WHERE id = ? LIMIT 1', [blockId]);
+  if (!owner?.length || Number(owner[0].page_id) !== pageId) throw validationError('That block is not on this page.');
   try {
-    await deleteBlock(Number(formData.get('blockId')));
-  } catch {
-    throw validationError('Could not delete the block. Please try again.');
+    // All its languages go to the trash together and come back together.
+    await deleteRecord('block', blockId, { formData });
+  } catch (err) {
+    friendly(err, 'Could not delete the block. Please try again.');
   }
   if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
@@ -62,8 +84,10 @@ async function duplicateBlockAction$inner(formData) {
   } catch {
     throw validationError('Could not duplicate the block. Please try again.');
   }
+  await logAudit({ action: 'block.duplicate', type: 'block', id: formData.get('blockId'), label: `block on /${slug}` });
   if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
+  setFlash('Duplicated. The copy is unpublished in every language until you publish it.');
 }
 
 /**
@@ -113,6 +137,7 @@ async function reorderBlocksAction$inner(formData) {
   } catch {
     throw validationError('Could not reorder the blocks. Please try again.');
   }
+  await logAudit({ action: 'page.reorder', type: 'page', id: pageId, label: `blocks on /${slug}`, detail: { order: ids.join(',') } });
   if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
 }
@@ -151,15 +176,66 @@ async function saveTranslationAction$inner(formData) {
   const data = parseBlockForm(type, formData);
   const check = validateBlockData(type, data);
   // A draft may be incomplete; publishing may not.
-  if (status === 'published' && !check.ok) throw validationError(check.errors.join('. '));
+  if (status === 'published' && !check.ok) throw validationError(`Not published: ${check.errors.join('. ')}. Your text is kept below.`);
+
+  // Someone else saved this language after the form was opened (W7.8).
+  const stamp = String(formData.get('_stamp') || '');
+  if (stamp) {
+    const rows = await query(
+      `SELECT bt.updated_at, u.email FROM block_translations bt LEFT JOIN users u ON u.id = COALESCE(bt.draft_updated_by, bt.updated_by)
+        WHERE bt.block_id = ? AND bt.locale = ? LIMIT 1`,
+      [blockId, locale],
+    );
+    const now = rows?.[0] ? stampOf(rows[0].updated_at) : '';
+    if (now && now !== stamp) {
+      throw validationError(`${rows[0].email || 'Someone else'} saved this block in this language at ${now.slice(11, 16)}, after you opened it. Your text is kept below: compare it with the preview, then save again.`);
+    }
+  }
 
   try {
     await saveBlockTranslation({ blockId, locale, data, status, userId: Number(session.user.id) || null });
   } catch {
     throw validationError('Could not save. Please try again.');
   }
+  await logAudit({ action: status === 'published' ? 'block.publish' : 'block.save_draft', type: 'block', id: blockId, label: `${getBlock(type).label} (${locale}) on /${slug}` });
   if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
+  setFlash(status === 'published'
+    ? `Published the ${locale} text. It is on the public page now.`
+    : 'Draft saved. The public page is unchanged until you publish.');
+}
+
+/** Throw away the unpublished changes to one language of a live block. */
+async function discardDraftAction$inner(formData) {
+  const session = await assertCan('translate');
+  const pageId = Number(formData.get('pageId'));
+  const blockId = Number(formData.get('blockId'));
+  const locale = String(formData.get('locale'));
+  const slug = String(formData.get('slug') || '');
+  if (!isLocale(locale)) throw validationError(`"${locale}" is not a supported language`);
+  try {
+    await discardBlockDraft({ blockId, locale, userId: Number(session.user.id) || null });
+  } catch { throw validationError('Could not discard the draft. Please try again.'); }
+  await logAudit({ action: 'block.discard_draft', type: 'block', id: blockId, label: `${locale} draft on /${slug}` });
+  revalidatePath(adminPath(pageId));
+  setFlash('Draft discarded. It is kept under Previous versions if you need it back.');
+}
+
+/** Take one language of a block off the public page. */
+async function unpublishTranslationAction$inner(formData) {
+  const session = await assertCan('translate');
+  const pageId = Number(formData.get('pageId'));
+  const blockId = Number(formData.get('blockId'));
+  const locale = String(formData.get('locale'));
+  const slug = String(formData.get('slug') || '');
+  if (!isLocale(locale)) throw validationError(`"${locale}" is not a supported language`);
+  try {
+    await unpublishBlockTranslation({ blockId, locale, userId: Number(session.user.id) || null });
+  } catch { throw validationError('Could not unpublish. Please try again.'); }
+  await logAudit({ action: 'block.unpublish', type: 'block', id: blockId, label: `${locale} on /${slug}` });
+  if (slug) revalidatePage(slug);
+  revalidatePath(adminPath(pageId));
+  setFlash(locale === 'en' ? 'Unpublished. The block is no longer on the public page.' : `Unpublished. ${locale} readers now see the English text.`);
 }
 
 /**
@@ -183,16 +259,19 @@ async function restoreRevisionAction$inner(formData) {
   const block = blocks.find((b) => b.id === rev.blockId);
   if (!block) throw validationError('That block is not on this page.');
   const current = block.translations.find((t) => t.locale === rev.locale);
-  const status = current?.status === 'published' ? 'published' : 'draft';
-  const check = validateBlockData(block.type, rev.data);
-  if (status === 'published' && !check.ok) throw validationError(`That version cannot be published as it is: ${check.errors.join('. ')}`);
+  // A restore lands in the working copy (W7.2): nothing goes live by going
+  // back. On a live block it is an unpublished change to review and publish.
   try {
-    await saveBlockTranslation({ blockId: rev.blockId, locale: rev.locale, data: rev.data, status, userId: Number(session.user.id) || null });
+    await saveBlockTranslation({ blockId: rev.blockId, locale: rev.locale, data: rev.data, status: 'draft', userId: Number(session.user.id) || null });
   } catch {
     throw validationError('Could not restore. Please try again.');
   }
+  await logAudit({ action: 'block.restore_version', type: 'block', id: rev.blockId, label: `${rev.locale} on /${slug}` });
   if (slug) revalidatePage(slug);
   revalidatePath(adminPath(pageId));
+  setFlash(current?.status === 'published'
+    ? 'Restored into the draft. Check the preview, then Publish to make it live.'
+    : 'Restored. Publish when it is ready.');
 }
 
 /**
@@ -210,6 +289,7 @@ async function saveBlockSettingsAction$inner(formData) {
   const parsed = parsePresentationForm(formData);
   if (!parsed.ok) throw validationError(parsed.errors.join('. '));
   try {
+    await recordHistory('block', blockId);
     await setBlockSettings(blockId, pageId, parsed.settings);
   } catch {
     throw validationError('Could not save the presentation. Please try again.');
@@ -238,6 +318,12 @@ export async function reorderBlocksAction(formData) {
 }
 export async function saveTranslationAction(formData) {
   return runAction(() => saveTranslationAction$inner(formData), { name: 'saveTranslationAction', form: formData });
+}
+export async function discardDraftAction(formData) {
+  return runAction(() => discardDraftAction$inner(formData), { name: 'discardDraftAction', form: formData });
+}
+export async function unpublishTranslationAction(formData) {
+  return runAction(() => unpublishTranslationAction$inner(formData), { name: 'unpublishTranslationAction', form: formData });
 }
 export async function restoreRevisionAction(formData) {
   return runAction(() => restoreRevisionAction$inner(formData), { name: 'restoreRevisionAction', form: formData });
