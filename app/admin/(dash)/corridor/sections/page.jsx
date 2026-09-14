@@ -58,6 +58,7 @@ export default async function SectionsPage() {
               <option value="sample">Sample — keep the notice</option>
               <option value="operator">Operator — reviewed measurements</option>
               {source==='tomtom'?<option value="tomtom">TomTom — keep the active feed</option>:null}
+              {source==='google'?<option value="google">Google live traffic — keep the active feed</option>:null}
             </select>
             <label className="flex items-start gap-2"><input type="checkbox" name="confirm_sections" className="mt-1" />All section measurements have been checked against real operator data.</label>
             <label className="block font-semibold" htmlFor="monthly_source">Monthly count source</label>
@@ -68,7 +69,7 @@ export default async function SectionsPage() {
             <label className="flex items-start gap-2"><input type="checkbox" name="confirm_monthly" className="mt-1" />All monthly rows contain real counts; any sample rows have been removed.</label>
           </TrafficForm>
           <p className="text-sm text-gray-600">TomTom becomes the section source only after a successful traffic refresh.</p>
-          <TrafficForm action={refreshTrafficAction} submitLabel="Refresh from TomTom">
+          <TrafficForm action={refreshTrafficAction} submitLabel="Refresh live traffic">
             <h3 className="font-bold">TomTom traffic</h3>
             <p>{process.env.TOMTOM_API_KEY?'API key configured. Refresh all sections from TomTom.':'Add TOMTOM_API_KEY to the server environment to enable the traffic feed.'}</p>
             <p className="text-sm text-gray-600">Each section uses a sample on its road alignment. All measurements must pass validation before the source changes. Readings expire after 15 minutes.</p>
