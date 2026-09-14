@@ -9,6 +9,10 @@
 -- guarded on their own wording. Safe to import twice.
 
 -- ---------------------------------------------------------------- travel/cameras
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 INSERT IGNORE INTO `pages` (`slug`, `template`, `nav_order`, `status`, `published_at`) VALUES ('travel/cameras', 'default', 0, 'published', CURRENT_TIMESTAMP);
 SET @p = (SELECT `id` FROM `pages` WHERE `slug` = 'travel/cameras');
 INSERT IGNORE INTO `page_translations` (`page_id`, `locale`, `title`, `seo_description`, `status`) VALUES (@p, 'en', 'Traffic cameras', 'Live views of the Dhaka Bypass Expressway from the corridor''s traffic cameras.', 'published');

@@ -1,0 +1,1 @@
+"use strict";exports.id=6572,exports.ids=[6572],exports.modules={36572:(a,b,c)=>{c.d(b,{uploadRoot:()=>f}),c(51455);var d=c(76760),e=c.n(d);function f(){return process.env.MEDIA_ROOT||e().join(process.cwd(),"var","uploads")}c(21854)}};

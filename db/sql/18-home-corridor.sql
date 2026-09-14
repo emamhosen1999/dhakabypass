@@ -37,6 +37,10 @@
 -- development database that has been re-seeded can number the same page
 -- differently, and a block inserted against the wrong page id is either a
 -- foreign-key failure or, worse, a corridor section on somebody else's page.
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @home = (SELECT `id` FROM `pages` WHERE `slug` = 'home' LIMIT 1);
 
 /*!40000 ALTER TABLE `blocks` DISABLE KEYS */;

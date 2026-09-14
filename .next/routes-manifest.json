@@ -289,6 +289,12 @@
       "namedRegex": "^/admin(?:/)?$"
     },
     {
+      "page": "/admin/activity",
+      "regex": "^/admin/activity(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/activity(?:/)?$"
+    },
+    {
       "page": "/admin/alerts",
       "regex": "^/admin/alerts(?:/)?$",
       "routeKeys": {},
@@ -379,6 +385,12 @@
       "namedRegex": "^/admin/corridor/waypoints(?:/)?$"
     },
     {
+      "page": "/admin/history",
+      "regex": "^/admin/history(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/history(?:/)?$"
+    },
+    {
       "page": "/admin/login",
       "regex": "^/admin/login(?:/)?$",
       "routeKeys": {},
@@ -455,6 +467,12 @@
       "regex": "^/admin/translations(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/translations(?:/)?$"
+    },
+    {
+      "page": "/admin/trash",
+      "regex": "^/admin/trash(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/trash(?:/)?$"
     },
     {
       "page": "/admin/users",

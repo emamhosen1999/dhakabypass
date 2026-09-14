@@ -30,6 +30,10 @@
 -- ---------------------------------------------------------------------------
 -- /travel/rules — speed limits
 -- ---------------------------------------------------------------------------
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @b = (SELECT b.`id` FROM `blocks` b JOIN `pages` p ON p.`id` = b.`page_id` JOIN `block_translations` t ON t.`block_id` = b.`id` AND t.`locale` = 'en'
   WHERE p.`slug` = 'travel/rules' AND b.`type` = 'callout' AND JSON_UNQUOTE(JSON_EXTRACT(t.`data`, '$.body')) LIKE '%posted speed limits for the toll carriageways%' LIMIT 1);
 UPDATE `block_translations` SET `data` = '{"heading":"Speed limits","body":"<p>The limits on the expressway follow the Motor Vehicle Speed Limit Guideline 2024 issued by the Bangladesh Road Transport Authority under the Road Transport Act 2018, and the signs on the road.</p><table><thead><tr><th>Vehicle</th><th>Toll carriageways</th><th>Service roads</th></tr></thead><tbody><tr><td>Cars, jeeps, microbuses, buses and minibuses</td><td>80 km/h</td><td>50 km/h</td></tr><tr><td>Trucks, covered vans and all goods vehicles</td><td>50 km/h</td><td>40 km/h</td></tr><tr><td>Motorcycles</td><td>Not permitted</td><td>60 km/h</td></tr><tr><td>Three-wheelers, rickshaws, non-motorised vehicles</td><td>Not permitted</td><td>Not permitted</td></tr></tbody></table><p>Lower limits apply where signed — at toll plazas, interchanges, work zones, and near markets and schools on the service roads. In rain, fog or poor visibility, slow down well below the limit. Speeding is an offence under the Road Transport Act 2018.</p>"}' WHERE `block_id` = @b AND `locale` = 'en' AND @b IS NOT NULL;

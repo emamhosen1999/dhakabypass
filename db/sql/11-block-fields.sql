@@ -36,6 +36,10 @@
 -- the rows this statement does not touch); this only makes the stored value
 -- one the field now accepts.
 -- ---------------------------------------------------------------------------
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 UPDATE `block_translations` bt
 JOIN `blocks` b ON b.`id` = bt.`block_id`
 SET bt.`data` = JSON_SET(bt.`data`, '$.side', LOWER(TRIM(JSON_UNQUOTE(JSON_EXTRACT(bt.`data`, '$.side')))))

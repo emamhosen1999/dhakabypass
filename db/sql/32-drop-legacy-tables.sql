@@ -13,6 +13,10 @@
 -- 01-schema.sql and 02-seed.sql still create and fill these on a first
 -- install; this file removes them again right after. Safe to import twice.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @c = (SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'admin_users');
 SET @s = IF(@c = 1,
   'INSERT IGNORE INTO `users` (`email`, `name`, `password_hash`, `role`) SELECT LOWER(`email`), `name`, `password_hash`, ''admin'' FROM `admin_users`',

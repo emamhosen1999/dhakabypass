@@ -47,6 +47,10 @@
 --
 -- Idempotent: INSERT IGNORE throughout, ids above the seeded range.
 
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 /*!40000 ALTER TABLE `pages` DISABLE KEYS */;
 INSERT IGNORE INTO `pages` (`id`, `slug`, `parent_id`, `template`, `nav_order`, `status`, `published_at`, `created_at`, `updated_at`) VALUES
   (310,'privacy',NULL,'default',0,'published',NOW(),NOW(),NOW()),

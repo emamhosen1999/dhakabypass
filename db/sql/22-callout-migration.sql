@@ -29,6 +29,10 @@
 
 
 -- /about/governance sort 1 (source block 16): prose,legacy
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @blk = (SELECT b.`id` FROM `blocks` b JOIN `pages` p ON p.`id` = b.`page_id`
     JOIN `block_translations` t ON t.`block_id` = b.`id` AND t.`locale` = 'en'
     WHERE p.`slug` = 'about/governance' AND b.`type` = 'rich-text'

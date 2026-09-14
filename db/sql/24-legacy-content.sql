@@ -17,6 +17,10 @@
 
 
 -- /project: 9 blocks after sort_order 4
+-- The connection charset: without it a client defaulting to latin1 stores
+-- every non-ASCII character double-encoded (repaired 14 September 2026).
+SET NAMES utf8mb4;
+
 SET @p = (SELECT `id` FROM `pages` WHERE `slug` = 'project' LIMIT 1);
 INSERT IGNORE INTO `blocks` (`id`, `page_id`, `type`, `sort_order`, `settings`, `status`)
   SELECT 400, @p, 'timeline', 4, NULL, 'published' FROM DUAL WHERE @p IS NOT NULL;
