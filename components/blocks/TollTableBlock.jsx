@@ -41,6 +41,9 @@ export default async function TollTableBlock({ data, locale }) {
   const intro = text(data.intro);
   const caption = text(data.caption) || t(locale, 'tollCaption');
   const citation = tollCitation(data, rows);
+  // How a toll can be paid is a property of the rate records (W4.3).
+  const payments = [...new Set(rows.flatMap((r) => (Array.isArray(r.payment_methods) ? r.payment_methods : []))
+    .map((m) => String(m).trim()).filter(Boolean))];
   const since = data.showInForce === 'no' ? null : inForceSince(rows);
   const sinceText = since
     ? t(locale, 'tollInForceSince').replace('{date}', new Intl.DateTimeFormat(
@@ -84,6 +87,10 @@ export default async function TollTableBlock({ data, locale }) {
       {rows.length ? (
         <PrintShare printLabel={t(locale, 'printTable')} shareLabel={t(locale, 'shareLink')}
           copiedLabel={t(locale, 'linkCopied')} title={heading || caption} />
+      ) : null}
+
+      {payments.length ? (
+        <p className="db-toll-payments">{t(locale, 'tollPayment')}: {payments.join(', ')}</p>
       ) : null}
 
       {rows.length === 0 ? (

@@ -31,11 +31,22 @@ describe('section-subnav menu', () => {
     // The fallback renders during an outage. A link to a page that does not
     // exist would be a 404 offered precisely when the site is least able to
     // recover from one.
-    const sql = ['db/sql/13-travel-rules.sql', 'db/sql/16-travel-pages.sql']
-      .map((f) => fs.readFileSync(path.join(root, f), 'utf8')).join('\n');
+    const sql = fs.readdirSync(path.join(root, 'db/sql')).filter((f) => /^\d\d-.*\.sql$/.test(f))
+      .map((f) => fs.readFileSync(path.join(root, 'db/sql', f), 'utf8')).join('\n');
     for (const item of TRAVEL_SECTION) {
       expect(sql, item.href).toContain(`'${item.href.replace(/^\//, '')}'`);
     }
+  });
+
+  it('every link in every built-in menu points at a page some SQL file seeds', async () => {
+    const { MAIN_NAV, FOOTER_GROUPS, LEGAL_NAV, CTA_NAV } = await import('../../lib/menus/builtin.js');
+    const sql = fs.readdirSync(path.join(root, 'db/sql')).filter((f) => /^\d\d-.*\.sql$/.test(f))
+      .map((f) => fs.readFileSync(path.join(root, 'db/sql', f), 'utf8')).join('\n');
+    const links = [...MAIN_NAV, ...LEGAL_NAV, ...CTA_NAV, ...FOOTER_GROUPS.flatMap((g) => g.links)];
+    // A page row, or a redirect seeded for that address (/travel -> /travel/status).
+    const missing = links.map((l) => l.href.replace(/^\//, ''))
+      .filter((slug) => !sql.includes(`'${slug}'`) && !sql.includes(`'/en/${slug}'`));
+    expect(missing).toEqual([]);
   });
 
   it('every built-in fallback label exists in all three locales', () => {

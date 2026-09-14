@@ -360,6 +360,10 @@
 .db-footer-legal-links a{color:var(--db-ink-3);text-decoration:underline;
   text-underline-offset:2px;display:inline-block;padding:4px 0;}
 .db-footer-legal-links a:hover{color:var(--db-ink);}
+.db-advisorylist-items{list-style:none;margin:0;padding:0;display:grid;gap:10px;}
+.db-advisorylist-items .db-advisory{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;border-radius:4px;}
+.db-advisory-when{font-size:.85rem;opacity:.9;}
+.db-toll-payments{margin:8px 0;color:var(--db-ink-2);}
 .db-printshare{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 12px;}
 .db-printshare-status{font-size:.85rem;color:var(--db-ink-2);}
 @media print{.db-printshare{display:none!important;}}

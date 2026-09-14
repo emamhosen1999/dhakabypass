@@ -104,3 +104,12 @@ describe('sanitizeHtml', () => {
     for (const v of [null, undefined, 42, {}, []]) expect(sanitizeHtml(v)).toBe('');
   });
 });
+
+describe('nested lists', () => {
+  it('keeps a list inside a list item, and still closes an unclosed sibling', () => {
+    expect(sanitizeHtml('<ul><li><strong>A</strong><ul><li>b</li><li>c</li></ul></li><li>d</li></ul>'))
+      .toBe('<ul><li><strong>A</strong><ul><li>b</li><li>c</li></ul></li><li>d</li></ul>');
+    expect(sanitizeHtml('<ul><li>a<li>b</ul>')).toBe('<ul><li>a</li><li>b</li></ul>');
+    expect(sanitizeHtml('<blockquote><p>a<p>b</blockquote>')).toBe('<blockquote><p>a</p><p>b</p></blockquote>');
+  });
+});

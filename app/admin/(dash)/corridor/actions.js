@@ -114,6 +114,7 @@ async function saveTollRateAction$inner(formData) {
       sro_number: String(formData.get('sro_number') || ''),
       sro_date: String(formData.get('sro_date') || ''),
       sro_link: String(formData.get('sro_link') || ''),
+      payment_methods: String(formData.get('payment_methods') || '').split(','),
     });
   } catch (err) {
     // toll_rates has UNIQUE KEY uq_class_effective (vehicle_class, effective_from).

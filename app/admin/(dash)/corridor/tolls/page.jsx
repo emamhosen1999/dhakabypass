@@ -34,6 +34,9 @@ function TollForm({ toll }) {
           defaultValue={toll?.effective_from ? String(toll.effective_from).slice(0, 10) : ''}
           className="border rounded px-2 py-1" />
       </label>
+      <label className="flex flex-col text-sm">Payment accepted (comma-separated)
+        <input name="payment_methods" defaultValue={(toll?.payment_methods ?? []).join(', ')} placeholder="Cash, RFID tag" className="border rounded px-2 py-1" />
+      </label>
       <label className="flex flex-col text-sm">Gazette / S.R.O. number
         <input name="sro_number" defaultValue={toll?.sro_number ?? ''} className="border rounded px-2 py-1" />
       </label>

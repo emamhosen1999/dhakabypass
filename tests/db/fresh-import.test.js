@@ -129,6 +129,36 @@ describe('a database built from db/sql/*.sql alone', () => {
     expect(typed.map((r) => `${r.slug} ${r.locale}`)).toEqual([]);
   });
 
+  it('publishes every page and every block in English, Bangla and Chinese (33, 34 — W3.25)', async () => {
+    const blocks = await all(`SELECT p.slug, b.type FROM blocks b JOIN pages p ON p.id = b.page_id
+      WHERE p.status = 'published'
+        AND (SELECT COUNT(*) FROM block_translations t WHERE t.block_id = b.id AND t.status = 'published' AND t.locale IN ('en', 'bn', 'zh')) < 3`);
+    expect(blocks.map((r) => `${r.slug} ${r.type}`)).toEqual([]);
+    const pages = await all(`SELECT p.slug FROM pages p WHERE p.status = 'published'
+        AND (SELECT COUNT(*) FROM page_translations pt WHERE pt.page_id = p.id AND pt.status = 'published' AND pt.locale IN ('en', 'bn', 'zh')) < 3`);
+    expect(pages.map((r) => r.slug)).toEqual([]);
+  });
+
+  it('creates the W3, W4 and W5 pages, once each, with their live blocks (34)', async () => {
+    for (const slug of ['about/concession', 'about/organisation', 'about/careers', 'about/integrity',
+      'disclosures/right-to-information', 'disclosures/citizen-charter', 'disclosures/reports', 'disclosures/policies',
+      'disclosures/environment', 'disclosures/consultations', 'project/standards', 'travel/vehicle-classes',
+      'travel/payment', 'travel/advisories', 'travel/freight', 'travel/breakdown', 'travel/lost-found',
+      'travel/toll-dispute', 'faq', 'downloads', 'media', 'press-releases', 'project/structures',
+      'safety/education', 'search', 'sitemap']) {
+      const r = await one('SELECT status FROM pages WHERE slug = ?', [slug]);
+      expect(r?.status, slug).toBe('published');
+    }
+    const types = async (slug) => (await all(`SELECT b.type FROM blocks b JOIN pages p ON p.id = b.page_id WHERE p.slug = ? ORDER BY b.sort_order`, [slug])).map((r) => r.type);
+    expect(await types('travel/advisories')).toContain('advisory-list');
+    expect(await types('search')).toEqual(['page-header', 'site-search']);
+    expect(await types('project/structures')).toContain('interchange-table');
+    // The additions to existing pages land once, after a second import.
+    const grs = await one(`SELECT COUNT(*) AS c FROM blocks b JOIN pages p ON p.id = b.page_id JOIN block_translations t ON t.block_id = b.id AND t.locale = 'en'
+      WHERE p.slug = 'grievances' AND CAST(t.data AS CHAR) LIKE '%grs.gov.bd%'`);
+    expect(grs.c).toBe(1);
+  });
+
   it('put the home corridor blocks on the home page, after the hero (18)', async () => {
     const rows = await all(`SELECT b.type FROM blocks b JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'home' ORDER BY b.sort_order, b.id`);
@@ -140,7 +170,8 @@ describe('a database built from db/sql/*.sql alone', () => {
   it('put the grievance form on the grievances page and rewrote its cta-band (20)', async () => {
     const rows = await all(`SELECT b.type, b.sort_order FROM blocks b JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'grievances' ORDER BY b.sort_order, b.id`);
-    expect(rows.map((r) => r.type)).toEqual(['hero', 'card-grid', 'rich-text', 'request-form', 'cta-band']);
+    // 34 adds the GRS escalation before the closing band.
+    expect(rows.map((r) => r.type)).toEqual(['hero', 'card-grid', 'rich-text', 'request-form', 'rich-text', 'cta-band']);
     const cta = await one(`SELECT JSON_UNQUOTE(JSON_EXTRACT(t.data, '$.body')) AS body
       FROM block_translations t JOIN blocks b ON b.id = t.block_id JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'grievances' AND b.type = 'cta-band' AND t.locale = 'en'`);

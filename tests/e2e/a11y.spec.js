@@ -13,6 +13,9 @@ const PAGES = [
   '/en/travel/toll', '/bn/travel/toll', '/zh/travel/toll',
   '/en/travel/map', '/en/travel/status', '/bn/travel/status',
   '/en/travel/route', '/en/travel/rules', '/en/contact', '/en/grievances', '/en/search?q=toll',
+  '/en/faq', '/bn/faq', '/en/travel/advisories', '/en/travel/vehicle-classes', '/en/travel/payment',
+  '/en/travel/toll-dispute', '/en/disclosures/right-to-information', '/zh/disclosures/citizen-charter',
+  '/en/about/organisation', '/en/downloads', '/en/media', '/en/project/structures', '/bn/sitemap',
 ];
 
 for (const path of PAGES) {
