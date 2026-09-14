@@ -483,3 +483,18 @@ Source of truth is `old_dhakabypass/*/index.txt` (text) plus `index.html` (image
 | Partner logos | **Do not redraw RHD, SRBG/SDIG or UDC marks. Request official SVG/EPS from each organisation.** | RHD's emblem contains a photograph and is a government seal — unvectorisable by hand and misleading if approximated. SRBG/SDIG carries Chinese characters that a hand trace would render *wrong*. UDC's source is a defocused photo of a screen. `lib/blocks/types/partner-row.js` already documents this conclusion and it stands. `public/brand/dbedc-mark.svg` was produced because it is DBEDC's own mark and can be checked against the official file. |
 
 - **Still open:** none blocking. Confirm `dbedc-mark.svg` against official artwork (0.17 step 6); obtain a dedicated control-room number (0.13); chase partner brand files.
+
+---
+
+# Completion status — 14 September 2026
+
+| Workstream | Status |
+|---|---|
+| Phase 0 | 17/17 done. |
+| W1 | Done. Deferred by decision: W1.14 block-in-block nesting, W1.18 image crop (focal point covers it); W1.11 drag reorder replaced by sort numbers. |
+| W2 | Done. W2.10 office phone number awaits DBEDC (the field is on /admin/settings). |
+| W3 | W3.1–W3.4 about, governance (shareholding), organisation (departments and chart — named directors await DBEDC); W3.5–W3.6 about/concession; W3.7–W3.8 disclosures/reports (live progress and traffic; reports listed when approved); W3.9 disclosures/policies; W3.10 project/standards (certificates listed only once issued); W3.11 sustainability; W3.12 about/careers; W3.13 procurement; W3.15 disclosures/right-to-information; W3.16 disclosures/citizen-charter; W3.17 grievances with GRS escalation; W3.18 travel/toll-dispute; W3.19 disclosures/environment; W3.20 land acquisition; W3.21 disclosures/consultations; W3.22 about/integrity; W3.23 citation fields on toll records (S.R.O. numbers await DBEDC); W3.24 PPPA link on about/concession; W3.25 parity — every published page and block in all three languages, asserted by the rehearsal. **W3.14 awards: not built — DBEDC has no awards on record to publish.** |
+| W4 | W4.1 calculator; W4.2 travel/vehicle-classes; W4.3 travel/payment (payment methods are rate records); W4.6 travel/breakdown; W4.8 travel/advisories (live advisory-list); W4.9 facility list with filter (service-area records await DBEDC); W4.10 travel/freight; W4.11 weather and flood guidance on travel/advisories; W4.12 travel/lost-found. W4.4 ETC: information page only — self-service needs the national ETC operator. **Not built, need a third party or a commercial decision: W4.7 live CCTV, W4.13 SMS/WhatsApp (email notices are live), W4.14 loyalty scheme, W4.15 fleet portal.** |
+| W5 | W5.1 downloads; W5.2 media; W5.4 project timeline and progress; W5.5 faq; W5.6 project/structures (live); W5.7 project/standards; W5.8 safety/education; W5.9 press-releases; W5.11 sustainability; W5.12 organisation; W5.14 search; W5.15 sitemap; W5.16 social links; W5.17 axe WCAG 2.1 AA suite and the accessibility statement; W5.18 print and share. **Not built: W5.3 video/drone gallery and W5.10 360° tour (no footage exists; the video block is ready), W5.13 office map (the office address awaits DBEDC).** |
+| W6 | All 19 done: W6.1–W6.19 (see commits of 12–14 September). |
+| INT | INT.1–INT.8 done. INT.9: the scheduled refresh endpoint exists; TomTom has no traffic coverage in Bangladesh, so the live source is pending a provider decision (Google Routes API proposed). |
