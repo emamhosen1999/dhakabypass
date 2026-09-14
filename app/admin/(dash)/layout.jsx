@@ -43,6 +43,7 @@ const NAV = [
   { href: '/admin/messages', label: 'Messages' },
   { href: '/admin/requests', label: 'Requests' },
   { href: '/admin/subscribers', label: 'Sign-ups' },
+  { href: '/admin/alerts', label: 'Road alerts' },
   { href: '/admin/menus', label: 'Navigation' },
   { href: '/admin/translations', label: 'Wording' },
   { href: '/admin/redirects', label: 'Redirects' },

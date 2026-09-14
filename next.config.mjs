@@ -124,7 +124,8 @@ const nextConfig = {
       // test asserts they match.
       "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com",
       // Hosted video files are same-origin only, enforced in lib/blocks/video.js.
-      "media-src 'self'",
+      // blob: is how hls.js hands a live camera stream to the <video> element.
+      "media-src 'self' blob:",
       "base-uri 'self'",
       "form-action 'self'",
       // 'self', not 'none': the admin block editor previews a page by framing

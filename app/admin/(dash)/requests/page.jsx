@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 const KIND_LABEL = {
   grievance: 'Grievance', toll_dispute: 'Toll dispute', breakdown: 'Breakdown',
   lost_found: 'Lost & found', general: 'General',
+  fleet_account: 'Fleet account', etc_tag: 'Toll tag', loyalty: 'Frequent traveller',
 };
 const STATUS_LABEL = { new: 'New', in_progress: 'In progress', resolved: 'Resolved', closed: 'Closed' };
 const STATUS_CLASS = {

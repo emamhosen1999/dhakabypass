@@ -159,6 +159,22 @@ describe('a database built from db/sql/*.sql alone', () => {
     expect(grs.c).toBe(1);
   });
 
+  it('creates the camera, alert and application records and their pages (35, 36)', async () => {
+    const cameras = await all('SELECT is_sample, snapshot_url FROM cameras');
+    expect(cameras).toHaveLength(4);
+    expect(cameras.every((c) => Number(c.is_sample) === 1 && c.snapshot_url.startsWith('/photo/'))).toBe(true);
+    for (const t of ['alert_subscribers', 'alert_broadcasts']) {
+      expect((await one(`SELECT COUNT(*) AS c FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`, [t])).c, t).toBe(1);
+    }
+    const kind = await one(`SELECT COLUMN_TYPE AS t FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'service_requests' AND COLUMN_NAME = 'kind'`);
+    expect(String(kind.t)).toMatch(/fleet_account.*etc_tag.*loyalty/);
+    for (const slug of ['travel/cameras', 'travel/alerts', 'travel/etc', 'travel/fleet', 'travel/frequent-traveller', 'gallery/videos', 'project/virtual-tour', 'about/recognition']) {
+      expect((await one('SELECT status FROM pages WHERE slug = ?', [slug]))?.status, slug).toBe('published');
+    }
+    const pins = await one(`SELECT COUNT(*) AS c FROM blocks b JOIN pages p ON p.id = b.page_id WHERE p.slug = 'contact' AND b.type = 'map-pin-list'`);
+    expect(pins.c).toBe(1);
+  });
+
   it('put the home corridor blocks on the home page, after the hero (18)', async () => {
     const rows = await all(`SELECT b.type FROM blocks b JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'home' ORDER BY b.sort_order, b.id`);
