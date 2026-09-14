@@ -487,6 +487,50 @@ Source of truth is `old_dhakabypass/*/index.txt` (text) plus `index.html` (image
 
 ---
 
+# W8 — Public UI and front-end quality (added 2026-09-14, from the UI audit)
+
+**Source:** `docs/audit/2026-09-14-ui-audit.md`. Sixteen domains (visual, design system, typography and scripts, responsive, IA, WCAG 2.2 AA, forms, content, maps, media, performance, theming, trust, edge pages, i18n, admin visuals) measured in the browser across 189 URLs, eight viewports and three languages. **Score at audit: public site 57/100, admin 52/100.** 3 blockers, 19 majors, 45 minors. Task IDs and finding IDs are the audit's own.
+
+| # | Task | Discharges | Acceptance (summary; full criteria in the audit) |
+|---|---|---|---|
+| W8.1 | Repair garbled text and guard against it — **DONE 14 Sep** (134 double-encoded values repaired on production by `scripts/repair-mojibake.mjs`; every SQL file now opens with `SET NAMES utf8mb4`, asserted by `tests/unit/sql-charset.test.js`) | UI-TYPE-01 | No `â€`/`Â`/`à¦` sequence on any sitemap URL; the bn/zh hero headings read correctly |
+| W8.2 | Toll and status tables that work on a phone | UI-RESP-01/02, UI-A11Y-01 | Every in-force fare visible at 320–414 px without sideways scrolling; any scrolling region focusable and labelled; axe 0 `scrollable-region-focusable` |
+| W8.3 | Phone menu and header search | UI-RESP-03/04, UI-NAV-01/02 | All seven top-level destinations reachable at 320–767 px; a translated search entry in the header; `aria-current` on the current section |
+| W8.4 | Bangla typesetting | UI-TYPE-02/03 | `:lang(bn)` rule: no letter-spacing, heading line-height ≥ 1.3, no Bangla text under 13.5 px; digit policy written down and used by the formatters |
+| W8.5 | Emergency and contact visibility | UI-TRUST-01, UI-NAV-05 | 999 and DBEDC's line as `tel:` links in every footer; preflight warns when both are blank |
+| W8.6 | Honest sample media and empty-data states | UI-CONT-01/02, UI-MEDIA-01 | No sample camera or panorama shows identifiable people; empty traffic tables collapse to one sentence; every video has a poster |
+| W8.7 | Font weight budget | UI-PERF-01/02, UI-MEDIA-04 | `/en` loads no Bangla font; `/zh` first view ≤ 300 kB of fonts; a CI page-weight check |
+| W8.8 | Mark the language of every part | UI-A11Y-02, UI-I18N-03, UI-MEDIA-03 | `lang` on language links and untranslated passages; no English over 20 characters on bn/zh pages without an `en` ancestor |
+| W8.9 | Clear form errors and a real calculator label | UI-A11Y-04/09, UI-FORM-01..04 | Per-field translated messages via `aria-describedby`; focus moves to the first invalid field; "Show fare" button; +880 hint |
+| W8.10 | Share and search metadata on every page | UI-I18N-01/02, UI-EDGE-01 | All 189 URLs carry description, `og:*` and `twitter:card`; a test walks the sitemap |
+| W8.11 | Hero alignment and corridor-strip legibility | UI-VIS-01..03, UI-DS-03 | Hero text aligns with the header logo at 1280–1920; no leader line crosses a label |
+| W8.12 | Panorama and video accessibility | UI-A11Y-03/05, UI-MEDIA-02 | Panorama announces its controls; auto-rotate off on phones; focus lands on a started video |
+| W8.13 | Admin dark mode and focus visibility | UI-ADM-01/02/06 | Dark-mode text ≥ 4.5:1; focus ring ≥ 3:1; 44 px buttons on small screens |
+| W8.14 | Admin kit adoption and navigation | UI-ADM-03..05, CMS audit A4 | Every admin page on `AdminPage`/`Button`; skip link; `aria-current`; menu collapses at 768 px |
+| W8.15 | Theme, print, token and heading polish | UI-THEME-01/02, UI-EDGE-02/03, UI-DS-01/02/04/05, UI-VIS-04, UI-A11Y-06..08, UI-MAP-01..03, UI-TRUST-02 | `color-scheme` declared; toll page prints on one A4; radius/shadow tokens; one H1 per page; map colours deuteranopia-safe; "Last updated" on statutory pages |
+
+---
+
+# W8C — Concession company adequacy, compliance and digital presence (added 2026-09-14)
+
+**Source:** `docs/audit/2026-09-14-concession-domain-audit.md`. The site judged as the digital front door of a toll-road concessionaire: statutory disclosure, toll transparency, safety, customer service, operations, ETC, ESG and lender safeguards, governance, procurement, privacy, security posture, inclusion, communications, credibility, SEO and digital presence (A–K), measurement, and an eight-operator peer benchmark. **Score at audit: 32/100.** 4 critical, 38 high, 62 medium, 21 low. Most gaps are content DBEDC must supply or decisions it must make; the audit's section 6 is the 26-item supply register. W8C is distinct from W8.
+
+| # | Task | Discharges | Acceptance (summary) |
+|---|---|---|---|
+| W8C.1 | Safety and misleading-information hotfix (P0) | CON-SAFE-01/07, CON-TOLL-01, CON-OPS-01/02, CON-ITS-01, CON-CS-06 | `tel:999` on every URL and a deploy check that refuses a release without an emergency number; calculator and matrix limited to open plazas; % open computed against published length; the 16 Sep 2026 date confirmed or removed; alert/ETC/fleet/loyalty forms hidden until providers exist; sample office pin unpublished |
+| W8C.2 | Legal gate and statutory pages on verified records (P1) | CON-REG-01..05/11, CON-TOLL-06, CON-GOV-04, CON-SAFE-02/03 | `pages.legal_status` with approver and date and an "under review" callout; citizen charter as a table bound to the request deadlines; named RTI and GRS officers |
+| W8C.3 | Toll provenance and fairness (P1) | CON-REG-06, CON-TOLL-02..08 | No toll figure without a citation or an explicit "citation pending"; class guide and rate table agree; dispute form captures plaza, time and vehicle |
+| W8C.4 | Privacy, consent and security posture (P1) | CON-PRIV-01..06, CON-SEC-01..07, CON-SEO-J-01 | Privacy notice from a processing inventory; CCTV policy; `security.txt`; `poweredByHeader` off; DMARC quarantine; admin behind an allow-list/MFA; repository visibility decided |
+| W8C.5 | Facts register and credibility corrections (P1) | CON-GOV-01..03, CON-BRAND-01..04, CON-ESG-05, CON-OPS-03/05, CON-REG-07/08/10, CON-SEO-H-02, CON-CS-07 | One "Key facts" settings group with source and as-at date bound into every block; concession summary page; outbound-link check in CI; encoding assertion in the rehearsal (the repair itself is done, W8.1) |
+| W8C.6 | Lender safeguards and ESG disclosure (P1–P2) | CON-ESG-01..09, CON-REG-09, CON-GOV-05/06 | Resettlement plan, entitlement matrix and monitoring reports within one click of `/disclosures`, with Bangla summaries; GRC contacts; correct district list; an audited statement or a dated disclosure policy |
+| W8C.7 | Customer service loop (P1–P2) | CON-CS-01..05/08, CON-SAFE-04..06, CON-OPS-04/06/07, CON-KPI-01/02 | Acknowledgement email with tracking number and due date; `request-status` block; "after a crash" and dangerous-goods content; live traffic verified in production; KPI dashboard; translated news |
+| W8C.8 | SEO foundations (P2) | CON-SEO-A-01..04, B-01..03, C-01..04, D-01..03, F-01, G-01 | `www`→apex and `/`→locale 308s; localised branded titles; descriptions on all 189 URLs; OG/Twitter cards with per-locale images; enriched Organization, WebSite+SearchAction, BreadcrumbList, FAQPage, Place; slow-4G LCP under 4 s |
+| W8C.9 | Digital presence and measurement (P2–P3) | CON-SEO-E/F-02/H-01/I/J/K, CON-COMMS-01..05, CON-BRAND-05, CON-PEER-01 | Search Console verified; consented analytics with an event plan; Google Business Profile for office and plazas; Wikidata references; `llms.txt` decision; press-release programme; `reviewed_at` and owner department on every disclosure page |
+
+**W8/W8C gate:** W8C.1 and W8.5 first (emergency information and misleading toll figures are live risks). W8.10 and W8C.8 are one piece of work. Everything marked content-needed in the audit waits on the supply register, not on engineering.
+
+---
+
 ## Self-review against the spec
 
 - **Coverage:** all 196 findings map to a task; the mapping is `docs/audit/2026-09-06/traceability-checklist.md`. Three rows are deliberately `[~]` (C-S6 and C-S8 verified clean, B-MC-2 accepted) with reasons recorded.
@@ -521,4 +565,6 @@ Source of truth is `old_dhakabypass/*/index.txt` (text) plus `index.html` (image
 | W5 | W5.1 downloads; W5.2 media; W5.4 project timeline and progress; W5.5 faq; W5.6 project/structures (live); W5.7 project/standards; W5.8 safety/education; W5.9 press-releases; W5.11 sustainability; W5.12 organisation; W5.14 search; W5.15 sitemap; W5.16 social links; W5.17 axe WCAG 2.1 AA suite and the accessibility statement; W5.18 print and share. W5.3 gallery/videos (four public YouTube reports on the opening); W5.10 project/virtual-tour (panorama viewer, sample captures from existing photos); W5.13 office map on contact (sample location at Vogra until the address is supplied). |
 | W6 | All 19 done: W6.1–W6.19 (see commits of 12–14 September). |
 | INT | INT.1–INT.9 done. INT.9: TomTom has no traffic coverage in Bangladesh; live section conditions come from Google Routes (traffic-aware durations per section) with TomTom kept as a fallback, refreshed by `/api/cron/traffic`. |
-| W7 | Added 14 September from the admin CMS journey audit (37/100). In progress — see the W7 section. |
+| W7 | W7.1–W7.12 built 14 September: drafts separate from live, page settings panel, history and restore on every record, trash with undo, named confirmations, typed input kept on a refused save, unsaved-changes and concurrent-edit guards, search and paging, translator source view, request timeline, activity log. Remaining polish: W7.9 fare-matrix grid, W7.10 translation-status screen and segment bn/zh labels, W7.11 restyling of the older screens. |
+| W8 | UI audit (57/100 public, 52/100 admin). W8.1 done; W8.2–W8.15 open. |
+| W8C | Concession-adequacy audit (32/100). All nine tasks open; most depend on the DBEDC supply register (audit section 6). |
