@@ -13,7 +13,7 @@ export default async function CorridorStripBlock({ data, locale }) {
     [summary, interchanges] = await Promise.all([getCorridorSummaryCached(), getInterchangesCached()]);
   } catch { /* safe defaults */ }
 
-  const model = buildStripModel({ segments: summary.segments, interchanges, locale });
+  const model = buildStripModel({ segments: summary.segments, interchanges, locale, publishedLengthKm: summary.publishedLengthKm });
   const heading = text(data?.heading);
   const intro = text(data?.intro);
 
