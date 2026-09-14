@@ -29,5 +29,5 @@ async function deleteSubscriberAction$inner(formData) {
   revalidatePath(ADMIN);
 }
 
-export async function sendBroadcastAction(formData) { return runAction(() => sendBroadcastAction$inner(formData)); }
-export async function deleteSubscriberAction(formData) { return runAction(() => deleteSubscriberAction$inner(formData)); }
+export async function sendBroadcastAction(formData) { return runAction(() => sendBroadcastAction$inner(formData), { name: 'sendBroadcastAction', form: formData }); }
+export async function deleteSubscriberAction(formData) { return runAction(() => deleteSubscriberAction$inner(formData), { name: 'deleteSubscriberAction', form: formData }); }

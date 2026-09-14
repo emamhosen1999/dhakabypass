@@ -26,5 +26,5 @@ async function deleteSubscriberAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function deleteSubscriberAction(formData) {
-  return runAction(() => deleteSubscriberAction$inner(formData));
+  return runAction(() => deleteSubscriberAction$inner(formData), { name: 'deleteSubscriberAction', form: formData });
 }

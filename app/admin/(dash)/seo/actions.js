@@ -121,8 +121,8 @@ async function deleteRouteMetaAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function saveRouteMetaAction(formData) {
-  return runAction(() => saveRouteMetaAction$inner(formData));
+  return runAction(() => saveRouteMetaAction$inner(formData), { name: 'saveRouteMetaAction', form: formData });
 }
 export async function deleteRouteMetaAction(formData) {
-  return runAction(() => deleteRouteMetaAction$inner(formData));
+  return runAction(() => deleteRouteMetaAction$inner(formData), { name: 'deleteRouteMetaAction', form: formData });
 }

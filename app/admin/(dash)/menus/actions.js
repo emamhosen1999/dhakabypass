@@ -171,14 +171,14 @@ async function seedMenuAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function saveMenuItemAction(formData) {
-  return runAction(() => saveMenuItemAction$inner(formData));
+  return runAction(() => saveMenuItemAction$inner(formData), { name: 'saveMenuItemAction', form: formData });
 }
 export async function deleteMenuItemAction(formData) {
-  return runAction(() => deleteMenuItemAction$inner(formData));
+  return runAction(() => deleteMenuItemAction$inner(formData), { name: 'deleteMenuItemAction', form: formData });
 }
 export async function resetMenuAction(formData) {
-  return runAction(() => resetMenuAction$inner(formData));
+  return runAction(() => resetMenuAction$inner(formData), { name: 'resetMenuAction', form: formData });
 }
 export async function seedMenuAction(formData) {
-  return runAction(() => seedMenuAction$inner(formData));
+  return runAction(() => seedMenuAction$inner(formData), { name: 'seedMenuAction', form: formData });
 }

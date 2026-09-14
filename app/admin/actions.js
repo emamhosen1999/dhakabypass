@@ -144,14 +144,14 @@ async function deleteNewsAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function deleteMessageAction(formData) {
-  return runAction(() => deleteMessageAction$inner(formData));
+  return runAction(() => deleteMessageAction$inner(formData), { name: 'deleteMessageAction', form: formData });
 }
 export async function toggleMessageReadAction(formData) {
-  return runAction(() => toggleMessageReadAction$inner(formData));
+  return runAction(() => toggleMessageReadAction$inner(formData), { name: 'toggleMessageReadAction', form: formData });
 }
 export async function saveNewsAction(formData) {
-  return runAction(() => saveNewsAction$inner(formData));
+  return runAction(() => saveNewsAction$inner(formData), { name: 'saveNewsAction', form: formData });
 }
 export async function deleteNewsAction(formData) {
-  return runAction(() => deleteNewsAction$inner(formData));
+  return runAction(() => deleteNewsAction$inner(formData), { name: 'deleteNewsAction', form: formData });
 }

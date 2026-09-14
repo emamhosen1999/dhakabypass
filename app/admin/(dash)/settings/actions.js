@@ -213,11 +213,11 @@ async function saveBrandSettingsAction$inner(formData) {
 
 // ---------------------------------------------------------------------------
 export async function saveContactSettingsAction(formData) {
-  return runAction(() => saveContactSettingsAction$inner(formData));
+  return runAction(() => saveContactSettingsAction$inner(formData), { name: 'saveContactSettingsAction', form: formData });
 }
 export async function saveSeoSettingsAction(formData) {
-  return runAction(() => saveSeoSettingsAction$inner(formData));
+  return runAction(() => saveSeoSettingsAction$inner(formData), { name: 'saveSeoSettingsAction', form: formData });
 }
 export async function saveBrandSettingsAction(formData) {
-  return runAction(() => saveBrandSettingsAction$inner(formData));
+  return runAction(() => saveBrandSettingsAction$inner(formData), { name: 'saveBrandSettingsAction', form: formData });
 }

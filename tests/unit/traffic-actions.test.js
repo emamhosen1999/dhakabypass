@@ -7,6 +7,8 @@ vi.mock('../../lib/corridor/traffic-admin', () => ({
   saveSection: vi.fn(), saveMonthly: vi.fn(), deleteMonthly: vi.fn(), saveSources: vi.fn(),
 }));
 vi.mock('../../lib/corridor/traffic-refresh', () => ({ refreshTraffic: vi.fn() }));
+vi.mock('../../lib/admin/history', () => ({ logAudit: async () => {} }));
+vi.mock('../../lib/admin/record-actions', () => ({ saveRecord: (_t, _i, _f, m) => m(), deleteRecord: async () => ({}) }));
 import { assertCan } from '../../lib/auth/assert-can';
 import { revalidateCorridor } from '../../lib/revalidate';
 import { saveSection, saveSources } from '../../lib/corridor/traffic-admin';

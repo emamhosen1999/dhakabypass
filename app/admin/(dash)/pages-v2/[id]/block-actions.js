@@ -225,23 +225,23 @@ async function saveBlockSettingsAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function addBlockAction(formData) {
-  return runAction(() => addBlockAction$inner(formData));
+  return runAction(() => addBlockAction$inner(formData), { name: 'addBlockAction', form: formData });
 }
 export async function deleteBlockAction(formData) {
-  return runAction(() => deleteBlockAction$inner(formData));
+  return runAction(() => deleteBlockAction$inner(formData), { name: 'deleteBlockAction', form: formData });
 }
 export async function duplicateBlockAction(formData) {
-  return runAction(() => duplicateBlockAction$inner(formData));
+  return runAction(() => duplicateBlockAction$inner(formData), { name: 'duplicateBlockAction', form: formData });
 }
 export async function reorderBlocksAction(formData) {
-  return runAction(() => reorderBlocksAction$inner(formData));
+  return runAction(() => reorderBlocksAction$inner(formData), { name: 'reorderBlocksAction', form: formData });
 }
 export async function saveTranslationAction(formData) {
-  return runAction(() => saveTranslationAction$inner(formData));
+  return runAction(() => saveTranslationAction$inner(formData), { name: 'saveTranslationAction', form: formData });
 }
 export async function restoreRevisionAction(formData) {
-  return runAction(() => restoreRevisionAction$inner(formData));
+  return runAction(() => restoreRevisionAction$inner(formData), { name: 'restoreRevisionAction', form: formData });
 }
 export async function saveBlockSettingsAction(formData) {
-  return runAction(() => saveBlockSettingsAction$inner(formData));
+  return runAction(() => saveBlockSettingsAction$inner(formData), { name: 'saveBlockSettingsAction', form: formData });
 }

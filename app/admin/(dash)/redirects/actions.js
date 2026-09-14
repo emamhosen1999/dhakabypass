@@ -82,8 +82,8 @@ async function deleteRedirectAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function saveRedirectAction(formData) {
-  return runAction(() => saveRedirectAction$inner(formData));
+  return runAction(() => saveRedirectAction$inner(formData), { name: 'saveRedirectAction', form: formData });
 }
 export async function deleteRedirectAction(formData) {
-  return runAction(() => deleteRedirectAction$inner(formData));
+  return runAction(() => deleteRedirectAction$inner(formData), { name: 'deleteRedirectAction', form: formData });
 }

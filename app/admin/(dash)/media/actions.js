@@ -334,20 +334,20 @@ async function deleteMediaAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function replaceMediaAction(formData) {
-  return runAction(() => replaceMediaAction$inner(formData));
+  return runAction(() => replaceMediaAction$inner(formData), { name: 'replaceMediaAction', form: formData });
 }
 export async function setGalleryVisibilityAction(formData) {
-  return runAction(() => setGalleryVisibilityAction$inner(formData));
+  return runAction(() => setGalleryVisibilityAction$inner(formData), { name: 'setGalleryVisibilityAction', form: formData });
 }
 export async function updateMediaAltAction(formData) {
-  return runAction(() => updateMediaAltAction$inner(formData));
+  return runAction(() => updateMediaAltAction$inner(formData), { name: 'updateMediaAltAction', form: formData });
 }
 export async function addMediaAction(formData) {
-  return runAction(() => addMediaAction$inner(formData));
+  return runAction(() => addMediaAction$inner(formData), { name: 'addMediaAction', form: formData });
 }
 export async function setFocalPointAction(formData) {
-  return runAction(() => setFocalPointAction$inner(formData));
+  return runAction(() => setFocalPointAction$inner(formData), { name: 'setFocalPointAction', form: formData });
 }
 export async function deleteMediaAction(formData) {
-  return runAction(() => deleteMediaAction$inner(formData));
+  return runAction(() => deleteMediaAction$inner(formData), { name: 'deleteMediaAction', form: formData });
 }

@@ -94,8 +94,8 @@ async function deleteNewsTranslationAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function saveNewsTranslationAction(formData) {
-  return runAction(() => saveNewsTranslationAction$inner(formData));
+  return runAction(() => saveNewsTranslationAction$inner(formData), { name: 'saveNewsTranslationAction', form: formData });
 }
 export async function deleteNewsTranslationAction(formData) {
-  return runAction(() => deleteNewsTranslationAction$inner(formData));
+  return runAction(() => deleteNewsTranslationAction$inner(formData), { name: 'deleteNewsTranslationAction', form: formData });
 }

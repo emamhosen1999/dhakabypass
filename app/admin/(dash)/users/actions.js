@@ -88,14 +88,14 @@ async function removeUserAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function addUserAction(formData) {
-  return runAction(() => addUserAction$inner(formData));
+  return runAction(() => addUserAction$inner(formData), { name: 'addUserAction', form: formData });
 }
 export async function setRoleAction(formData) {
-  return runAction(() => setRoleAction$inner(formData));
+  return runAction(() => setRoleAction$inner(formData), { name: 'setRoleAction', form: formData });
 }
 export async function setPasswordAction(formData) {
-  return runAction(() => setPasswordAction$inner(formData));
+  return runAction(() => setPasswordAction$inner(formData), { name: 'setPasswordAction', form: formData });
 }
 export async function removeUserAction(formData) {
-  return runAction(() => removeUserAction$inner(formData));
+  return runAction(() => removeUserAction$inner(formData), { name: 'removeUserAction', form: formData });
 }

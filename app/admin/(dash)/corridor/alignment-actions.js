@@ -23,7 +23,10 @@ import { revalidateCorridor } from '../../../../lib/revalidate';
 import { validationError } from '../../../../lib/errors';
 import { positiveId } from '../../../../lib/corridor/traffic-admin';
 import { listCorridorWaypoints } from '../../../../lib/corridor/traffic';
-import { parseWaypoint, saveWaypoint, deleteWaypoint } from '../../../../lib/corridor/waypoints-admin';
+import { parseWaypoint, saveWaypoint, deleteWaypointWithin } from '../../../../lib/corridor/waypoints-admin';
+import { runInActionContext, actionContext } from '../../../../lib/admin/context';
+import { recordHistory, logAudit } from '../../../../lib/admin/history';
+import { saveRecord, deleteRecord } from '../../../../lib/admin/record-actions';
 import { parseAlignment, replaceGeometry, clearGeometry } from '../../../../lib/corridor/geometry-admin';
 
 /** Operational data is structural: a translator must not move the road. */
@@ -49,37 +52,46 @@ const PATHS = [
  * the published map exactly as it was, cache included.
  */
 async function run(operation, fallback, message) {
-  try {
-    await operation();
-  } catch (err) {
-    if (err?.code === 'VALIDATION') return { error: err.message };
-    return { error: fallback };
-  }
-  revalidateCorridor();
-  for (const path of PATHS) revalidatePath(path);
-  return { message };
+  return runInActionContext(async () => {
+    // Refusal to an unauthorised caller throws, as before; only the work's own
+    // failures become form state.
+    await assertCan(ACTION);
+    try {
+      await operation();
+    } catch (err) {
+      if (err?.code === 'VALIDATION') return { error: err.message };
+      return { error: fallback };
+    }
+    revalidateCorridor();
+    for (const path of PATHS) revalidatePath(path);
+    const flash = actionContext()?.flash;
+    return { message: flash?.t || message, undo: flash?.u || null, at: Date.now() };
+  });
 }
 
 export async function saveWaypointAction(_state, form) {
-  await assertCan(ACTION);
   return run(
-    () => saveWaypoint(parseWaypoint(form)),
+    () => {
+      const input = parseWaypoint(form);
+      return saveRecord('waypoint', input?.id || null, form, () => saveWaypoint(input));
+    },
     'The change could not be saved. Please try again.',
     'Saved. The corridor map and the traffic status table now use this name.',
   );
 }
 
 export async function deleteWaypointAction(_state, form) {
-  await assertCan(ACTION);
   return run(
-    () => deleteWaypoint(positiveId(form.get('id'))),
+    () => {
+      const id = positiveId(form.get('id'));
+      return deleteRecord('waypoint', id, { formData: form, remove: (q) => deleteWaypointWithin(q, id) });
+    },
     'The waypoint could not be removed. Please try again.',
     'Waypoint removed.',
   );
 }
 
 export async function saveAlignmentAction(_state, form) {
-  await assertCan(ACTION);
   return run(
     async () => {
       // Read the waypoints INSIDE the operation so a database outage becomes a
@@ -93,7 +105,10 @@ export async function saveAlignmentAction(_state, form) {
         );
       }
       const { points, source, attribution, lengthM } = parseAlignment(form, waypoints);
+      // The line being replaced goes into history, restorable from this screen.
+      await recordHistory('alignment', 1, { action: 'replace' });
       await replaceGeometry({ points, source, attribution, lengthM });
+      await logAudit({ action: 'alignment.replace', type: 'alignment', id: 1, label: `alignment (${points.length} points, ${source})` });
     },
     'The alignment could not be stored. The corridor keeps its current alignment.',
     'Stored. The public corridor map now draws this alignment.',
@@ -101,7 +116,6 @@ export async function saveAlignmentAction(_state, form) {
 }
 
 export async function clearAlignmentAction(_state, form) {
-  await assertCan(ACTION);
   return run(
     async () => {
       if (form.get('confirm') !== 'on') {
@@ -110,7 +124,9 @@ export async function clearAlignmentAction(_state, form) {
           + 'to the surveyed waypoints and label itself a schematic.',
         );
       }
+      await recordHistory('alignment', 1, { action: 'remove' });
       await clearGeometry();
+      await logAudit({ action: 'alignment.remove', type: 'alignment', id: 1, label: 'alignment' });
     },
     'The alignment could not be removed. Please try again.',
     'Removed. The map now draws the surveyed waypoint polyline and labels itself a schematic.',

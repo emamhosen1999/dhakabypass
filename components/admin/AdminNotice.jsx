@@ -17,6 +17,7 @@ export default function AdminNotice() {
   const dismiss = () => {
     const next = new URLSearchParams(params.toString());
     next.delete('notice');
+    next.delete('nt');
     const qs = next.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname);
   };

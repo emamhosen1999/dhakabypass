@@ -103,11 +103,11 @@ async function deleteTollOdRateAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function listTollMatrixAction() {
-  return runAction(() => listTollMatrixAction$inner());
+  return runAction(() => listTollMatrixAction$inner(), { name: 'listTollMatrixAction' });
 }
 export async function saveTollOdRateAction(formData) {
-  return runAction(() => saveTollOdRateAction$inner(formData));
+  return runAction(() => saveTollOdRateAction$inner(formData), { name: 'saveTollOdRateAction', form: formData });
 }
 export async function deleteTollOdRateAction(formData) {
-  return runAction(() => deleteTollOdRateAction$inner(formData));
+  return runAction(() => deleteTollOdRateAction$inner(formData), { name: 'deleteTollOdRateAction', form: formData });
 }

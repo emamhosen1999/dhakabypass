@@ -98,8 +98,8 @@ async function resetUiStringAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function saveUiStringAction(formData) {
-  return runAction(() => saveUiStringAction$inner(formData));
+  return runAction(() => saveUiStringAction$inner(formData), { name: 'saveUiStringAction', form: formData });
 }
 export async function resetUiStringAction(formData) {
-  return runAction(() => resetUiStringAction$inner(formData));
+  return runAction(() => resetUiStringAction$inner(formData), { name: 'resetUiStringAction', form: formData });
 }

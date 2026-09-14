@@ -54,15 +54,15 @@ describe('runAction', () => {
 
   it('lands on the dashboard when the referer is missing or is not an admin page', async () => {
     headerMap.delete('referer');
-    expect(await noticeUrl('x')).toBe('/admin?notice=x');
+    expect(await noticeUrl('x')).toMatch(/^\/admin\?notice=x&nt=[0-9a-z]+$/);
     headerMap.set('referer', 'https://evil.example/phish');
-    expect(await noticeUrl('x')).toBe('/admin?notice=x');
+    expect(await noticeUrl('x')).toMatch(/^\/admin\?notice=x&nt=[0-9a-z]+$/);
     headerMap.set('referer', 'http://localhost:3000/en/travel/toll');
-    expect(await noticeUrl('x')).toBe('/admin?notice=x');
+    expect(await noticeUrl('x')).toMatch(/^\/admin\?notice=x&nt=[0-9a-z]+$/);
   });
 
   it('replaces a stale notice rather than stacking them', async () => {
     headerMap.set('referer', 'http://localhost:3000/admin/media?notice=old&page=2');
-    expect(await noticeUrl('new')).toBe('/admin/media?page=2&notice=new');
+    expect(await noticeUrl('new')).toMatch(/^\/admin\/media\?page=2&notice=new&nt=[0-9a-z]+$/);
   });
 });

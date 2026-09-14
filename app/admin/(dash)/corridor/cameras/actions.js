@@ -46,6 +46,6 @@ async function testCameraAction$inner(formData) {
   revalidatePath(ADMIN);
 }
 
-export async function saveCameraAction(formData) { return runAction(() => saveCameraAction$inner(formData)); }
-export async function deleteCameraAction(formData) { return runAction(() => deleteCameraAction$inner(formData)); }
-export async function testCameraAction(formData) { return runAction(() => testCameraAction$inner(formData)); }
+export async function saveCameraAction(formData) { return runAction(() => saveCameraAction$inner(formData), { name: 'saveCameraAction', form: formData }); }
+export async function deleteCameraAction(formData) { return runAction(() => deleteCameraAction$inner(formData), { name: 'deleteCameraAction', form: formData }); }
+export async function testCameraAction(formData) { return runAction(() => testCameraAction$inner(formData), { name: 'testCameraAction', form: formData }); }

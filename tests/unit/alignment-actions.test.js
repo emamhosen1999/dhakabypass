@@ -12,8 +12,14 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 vi.mock('../../lib/revalidate', () => ({ revalidateCorridor: vi.fn() }));
 vi.mock('../../lib/auth/assert-can', () => ({ assertCan: vi.fn() }));
 vi.mock('../../lib/corridor/waypoints-admin', () => ({
-  parseWaypoint: vi.fn(), saveWaypoint: vi.fn(), deleteWaypoint: vi.fn(),
+  parseWaypoint: vi.fn(), saveWaypoint: vi.fn(), deleteWaypointWithin: vi.fn(),
 }));
+// History and trash are exercised in their own tests; here they pass the work through.
+vi.mock('../../lib/admin/record-actions', () => ({
+  saveRecord: (_type, _id, _form, mutate) => mutate(),
+  deleteRecord: (_type, _id, { remove }) => remove(null),
+}));
+vi.mock('../../lib/admin/history', () => ({ recordHistory: async () => null, logAudit: async () => {} }));
 vi.mock('../../lib/corridor/geometry-admin', () => ({
   parseAlignment: vi.fn(), replaceGeometry: vi.fn(), clearGeometry: vi.fn(),
 }));
@@ -24,7 +30,7 @@ import { assertCan } from '../../lib/auth/assert-can';
 import { revalidateCorridor } from '../../lib/revalidate';
 import { revalidatePath } from 'next/cache';
 import { listCorridorWaypoints } from '../../lib/corridor/traffic';
-import { saveWaypoint, deleteWaypoint } from '../../lib/corridor/waypoints-admin';
+import { saveWaypoint, deleteWaypointWithin as deleteWaypoint } from '../../lib/corridor/waypoints-admin';
 import { parseAlignment, replaceGeometry, clearGeometry } from '../../lib/corridor/geometry-admin';
 import {
   saveWaypointAction, deleteWaypointAction, saveAlignmentAction, clearAlignmentAction,

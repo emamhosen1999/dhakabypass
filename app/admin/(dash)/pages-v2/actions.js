@@ -125,14 +125,14 @@ async function duplicatePageAction$inner(formData) {
 // lib/admin/run-action.js. The bodies above are unchanged.
 // ---------------------------------------------------------------------------
 export async function listPagesAction() {
-  return runAction(() => listPagesAction$inner());
+  return runAction(() => listPagesAction$inner(), { name: 'listPagesAction' });
 }
 export async function createPageAction(formData) {
-  return runAction(() => createPageAction$inner(formData));
+  return runAction(() => createPageAction$inner(formData), { name: 'createPageAction', form: formData });
 }
 export async function deletePageAction(formData) {
-  return runAction(() => deletePageAction$inner(formData));
+  return runAction(() => deletePageAction$inner(formData), { name: 'deletePageAction', form: formData });
 }
 export async function duplicatePageAction(formData) {
-  return runAction(() => duplicatePageAction$inner(formData));
+  return runAction(() => duplicatePageAction$inner(formData), { name: 'duplicatePageAction', form: formData });
 }

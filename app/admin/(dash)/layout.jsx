@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth, signOut } from '../../../auth';
 import ThemeToggle from '../../../components/chrome/ThemeToggle.jsx';
+import { can } from '../../../lib/auth/roles';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,21 +36,23 @@ export const dynamic = 'force-dynamic';
  * most visits here are about: keeping a page out of search results.
  */
 const NAV = [
-  { href: '/admin', label: 'Dashboard' },
-  { href: '/admin/pages-v2', label: 'Pages' },
-  { href: '/admin/news', label: 'News' },
-  { href: '/admin/media', label: 'Media' },
-  { href: '/admin/corridor', label: 'Corridor' },
-  { href: '/admin/messages', label: 'Messages' },
-  { href: '/admin/requests', label: 'Requests' },
-  { href: '/admin/subscribers', label: 'Sign-ups' },
-  { href: '/admin/alerts', label: 'Road alerts' },
-  { href: '/admin/menus', label: 'Navigation' },
-  { href: '/admin/translations', label: 'Wording' },
-  { href: '/admin/redirects', label: 'Redirects' },
-  { href: '/admin/seo', label: 'Search' },
-  { href: '/admin/settings', label: 'Settings' },
-  { href: '/admin/users', label: 'Staff' },
+  { href: '/admin', label: 'Dashboard', can: null },
+  { href: '/admin/pages-v2', label: 'Pages', can: 'translate' },
+  { href: '/admin/news', label: 'News', can: 'translate' },
+  { href: '/admin/media', label: 'Media', can: 'manage_media' },
+  { href: '/admin/corridor', label: 'Corridor', can: 'edit_blocks' },
+  { href: '/admin/messages', label: 'Messages', can: 'manage_users' },
+  { href: '/admin/requests', label: 'Requests', can: 'manage_users' },
+  { href: '/admin/subscribers', label: 'Sign-ups', can: 'manage_users' },
+  { href: '/admin/alerts', label: 'Road alerts', can: 'manage_users' },
+  { href: '/admin/menus', label: 'Navigation', can: 'manage_pages' },
+  { href: '/admin/translations', label: 'Wording', can: 'translate' },
+  { href: '/admin/redirects', label: 'Redirects', can: 'manage_pages' },
+  { href: '/admin/seo', label: 'Search', can: 'manage_pages' },
+  { href: '/admin/settings', label: 'Settings', can: 'manage_users' },
+  { href: '/admin/users', label: 'Staff', can: 'manage_users' },
+  { href: '/admin/trash', label: 'Trash', can: null },
+  { href: '/admin/activity', label: 'Activity', can: 'manage_users' },
 ];
 
 /**
@@ -62,7 +65,15 @@ export default async function DashLayout({ children }) {
   if (!session?.user?.isAdmin) redirect('/admin/login');
 
   // Present for thirty seconds after an action succeeded (lib/admin/run-action.js).
-  const flashKey = (await cookies()).get('admin_flash') ? String(Date.now()) : '';
+  const flashCookie = (await cookies()).get('admin_flash')?.value || '';
+  const flashKey = flashCookie ? String(Date.now()) : '';
+  let flash = null;
+  if (flashCookie) {
+    try { flash = flashCookie === '1' ? {} : JSON.parse(flashCookie); } catch { flash = {}; }
+  }
+  // Only the screens this role can use (audit R3): a translator was offered
+  // fifteen links and bounced or shown an error by most of them.
+  const nav = NAV.filter((n) => !n.can || can(session.user.role, n.can));
   return (
     <>
       <header className="bg-blue-900 text-white shadow-md">
@@ -108,7 +119,7 @@ export default async function DashLayout({ children }) {
             longer fit beside the brand at 1280px, and a horizontally scrolling
             strip hides half of them on a phone. */}
         <nav aria-label="Admin" className="container mx-auto px-4 pb-2 flex flex-wrap gap-1">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <Link
               key={n.href}
               href={n.href}
@@ -122,7 +133,7 @@ export default async function DashLayout({ children }) {
       {/* useSearchParams needs a Suspense boundary above it in a layout. */}
       <Suspense fallback={null}><AdminNotice /></Suspense>
       {/* Confirm before deleting; "Saved." after an action finishes. */}
-      <AdminFormGuard key={flashKey} flash={Boolean(flashKey)} />
+      <Suspense fallback={null}><AdminFormGuard key={flashKey} flash={flash} /></Suspense>
 
       <main className="container mx-auto px-4 py-8">{children}</main>
     </>
