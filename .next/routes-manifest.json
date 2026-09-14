@@ -164,7 +164,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://api.tomtom.com https://cloudflareinsights.com; object-src 'none'; frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com; media-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://api.tomtom.com https://cloudflareinsights.com; object-src 'none'; frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com; media-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
         }
       ],
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
@@ -213,6 +213,23 @@
         "nxtPnextauth": "nxtPnextauth"
       },
       "namedRegex": "^/api/auth/(?<nxtPnextauth>.+?)(?:/)?$"
+    },
+    {
+      "page": "/api/cameras/[id]/hls/[...path]",
+      "regex": "^/api/cameras/([^/]+?)/hls/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid",
+        "nxtPpath": "nxtPpath"
+      },
+      "namedRegex": "^/api/cameras/(?<nxtPid>[^/]+?)/hls/(?<nxtPpath>.+?)(?:/)?$"
+    },
+    {
+      "page": "/api/cameras/[id]/snapshot",
+      "regex": "^/api/cameras/([^/]+?)/snapshot(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/cameras/(?<nxtPid>[^/]+?)/snapshot(?:/)?$"
     },
     {
       "page": "/uploads/[...path]",
@@ -272,6 +289,12 @@
       "namedRegex": "^/admin(?:/)?$"
     },
     {
+      "page": "/admin/alerts",
+      "regex": "^/admin/alerts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/alerts(?:/)?$"
+    },
+    {
       "page": "/admin/api/media",
       "regex": "^/admin/api/media(?:/)?$",
       "routeKeys": {},
@@ -294,6 +317,12 @@
       "regex": "^/admin/corridor/advisories(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/corridor/advisories(?:/)?$"
+    },
+    {
+      "page": "/admin/corridor/cameras",
+      "regex": "^/admin/corridor/cameras(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/corridor/cameras(?:/)?$"
     },
     {
       "page": "/admin/corridor/geometry",

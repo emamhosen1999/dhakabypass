@@ -46,6 +46,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@radix-ui/react-dialog": "^1.1.6",
     "bcryptjs": "^2.4.3",
+    "hls.js": "^1.7.3",
     "lucide-react": "^0.474.0",
     "mysql2": "^3.24.4",
     "next": "15.5.25",
