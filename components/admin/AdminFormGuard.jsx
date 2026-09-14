@@ -96,14 +96,30 @@ export default function AdminFormGuard({ flash = null }) {
       return;
     }
     if (stash.path !== window.location.pathname || Date.now() - Number(stash.at || 0) > 120000) return;
-    const form = [...document.querySelectorAll('form')].find((f) => formKey(f) === stash.key);
-    if (form) {
-      writeBack(form, stash.values);
-      dirty.current.add(form);
-      const first = form.querySelector('input:not([type="hidden"]), select, textarea');
-      first?.scrollIntoView({ block: 'center' });
-    }
-    try { sessionStorage.removeItem(TYPED); } catch { /* storage blocked */ }
+    // The redirect is a soft navigation: the new form elements arrive a
+    // moment after the URL changes, and React 19 resets the old ones. Keep
+    // writing the values back until they stay put, then let go.
+    let tries = 0;
+    let scrolled = false;
+    const apply = () => {
+      const form = [...document.querySelectorAll('form')].find((f) => formKey(f) === stash.key);
+      if (form) {
+        writeBack(form, stash.values);
+        dirty.current.add(form);
+        if (!scrolled) {
+          scrolled = true;
+          form.querySelector('input:not([type="hidden"]), select, textarea')?.scrollIntoView({ block: 'center' });
+        }
+      }
+      tries += 1;
+      if (tries >= 8) {
+        clearInterval(timer);
+        try { sessionStorage.removeItem(TYPED); } catch { /* storage blocked */ }
+      }
+    };
+    apply();
+    const timer = setInterval(apply, 250);
+    return () => clearInterval(timer);
   }, [notice, flash]);
 
   // The toast, with Undo when the action put something in the trash.
