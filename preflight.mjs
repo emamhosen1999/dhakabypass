@@ -66,6 +66,18 @@ if (!result.problems.some((p) => String(p.key).startsWith('DB')) && env.DB_HOST 
     });
     try {
       ledger = await readAppliedMigrations(async (sql) => (await conn.query(sql))[0]);
+      // The emergency number (W8.5 / W8C.1): a release that shows no number
+      // at the foot of every page is a road-safety defect.
+      const [rows] = await conn.query(
+        "SELECT value FROM site_settings WHERE setting_key IN ('contact.emergency_phone', 'contact.national_emergency_phone')",
+      );
+      if (!rows.some((r) => String(r.value || '').replace(/^"|"$/g, '').trim())) {
+        result.problems.push({
+          key: 'EMERGENCY_NUMBER',
+          message: 'No emergency number is set, so no page shows one.',
+          fix: 'On /admin/settings enter the national emergency number (999) and, when DBEDC supplies it, the control-room line.',
+        });
+      }
     } finally {
       await conn.end();
     }
