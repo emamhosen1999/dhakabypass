@@ -176,3 +176,17 @@ describe('buildMatrix — the shape a renderer needs', () => {
     expect(buildMatrix([null, 3], INTERCHANGES, {}).points).toEqual([]);
   });
 });
+
+describe('tollPoints offers only plazas open to traffic', () => {
+  const plazas = [
+    { id: 1, chainage_m: 3218, kind: 'toll_plaza', status: 'open', names: { en: 'Vogra' } },
+    { id: 2, chainage_m: 24522, kind: 'toll_plaza', status: 'construction', names: { en: 'Purbachal' } },
+    { id: 3, chainage_m: 45965, kind: 'toll_plaza', status: 'planned', names: { en: 'Madanpur' } },
+  ];
+  it('drops plazas under construction or planned for the public (audit CON-TOLL-01)', () => {
+    expect(tollPoints(plazas).map((p) => p.id)).toEqual([1]);
+  });
+  it('keeps them for the admin, which prices fares ahead of an opening', () => {
+    expect(tollPoints(plazas, { openOnly: false }).map((p) => p.id)).toEqual([1, 2, 3]);
+  });
+});

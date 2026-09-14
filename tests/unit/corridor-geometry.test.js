@@ -49,6 +49,15 @@ describe('percentOpen', () => {
   it('is 0, not NaN, for an empty corridor', () => {
     expect(percentOpen([])).toBe(0);
   });
+
+  it('divides by the published length when one is set, so unrecorded segments do not inflate the figure', () => {
+    // 18 km open of segments recorded to K35 reads 51.4% over the recorded part,
+    // but the corridor is 48 km: 37.5% is the honest figure (audit CON-OPS-01).
+    const recorded = [{ from_m: 0, to_m: 3000, status: 'construction' }, { from_m: 3000, to_m: 21000, status: 'open' }, { from_m: 21000, to_m: 35000, status: 'planned' }];
+    expect(percentOpen(recorded)).toBe(51.4);
+    expect(percentOpen(recorded, 48)).toBe(37.5);
+    expect(percentOpen(recorded, null)).toBe(51.4);
+  });
 });
 
 describe('positionPercent', () => {
