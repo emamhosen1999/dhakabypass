@@ -481,6 +481,12 @@
       "namedRegex": "^/admin/subscribers(?:/)?$"
     },
     {
+      "page": "/admin/translation-status",
+      "regex": "^/admin/translation\\-status(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/translation\\-status(?:/)?$"
+    },
+    {
       "page": "/admin/translations",
       "regex": "^/admin/translations(?:/)?$",
       "routeKeys": {},
