@@ -47,6 +47,7 @@ const NAV = [
   { href: '/admin/alerts', label: 'Road alerts', can: 'manage_users' },
   { href: '/admin/menus', label: 'Navigation', can: 'manage_pages' },
   { href: '/admin/translations', label: 'Wording', can: 'translate' },
+  { href: '/admin/translation-status', label: 'Translation status', can: 'translate' },
   { href: '/admin/redirects', label: 'Redirects', can: 'manage_pages' },
   { href: '/admin/seo', label: 'Search', can: 'manage_pages' },
   { href: '/admin/settings', label: 'Settings', can: 'manage_users' },
