@@ -80,7 +80,19 @@ describe('legacy redirects resolve in a single hop', () => {
   });
 
   it('keeps every legacy redirect permanent', () => {
-    expect(redirects.every((r) => r.permanent === true)).toBe(true);
+    // The bare domain is the exception: it opens in the reader's language, so
+    // it must stay temporary or a browser would remember one reader's choice.
+    const legacy = redirects.filter((r) => r.source !== '/');
+    expect(legacy.length).toBeGreaterThan(0);
+    expect(legacy.every((r) => r.permanent === true)).toBe(true);
+  });
+
+  it('sends the bare domain to a language temporarily: chosen, then browser, then English', () => {
+    const root = redirects.filter((r) => r.source === '/');
+    expect(root.every((r) => r.permanent === false)).toBe(true);
+    expect(root.at(-1)).toMatchObject({ destination: '/en' });
+    expect(root.at(-1).has).toBeUndefined();
+    expect(root[0].has[0]).toMatchObject({ type: 'cookie', key: 'db_locale' });
   });
 });
 
