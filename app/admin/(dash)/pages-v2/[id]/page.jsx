@@ -304,6 +304,25 @@ export default async function BlockEditor({ params, searchParams }) {
                 {locked ? <input type="hidden" name="status" value="published" /> : null}
               </label>
             </div>
+            <fieldset className="border rounded p-3">
+              <legend className="px-1 text-sm font-semibold">Ownership and review</legend>
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-semibold">Owning department</span>
+                  <input name="owner_department" defaultValue={settings.owner_department || ''} maxLength={120} className="border rounded px-3 py-2" />
+                  <span className="text-xs text-gray-500">Who answers for the accuracy of this page.</span>
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-semibold">Last reviewed</span>
+                  <input type="date" name="reviewed_at" defaultValue={settings.reviewed_at ? String(settings.reviewed_at).slice(0, 10) : ''} className="border rounded px-3 py-2" />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-semibold">Review every (days)</span>
+                  <input type="number" name="review_interval_days" min="1" max="3650" defaultValue={settings.review_interval_days ?? ''} className="border rounded px-3 py-2" />
+                  <span className="text-xs text-gray-500">The dashboard lists pages whose review is due.</span>
+                </label>
+              </div>
+            </fieldset>
             {LOCALES.map((l) => {
               const t = settings.translations[l] || {};
               return (

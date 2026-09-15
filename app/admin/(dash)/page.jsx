@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { FileText, Image as ImageIcon, Mail, LayoutGrid, Newspaper, Map, Type, ClipboardList } from 'lucide-react';
 import { listPages } from '../../../lib/content/pages';
+import { pagesDueForReview } from '../../../lib/content/page-settings';
+import { isDataIllustrative } from '../../../lib/settings';
 import { listMedia } from '../../../lib/media/repo';
 import { listNewsForAdmin } from '../../../lib/newsroom/admin';
 import { query, dbEnabled } from '../../../lib/db';
@@ -37,14 +39,27 @@ async function countRows(sql) {
 }
 
 export default async function AdminDashboard() {
-  const [pages, media, unread, news, blocks, openRequests] = await Promise.all([
+  const [pages, media, unread, news, blocks, openRequests, overdueRequests, reviewsDue, draftChanges, provisional] = await Promise.all([
     listPages().catch(() => []),
     listMedia().catch(() => []),
     countRows('SELECT COUNT(*) AS c FROM contact_messages WHERE read_at IS NULL'),
     listNewsForAdmin().catch(() => []),
     countRows('SELECT COUNT(*) AS c FROM blocks'),
     countRows("SELECT COUNT(*) AS c FROM service_requests WHERE status IN ('new','in_progress')"),
+    countRows("SELECT COUNT(*) AS c FROM service_requests WHERE resolved_at IS NULL AND due_at < NOW()"),
+    pagesDueForReview().catch(() => []),
+    countRows('SELECT COUNT(*) AS c FROM block_translations WHERE draft_data IS NOT NULL'),
+    isDataIllustrative().catch(() => true),
   ]);
+  // What needs a person (audit D8): the things that go wrong quietly.
+  const attention = [
+    ...(overdueRequests ? [{ href: '/admin/requests?status=in_progress', text: `${overdueRequests} service request${overdueRequests === 1 ? ' is' : 's are'} past the response deadline.` }] : []),
+    ...(reviewsDue.length ? [{ href: '/admin/pages-v2', text: `${reviewsDue.length} page${reviewsDue.length === 1 ? '' : 's'} due for review: ${reviewsDue.slice(0, 4).map((p) => p.title || p.slug).join(', ')}${reviewsDue.length > 4 ? '…' : ''}.` }] : []),
+    ...(draftChanges ? [{ href: '/admin/pages-v2', text: `${draftChanges} block text${draftChanges === 1 ? ' has' : 's have'} unpublished changes.` }] : []),
+    ...(pages.filter((p) => p.status !== 'published').length ? [{ href: '/admin/pages-v2?status=draft', text: `${pages.filter((p) => p.status !== 'published').length} page${pages.filter((p) => p.status !== 'published').length === 1 ? ' is' : 's are'} still a draft.` }] : []),
+    ...(media.filter((m) => !m.alt?.en).length ? [{ href: '/admin/media?show=undescribed', text: `${media.filter((m) => !m.alt?.en).length} picture${media.filter((m) => !m.alt?.en).length === 1 ? ' has' : 's have'} no description.` }] : []),
+    ...(provisional ? [{ href: '/admin/corridor', text: 'Operational data is marked provisional: every toll and status page carries the notice.' }] : []),
+  ];
 
   const stats = [
     { icon: LayoutGrid, label: 'Pages', value: pages.length, href: '/admin/pages-v2' },
@@ -109,6 +124,15 @@ export default async function AdminDashboard() {
           one place — toll rates, interchanges, section status — are edited once under Corridor.
         </p>
       </div>
+
+      {attention.length ? (
+        <section className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <h2 className="font-semibold text-amber-900">Needs attention</h2>
+          <ul className="mt-2 space-y-1 text-sm">
+            {attention.map((a) => <li key={a.text}><Link href={a.href} className="underline text-amber-900">{a.text}</Link></li>)}
+          </ul>
+        </section>
+      ) : null}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {stats.map((s) => (
