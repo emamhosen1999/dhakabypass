@@ -15,6 +15,8 @@ export default function LocaleSwitch({ current, label = 'Language' }) {
           hrefLang={l}
           lang={LOCALE_HTML_LANG[l]}
           aria-current={l === current ? 'true' : undefined}
+          // Remember the choice for the next visit to the bare domain.
+          onClick={() => { try { document.cookie = `db_locale=${l}; path=/; max-age=31536000; samesite=lax`; } catch { /* cookies blocked */ } }}
           className="db-locale-btn"
         >
           {LOCALE_LABELS[l]}

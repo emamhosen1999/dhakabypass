@@ -1,10 +1,15 @@
 import { test, expect } from '@playwright/test';
 
-// One address per page (concession audit CON-SEO-A-02): the bare domain
-// used to rewrite to /en, so the home page lived at two URLs. It redirects.
-test('the root redirects permanently to the English homepage', async ({ page, request }) => {
-  const bare = await request.get('/', { maxRedirects: 0 });
-  expect(bare.status()).toBe(308);
+// One address per page (concession audit CON-SEO-A-02), in the reader's language.
+test('the root redirects to the homepage in the language the reader prefers', async ({ page, request }) => {
+  const zh = await request.get('/', { maxRedirects: 0, headers: { 'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8' } });
+  expect(new URL(zh.headers().location, 'http://x').pathname).toBe('/zh');
+  const bn = await request.get('/', { maxRedirects: 0, headers: { 'accept-language': 'bn-BD,bn;q=0.9' } });
+  expect(new URL(bn.headers().location, 'http://x').pathname).toBe('/bn');
+  const chosen = await request.get('/', { maxRedirects: 0, headers: { 'accept-language': 'zh-CN', cookie: 'db_locale=en' } });
+  expect(new URL(chosen.headers().location, 'http://x').pathname).toBe('/en');
+  const bare = await request.get('/', { maxRedirects: 0, headers: { 'accept-language': 'en-GB,en;q=0.9' } });
+  expect(bare.status()).toBe(307);
   expect(new URL(bare.headers().location, 'http://x').pathname).toBe('/en');
   await page.goto('/');
   expect(new URL(page.url()).pathname).toBe('/en');

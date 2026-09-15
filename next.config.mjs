@@ -177,7 +177,15 @@ const nextConfig = {
       // www served everything too. Both are permanent redirects now, so a
       // crawler and a shared link land on the one canonical address. The
       // host condition matches only the www form; the apex is untouched.
-      { source: '/', destination: '/en', permanent: true },
+      // The bare domain opens in the reader's language (first browse): a
+      // chosen language (the switch sets db_locale) wins, then the browser's
+      // first preferred language, then English. Temporary (307) because the
+      // answer depends on the reader; each language keeps its own address,
+      // so search engines index all three through hreflang.
+      { source: '/', has: [{ type: 'cookie', key: 'db_locale', value: '(?<pick>en|bn|zh)' }], destination: '/:pick', permanent: false },
+      { source: '/', has: [{ type: 'header', key: 'accept-language', value: '(?:bn|bn-[A-Za-z]+)(?:[,;].*)?' }], destination: '/bn', permanent: false },
+      { source: '/', has: [{ type: 'header', key: 'accept-language', value: '(?:zh|zh-[A-Za-z]+)(?:[,;].*)?' }], destination: '/zh', permanent: false },
+      { source: '/', destination: '/en', permanent: false },
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'www.dhakabypass.com' }],
