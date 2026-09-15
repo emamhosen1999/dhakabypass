@@ -283,6 +283,12 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/.well-known/security.txt",
+      "regex": "^/\\.well\\-known/security\\.txt(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/\\.well\\-known/security\\.txt(?:/)?$"
+    },
+    {
       "page": "/admin",
       "regex": "^/admin(?:/)?$",
       "routeKeys": {},
