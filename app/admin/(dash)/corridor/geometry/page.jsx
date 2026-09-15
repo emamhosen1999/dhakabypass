@@ -31,7 +31,7 @@ export default async function GeometryPage() {
     <div className="max-w-5xl mx-auto space-y-8 text-gray-900">
       <header className="space-y-2">
         <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
-        <h1 className="text-3xl font-bold text-blue-900">Corridor alignment</h1>
+        <h1 className="text-2xl font-bold text-blue-900">Corridor alignment</h1>
         <p>
           The centreline the public map draws. It is one fact, so it is replaced whole rather
           than edited point by point — a single moved coordinate silently changes the road&rsquo;s

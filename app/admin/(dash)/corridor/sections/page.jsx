@@ -23,7 +23,7 @@ export default async function SectionsPage() {
     <div className="max-w-5xl mx-auto space-y-8 text-gray-900">
       <header className="space-y-2">
         <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
-        <h1 className="text-3xl font-bold text-blue-900">Section traffic conditions</h1>
+        <h1 className="text-2xl font-bold text-blue-900">Section traffic conditions</h1>
         <p>Update each section after checking the road. Leave speed empty when it has not been measured.</p>
         <p className="text-sm text-gray-600">
           A section headed &ldquo;Waypoint 4&rdquo; is a waypoint nobody has named yet.

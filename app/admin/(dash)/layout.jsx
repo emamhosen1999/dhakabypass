@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { auth, signOut } from '../../../auth';
 import ThemeToggle from '../../../components/chrome/ThemeToggle.jsx';
 import { can } from '../../../lib/auth/roles';
+import AdminCurrentNav from '../../../components/admin/AdminCurrentNav';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +78,7 @@ export default async function DashLayout({ children }) {
   const nav = NAV.filter((n) => !n.can || can(session.user.role, n.can));
   return (
     <>
+      <a href="#admin-main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:text-blue-900">Skip to the page</a>
       <header className="bg-blue-900 text-white shadow-md">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-8 min-w-0">
@@ -119,24 +121,39 @@ export default async function DashLayout({ children }) {
         {/* Its own row, wrapping, on every screen size. Thirteen screens no
             longer fit beside the brand at 1280px, and a horizontally scrolling
             strip hides half of them on a phone. */}
-        <nav aria-label="Admin" className="container mx-auto px-4 pb-2 flex flex-wrap gap-1">
+        {/* From md up the screens sit in a wrapping row; below it they fold
+            into a Menu disclosure so a tablet or phone sees the page, not two
+            screens of links (UI audit UI-ADM-05). The current screen carries
+            aria-current (AdminCurrentNav). */}
+        <nav aria-label="Admin" className="container mx-auto px-4 pb-2 hidden md:flex flex-wrap gap-1 db-admin-nav">
           {nav.map((n) => (
             <Link
               key={n.href}
               href={n.href}
-              className="px-3 py-1.5 rounded-md text-sm font-semibold text-blue-100 hover:bg-white/10 hover:text-white transition-all whitespace-nowrap"
+              className="px-3 py-1.5 rounded-md text-sm font-semibold text-blue-100 hover:bg-white/10 hover:text-white aria-[current=page]:bg-white/15 aria-[current=page]:text-white transition-all whitespace-nowrap"
             >
               {n.label}
             </Link>
           ))}
         </nav>
+        <details className="container mx-auto px-4 pb-2 md:hidden">
+          <summary className="cursor-pointer py-2 text-sm font-semibold text-blue-100">Menu</summary>
+          <nav aria-label="Admin" className="grid grid-cols-2 gap-1 pb-2 db-admin-nav">
+            {nav.map((n) => (
+              <Link key={n.href} href={n.href} className="px-3 py-2 rounded-md text-sm font-semibold text-blue-100 hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:text-white">
+                {n.label}
+              </Link>
+            ))}
+          </nav>
+        </details>
+        <AdminCurrentNav />
       </header>
       {/* useSearchParams needs a Suspense boundary above it in a layout. */}
       <Suspense fallback={null}><AdminNotice /></Suspense>
       {/* Confirm before deleting; "Saved." after an action finishes. */}
       <Suspense fallback={null}><AdminFormGuard key={flashKey} flash={flash} /></Suspense>
 
-      <main className="container mx-auto px-4 py-8">{children}</main>
+      <main id="admin-main" tabIndex={-1} className="container mx-auto px-4 py-8">{children}</main>
     </>
   );
 }

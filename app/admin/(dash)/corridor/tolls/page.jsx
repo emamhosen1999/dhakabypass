@@ -46,7 +46,7 @@ function TollForm({ toll }) {
       <label className="flex flex-col text-sm">Link to the notification
         <input name="sro_link" defaultValue={toll?.sro_link ?? ''} placeholder="https://… or /uploads/…" className="border rounded px-2 py-1" />
       </label>
-      <button type="submit" className="px-3 py-1 rounded bg-black text-white h-8">Save</button>
+      <button type="submit" className="px-3 py-1 rounded bg-blue-900 text-white font-semibold h-8">Save</button>
     </form>
   );
 }

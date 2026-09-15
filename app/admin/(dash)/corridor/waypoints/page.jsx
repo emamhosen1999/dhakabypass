@@ -87,7 +87,7 @@ export default async function WaypointsPage() {
     <div className="max-w-5xl mx-auto space-y-8 text-gray-900">
       <header className="space-y-2">
         <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
-        <h1 className="text-3xl font-bold text-blue-900">Waypoints</h1>
+        <h1 className="text-2xl font-bold text-blue-900">Waypoints</h1>
         <p>
           The surveyed points that define the corridor. Their names are what the public
           corridor map prints beside each marker, and what the section traffic table and the

@@ -47,7 +47,7 @@ export default async function CorridorRoadsPage() {
             <input id={id('source')} name="source_url" maxLength={500} defaultValue={rec?.source ?? ''}
               placeholder="https://www.rhd.gov.bd/…" className={input} />
           </div>
-          <button type="submit" className="px-4 py-2 rounded bg-black text-white text-sm">Save</button>
+          <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold text-sm">Save</button>
           <span className="ml-3 text-xs text-gray-600">Clear every field and save to go back to the OpenStreetMap name.</span>
         </form>
       </li>

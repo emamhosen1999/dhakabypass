@@ -68,7 +68,7 @@ export default function PreviewPane({ pageId, locale, locales, localeLabels }) {
               type="button"
               onClick={() => setPreviewLocale(l)}
               aria-pressed={l === previewLocale}
-              className={`px-2 py-1 rounded text-xs ${l === previewLocale ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+              className={`px-2 py-1 rounded text-xs ${l === previewLocale ? 'bg-blue-900 text-white font-semibold' : 'bg-gray-100 hover:bg-gray-200'}`}
             >
               {localeLabels[l]}
             </button>
@@ -82,7 +82,7 @@ export default function PreviewPane({ pageId, locale, locales, localeLabels }) {
               type="button"
               onClick={() => setDevice(w.key)}
               aria-pressed={w.key === device}
-              className={`px-2 py-1 rounded text-xs ${w.key === device ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+              className={`px-2 py-1 rounded text-xs ${w.key === device ? 'bg-blue-900 text-white font-semibold' : 'bg-gray-100 hover:bg-gray-200'}`}
             >
               {w.label} <span className="text-[10px] opacity-70">{w.width}</span>
             </button>

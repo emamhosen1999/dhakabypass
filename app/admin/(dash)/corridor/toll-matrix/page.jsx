@@ -114,7 +114,7 @@ function FareForm({ fare, points }) {
       <label className="flex flex-col text-sm">Link to the notification
         <input name="sro_link" defaultValue={fare?.sro_link ?? ''} className="border rounded px-2 py-1" />
       </label>
-      <button type="submit" className="px-3 py-1 rounded bg-black text-white h-8">Save</button>
+      <button type="submit" className="px-3 py-1 rounded bg-blue-900 text-white font-semibold h-8">Save</button>
     </form>
   );
 }

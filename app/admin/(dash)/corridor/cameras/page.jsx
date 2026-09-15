@@ -58,7 +58,7 @@ function CameraForm({ camera }) {
         <label className="flex items-center gap-2"><input type="checkbox" name="is_active" defaultChecked={camera ? camera.is_active : true} /> Shown on the website</label>
         <label className="flex items-center gap-2"><input type="checkbox" name="is_sample" defaultChecked={camera ? camera.is_sample : false} /> Sample (placeholder picture)</label>
       </div>
-      <div className="sm:col-span-3"><button type="submit" className="px-4 py-2 rounded bg-black text-white">Save camera</button></div>
+      <div className="sm:col-span-3"><button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">Save camera</button></div>
     </form>
   );
 }

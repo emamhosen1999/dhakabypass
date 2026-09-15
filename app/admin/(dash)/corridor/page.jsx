@@ -100,7 +100,7 @@ export default async function CorridorHub() {
           ))}
         </fieldset>
         <p className="text-sm text-gray-500">Shown by every “Prohibited vehicles” block. A language left blank shows the English list.</p>
-        <button type="submit" className="px-4 py-2 rounded bg-black text-white">Save</button>
+        <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">Save</button>
       </form>
 
       <ul className="grid gap-4 sm:grid-cols-2">

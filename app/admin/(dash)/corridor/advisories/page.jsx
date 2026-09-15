@@ -37,7 +37,7 @@ function AdvisoryForm({ advisory }) {
         <input type="checkbox" name="is_active" defaultChecked={advisory ? Boolean(advisory.is_active) : true} />
         Active
       </label>
-      <button type="submit" className="px-3 py-1 rounded bg-black text-white h-8">Save</button>
+      <button type="submit" className="px-3 py-1 rounded bg-blue-900 text-white font-semibold h-8">Save</button>
     </form>
   );
 }

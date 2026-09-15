@@ -180,7 +180,7 @@ export default async function SettingsPage() {
               placeholder={String(BRAND_DEFAULTS.shell)} type="number"
             />
           </div>
-          <button type="submit" className="px-4 py-2 rounded bg-black text-white text-sm">Save brand</button>
+          <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold text-sm">Save brand</button>
         </section>
       </form>
 

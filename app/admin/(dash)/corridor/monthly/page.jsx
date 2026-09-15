@@ -26,7 +26,7 @@ export default async function MonthlyPage() {
     <div className="max-w-5xl mx-auto space-y-8 text-gray-900">
       <header className="space-y-2">
         <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
-        <h1 className="text-3xl font-bold text-blue-900">Monthly traffic</h1>
+        <h1 className="text-2xl font-bold text-blue-900">Monthly traffic</h1>
         <p>Enter the vehicle count recorded at each toll plaza. Use <strong>all</strong> for the confirmed corridor total shown on the public chart. Plaza rows are stored separately and are not added together automatically.</p>
         <p className="rounded border border-amber-300 bg-amber-50 p-3">Monthly data source: <strong>{source}</strong>. <Link className="underline" href="/admin/corridor/sections">Review publication settings</Link>.</p>
       </header>

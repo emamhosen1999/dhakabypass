@@ -66,7 +66,7 @@ function InterchangeForm({ interchange }) {
       <label className="flex flex-col text-sm">Longitude
         <input name="lng" type="number" step="0.0000001" defaultValue={interchange?.lng ?? ''} className="border rounded px-2 py-1" />
       </label>
-      <button type="submit" className="px-3 py-1 rounded bg-black text-white h-8">Save</button>
+      <button type="submit" className="px-3 py-1 rounded bg-blue-900 text-white font-semibold h-8">Save</button>
     </form>
   );
 }

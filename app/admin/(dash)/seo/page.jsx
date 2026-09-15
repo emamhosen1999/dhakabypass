@@ -258,7 +258,7 @@ export default async function SeoRoutesPage({ searchParams }) {
         </section>
 
         <div className="flex items-center gap-3">
-          <button type="submit" className="px-4 py-2 rounded bg-black text-white">
+          <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">
             Save these settings
           </button>
           {current ? (
