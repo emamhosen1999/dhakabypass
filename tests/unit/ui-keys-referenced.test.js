@@ -13,7 +13,7 @@ import { UI } from '../../lib/i18n/ui.js';
  * record value are reached through a declared prefix instead.
  */
 const ROOT = path.resolve(import.meta.dirname, '../..');
-const DYNAMIC_PREFIXES = ['requestKind_', 'traffic_', 'social_'];
+const DYNAMIC_PREFIXES = ['requestKind_', 'traffic_', 'social_', 'status_'];
 
 function sources() {
   const out = [];

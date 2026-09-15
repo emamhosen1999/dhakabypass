@@ -187,7 +187,8 @@ describe('a database built from db/sql/*.sql alone', () => {
     const rows = await all(`SELECT b.type, b.sort_order FROM blocks b JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'grievances' ORDER BY b.sort_order, b.id`);
     // 34 adds the GRS escalation before the closing band.
-    expect(rows.map((r) => r.type)).toEqual(['hero', 'card-grid', 'rich-text', 'request-form', 'rich-text', 'cta-band']);
+    // 41 adds the status lookup before the closing band.
+    expect(rows.map((r) => r.type)).toEqual(['hero', 'card-grid', 'rich-text', 'request-form', 'rich-text', 'request-status', 'cta-band']);
     const cta = await one(`SELECT JSON_UNQUOTE(JSON_EXTRACT(t.data, '$.body')) AS body
       FROM block_translations t JOIN blocks b ON b.id = t.block_id JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'grievances' AND b.type = 'cta-band' AND t.locale = 'en'`);

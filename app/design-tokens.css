@@ -1516,6 +1516,16 @@
    than fix it. Because the component puts .db-num on the <th> as well as the
    cells, one rule aligns the heading over its own figures. */
 .db-page-updated{margin-top:10px;font-size:.84rem;color:var(--db-ink-3);}
+/* Request status: the answer as a definition list, the status as a tag. */
+.db-status-form{max-width:520px;}
+.db-status-result{margin-top:16px;}
+.db-status-card{display:grid;gap:8px 16px;grid-template-columns:max-content 1fr;margin:0;max-width:520px;
+  padding:14px 16px;border:1px solid var(--db-rule);border-radius:4px;background:var(--db-surface);}
+.db-status-card > div{display:contents;}
+.db-status-card dt{color:var(--db-ink-3);font-size:.86rem;}
+.db-status-card dd{margin:0;}
+.db-status-tag{display:inline-block;padding:2px 8px;border-radius:2px;font-size:.84rem;font-weight:600;background:var(--db-surface-2);}
+.db-status-resolved,.db-status-closed{background:var(--db-open-wash,var(--db-surface-2));}
 .db-hero-updated{color:inherit;opacity:.8;}
 .db-datatable{margin-top:20px;}
 /* The traffic table sits in a disclosure that is open whenever a section has
