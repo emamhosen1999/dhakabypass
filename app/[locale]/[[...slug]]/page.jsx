@@ -172,6 +172,12 @@ export default async function CmsPage({ params, searchParams }) {
   return (
     <>
       <StructuredData data={breadcrumbJsonLd(crumbs)} />
+      {/* A commitment page not yet approved by counsel says so (W8C.2). */}
+      {page.legal_status === 'review' ? (
+        <aside className="db-block db-legal-review" role="note">
+          <p className="db-pending"><span className="db-pending-tag">{t(locale, 'legalReviewTag')}</span>{t(locale, 'legalReviewBody')}</p>
+        </aside>
+      ) : null}
       <BlockRenderer blocks={blocks} locale={locale} searchParams={searchParams} />
     </>
   );

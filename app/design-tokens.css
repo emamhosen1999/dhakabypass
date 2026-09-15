@@ -1529,6 +1529,8 @@
    than fix it. Because the component puts .db-num on the <th> as well as the
    cells, one rule aligns the heading over its own figures. */
 .db-page-updated{margin-top:10px;font-size:.84rem;color:var(--db-ink-3);}
+.db-legal-review{padding-top:12px;padding-bottom:0;}
+.db-toll-citation-pending{display:block;margin-top:4px;color:var(--db-ink-3);}
 /* Request status: the answer as a definition list, the status as a tag. */
 .db-status-form{max-width:520px;}
 .db-status-result{margin-top:16px;}

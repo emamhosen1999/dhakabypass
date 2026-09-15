@@ -14,6 +14,8 @@ beforeAll(async () => {
     'SELECT COUNT(*) AS n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?', [table, column],
   ))[0].n > 0;
   if (!(await has('pages', 'updated_by'))) await query("ALTER TABLE pages ADD COLUMN updated_by varchar(191) NOT NULL DEFAULT ''");
+  // 44-legal-review.sql: the public reader shows a notice on pages under review.
+  if (!(await has('pages', 'legal_status'))) await query("ALTER TABLE pages ADD COLUMN legal_status varchar(16) NOT NULL DEFAULT ''");
   if (!(await has('block_translations', 'draft_data'))) {
     await query('ALTER TABLE block_translations ADD COLUMN draft_data json DEFAULT NULL, ADD COLUMN draft_updated_at timestamp NULL DEFAULT NULL, ADD COLUMN draft_updated_by int DEFAULT NULL');
   }

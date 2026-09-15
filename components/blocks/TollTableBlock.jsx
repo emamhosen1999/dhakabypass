@@ -99,7 +99,7 @@ export default async function TollTableBlock({ data, locale }) {
            in the operator's own words, falling back to the editable
            `noTollRates` string when none has been authored. */
         <p className="db-empty-inline">{text(data.emptyMessage) || t(locale, 'noTollRates')}</p>
-      ) : citation || sinceText ? (
+      ) : (
         /* <figure> is what binds the schedule to its authority: the figcaption
            names the figure, so entering the group announces the notification
            the prices come from. A <p> after the table would be a footnote a
@@ -119,9 +119,12 @@ export default async function TollTableBlock({ data, locale }) {
             {citation?.date ? <span className="db-toll-srodate">{citation.date}</span> : null}
             {sinceText ? <span className="db-toll-inforce">{sinceText}</span> : null}
             {citation?.mechanism ? <span className="db-toll-revision">{citation.mechanism}</span> : null}
+            {/* No toll figure without its authority, or an explicit statement
+                that the citation is still to come (concession audit W8C.3). */}
+            {!citation?.number ? <span className="db-toll-citation-pending">{t(locale, 'tollCitationPending')}</span> : null}
           </figcaption>
         </figure>
-      ) : table}
+      )}
     </section>
   );
 }

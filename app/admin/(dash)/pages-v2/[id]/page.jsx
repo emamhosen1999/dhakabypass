@@ -322,6 +322,25 @@ export default async function BlockEditor({ params, searchParams }) {
                   <span className="text-xs text-gray-500">The dashboard lists pages whose review is due.</span>
                 </label>
               </div>
+              <div className="grid gap-3 md:grid-cols-3 mt-3">
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-semibold">Legal review</span>
+                  <select name="legal_status" defaultValue={settings.legal_status || ''} className="border rounded px-3 py-2">
+                    <option value="">Not needed</option>
+                    <option value="review">Under review: the page shows a notice</option>
+                    <option value="approved">Approved</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-semibold">Approved by</span>
+                  <input name="legal_approved_by" defaultValue={settings.legal_approved_by || ''} maxLength={191} className="border rounded px-3 py-2" placeholder="Name and role" />
+                </label>
+                <p className="text-xs text-gray-600 self-end">
+                  {settings.legal_status === 'approved' && settings.legal_approved_at
+                    ? `Approved ${String(settings.legal_approved_at).slice(0, 10)} by ${settings.legal_approved_by}.`
+                    : 'Required when marking a page approved; the date is recorded automatically.'}
+                </p>
+              </div>
             </fieldset>
             {LOCALES.map((l) => {
               const t = settings.translations[l] || {};

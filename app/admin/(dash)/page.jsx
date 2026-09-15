@@ -51,6 +51,7 @@ export default async function AdminDashboard() {
     countRows('SELECT COUNT(*) AS c FROM block_translations WHERE draft_data IS NOT NULL'),
     isDataIllustrative().catch(() => true),
   ]);
+  const legalReview = await countRows("SELECT COUNT(*) AS c FROM pages WHERE legal_status = 'review'");
   // What needs a person (audit D8): the things that go wrong quietly.
   const attention = [
     ...(overdueRequests ? [{ href: '/admin/requests?status=in_progress', text: `${overdueRequests} service request${overdueRequests === 1 ? ' is' : 's are'} past the response deadline.` }] : []),
@@ -58,6 +59,7 @@ export default async function AdminDashboard() {
     ...(draftChanges ? [{ href: '/admin/pages-v2', text: `${draftChanges} block text${draftChanges === 1 ? ' has' : 's have'} unpublished changes.` }] : []),
     ...(pages.filter((p) => p.status !== 'published').length ? [{ href: '/admin/pages-v2?status=draft', text: `${pages.filter((p) => p.status !== 'published').length} page${pages.filter((p) => p.status !== 'published').length === 1 ? ' is' : 's are'} still a draft.` }] : []),
     ...(media.filter((m) => !m.alt?.en).length ? [{ href: '/admin/media?show=undescribed', text: `${media.filter((m) => !m.alt?.en).length} picture${media.filter((m) => !m.alt?.en).length === 1 ? ' has' : 's have'} no description.` }] : []),
+    ...(legalReview ? [{ href: '/admin/pages-v2', text: `${legalReview} page${legalReview === 1 ? ' is' : 's are'} awaiting legal approval and show an "under review" notice.` }] : []),
     ...(provisional ? [{ href: '/admin/corridor', text: 'Operational data is marked provisional: every toll and status page carries the notice.' }] : []),
   ];
 

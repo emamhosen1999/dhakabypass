@@ -119,10 +119,12 @@ describe('TollTableBlock', () => {
     expect(html.indexOf('<figcaption')).toBeGreaterThan(html.indexOf('<table'));
   });
 
-  it('renders no empty citation line when none has been authored', async () => {
+  it('says the citation is pending when none has been authored, never a blank line (W8C.3)', async () => {
     const html = await render(TollTableBlock, { data, locale: 'en' });
-    expect(html).not.toContain('<figcaption');
     expect(html).toContain('<table');
+    expect(html).toContain('db-toll-citation-pending');
+    expect(html).toContain('Citation pending');
+    expect(html).not.toContain('db-toll-sro"');
   });
 
   it('drops the section column when no rate names a section', async () => {
