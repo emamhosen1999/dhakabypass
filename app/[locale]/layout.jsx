@@ -13,6 +13,8 @@ import BrandTokens from '../../components/chrome/BrandTokens.jsx';
 import StructuredData from '../../components/chrome/StructuredData.jsx';
 import UiStringsBridge from '../../components/chrome/UiStringsBridge.jsx';
 import { loadOrganization } from '../../lib/seo/identity.js';
+import ScrollRegions from '../../components/chrome/ScrollRegions.jsx';
+import { t } from '../../lib/i18n/ui.js';
 import { primeUiStrings } from '../../lib/i18n/strings-cache.js';
 
 /** The site-level title, description and favicon, in this page's language. */
@@ -105,6 +107,7 @@ export default async function LocaleLayout({ children, params }) {
       <SiteHeaderV2 locale={locale} />
       <main id="main">{children}</main>
       <SiteFooterV2 locale={locale} />
+      <ScrollRegions hint={t(locale, 'scrollForMore')} />
       {/* Renders nothing unless ANALYTICS_PROVIDER is configured. Only the
           localised tree is measured: the admin is staff behind auth, and the
           legacy tree is not touched. */}

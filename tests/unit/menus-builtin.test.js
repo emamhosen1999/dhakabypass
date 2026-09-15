@@ -11,7 +11,7 @@ describe('builtinRows', () => {
   it('copies the main and travel lists flat, in order, with a label per locale', () => {
     const main = builtinRows('main');
     expect(main.map((r) => r.href)).toEqual(MAIN_NAV.map((n) => n.href.slice(1)));
-    expect(main.map((r) => r.sortOrder)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(main.map((r) => r.sortOrder)).toEqual(MAIN_NAV.map((_, i) => i));
     for (const r of main) {
       expect(r.parentIndex).toBeNull();
       for (const l of LOCALES) expect(r.labels[l]).toBeTruthy();

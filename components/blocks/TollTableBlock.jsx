@@ -53,7 +53,7 @@ export default async function TollTableBlock({ data, locale }) {
   const withSection = hasSectionColumn(rows);
 
   const table = (
-    <div className="db-scroll-x db-datatable db-tolltable">
+    <div className="db-scroll-x db-datatable db-tolltable db-tollschedule">
       <table className="db-table">
         {/* A real <caption>, always: a screen reader announces what the
             schedule IS before reading a column of prices out of it. */}

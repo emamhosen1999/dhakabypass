@@ -171,7 +171,20 @@
 /* Media and embeds never force the page wider than the viewport. */
 .db-root img,.db-root video,.db-root svg,.db-root iframe{max-width:100%;height:auto;}
 /* Wide content scrolls inside itself instead. */
-.db-scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
+.db-scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;position:relative;}
+/* When a region really overflows (components/chrome/ScrollRegions.jsx marks
+   it), a phone reader gets two signs there is more: a fade on the far edge
+   and the hint under it. Both disappear once the far edge is reached, and
+   the fade never covers the first column. Keyboard users get the region as a
+   focusable landmark (tabindex from the same script) with the usual ring. */
+.db-scroll-x[data-overflow]{
+  mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);
+  -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);}
+.db-scroll-x[data-overflow][data-at-end]{mask-image:none;-webkit-mask-image:none;}
+.db-scroll-x[data-overflow]::after{content:attr(data-hint);display:block;position:sticky;left:0;
+  padding:6px 0 2px;font-size:.78rem;color:var(--db-ink-3);}
+.db-scroll-x[data-overflow][data-at-end]::after{visibility:hidden;}
+.db-scroll-x[tabindex]:focus-visible{outline:3px solid var(--db-accent-bright);outline-offset:-3px;}
 /* Long unbroken strings (URLs, chainages) must not blow out narrow screens. */
 .db-root p,.db-root li,.db-root td,.db-root h1,.db-root h2,.db-root h3{overflow-wrap:break-word;}
 /* Every interactive target meets the 44px minimum on touch devices. */
@@ -290,16 +303,20 @@
    vanishing — nothing is unreachable at any width. */
 .db-nav{display:none;gap:4px;margin-left:auto;align-items:center;flex-wrap:wrap;}
 @media (min-width:768px){.db-nav{display:flex;}}
-.db-nav-mobile{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;
-  width:100%;padding-bottom:4px;scrollbar-width:none;}
-.db-nav-mobile::-webkit-scrollbar{display:none;}
+/* The compact row WRAPS. It used to scroll sideways with the scrollbar hidden,
+   so on a 375px phone About, News and Contact sat off-screen with nothing to
+   say so (UI audit UI-RESP-03). Seven short labels wrap to two lines and every
+   destination is on screen, with or without script. */
+.db-nav-mobile{display:flex;flex-wrap:wrap;gap:2px 4px;width:100%;padding-bottom:4px;}
 @media (min-width:768px){.db-nav-mobile{display:none;}}
-/* nowrap + flex:none: the compact row below 768px scrolls horizontally, so a
-   link must keep its own line rather than wrapping onto two. */
+/* nowrap + flex:none: a label keeps its own line; the row wraps between
+   links, never inside one. The current section is marked (aria-current). */
 .db-nav-link,.db-nav-cta{white-space:nowrap;flex:none;
   font-family:var(--db-font-display);font-weight:600;font-size:.86rem;
   letter-spacing:.09em;text-transform:uppercase;padding:7px 11px;border-radius:2px;text-decoration:none;color:inherit;opacity:.78;}
-.db-nav-link:hover{opacity:1;}
+.db-nav-link:hover,.db-nav-link[aria-current]{opacity:1;}
+.db-nav-link[aria-current="page"]{box-shadow:inset 0 -2px 0 var(--db-plate-accent);}
+.db-nav-search{display:inline-flex;align-items:center;gap:6px;}
 .db-nav-cta{border:1px solid var(--db-plate-accent);color:var(--db-plate-accent);opacity:1;}
 /* At narrow widths the brand alone fills the row, so the utilities wrap onto
    their own line instead of overflowing. .db-root sets overflow-x:hidden, which
@@ -1488,6 +1505,19 @@
 /* The component always emits a <caption> element, empty or not, and an empty
    one still paints 8px of padding above the header row. */
 .db-datatable .db-table-caption:empty{display:none;}
+/* Under 480px the two- and three-column toll schedule stacks: each vehicle
+   class is a row of its own with the fare on the right, so no fare sits
+   off-screen (UI audit UI-RESP-01). The header row is hidden visually only;
+   scope="row"/"col" still carries the meaning to a screen reader. */
+@media (max-width:479px){
+  .db-tollschedule .db-table{min-width:0;}
+  .db-tollschedule thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+  .db-tollschedule tbody tr{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 12px;padding:8px 0;border-bottom:1px solid var(--db-rule);}
+  .db-tollschedule tbody th,.db-tollschedule tbody td{border:0;padding:2px 0;}
+  .db-tollschedule tbody th{flex:1 1 55%;}
+  .db-tollschedule tbody td.db-toll-amount{margin-left:auto;font-weight:700;}
+  .db-tollschedule tbody td:not(.db-toll-amount){flex:1 1 100%;font-size:.86rem;color:var(--db-ink-3);}
+}
 .db-table-note{margin:10px 0 0;max-width:var(--db-measure);
   color:var(--db-ink-3);font-size:.84rem;line-height:1.55;}
 

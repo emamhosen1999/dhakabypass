@@ -7,6 +7,7 @@ import { MAIN_NAV, CTA_NAV } from '../../lib/menus/builtin.js';
 import { siteSeoCached } from '../../lib/seo/cache.js';
 import { localeHref } from '../../lib/blocks/href.js';
 import { resolveLogo } from '../../lib/seo/identity.js';
+import CurrentNav from './CurrentNav.jsx';
 
 /**
  * The primary navigation.
@@ -99,8 +100,8 @@ export default async function SiteHeaderV2({ locale }) {
           <ThemeToggle label={t(locale, 'theme')} labels={{ light: t(locale, 'themeLight'), dark: t(locale, 'themeDark'), system: t(locale, 'themeSystem') }} />
         </div>
 
-        {/* Below 768px the same links live here, in a horizontally scrollable
-            row, so no destination is ever unreachable on a narrow screen. */}
+        {/* Below 768px the same links live here, wrapping onto a second line,
+            so no destination is ever off-screen on a narrow screen. */}
         <nav className="db-nav-mobile" aria-label={t(locale, 'navPrimaryCompact')}>
           {links.map((item) => (
             <Link key={item.key} href={item.href} className="db-nav-link">
@@ -110,6 +111,7 @@ export default async function SiteHeaderV2({ locale }) {
           {ctas.map((c) => <Link key={c.key} href={c.href} className="db-nav-cta">{c.label}</Link>)}
         </nav>
       </div>
+      <CurrentNav />
     </header>
   );
 }
