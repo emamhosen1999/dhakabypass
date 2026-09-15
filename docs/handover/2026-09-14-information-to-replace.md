@@ -72,7 +72,8 @@ Where the row says **/admin/…** the operator replaces it in the admin without 
 | # | Now | Needed | Who |
 |---|---|---|---|
 | G1 | Road alerts sign-up works; broadcasts are recorded as "not sent — no provider" | SMS gateway URL/token/sender and WhatsApp Cloud API token/phone-id/template in the server environment (ALERTS_SMS_*, ALERTS_WHATSAPP_*) | DBEDC procures; developer sets |
-| G2 | Live traffic: Google Routes implemented, refresh endpoint exists | GOOGLE_ROUTES_API_KEY and CRON_SECRET on the server; cron for /api/cron/traffic every 15 min and /api/cron/cameras every 5 min | Developer |
+| G2 | Live traffic: Google Routes implemented; CRON_SECRET set and both cron jobs scheduled (15 Sep) | GOOGLE_ROUTES_API_KEY on the server (Google Cloud → Routes API) | DBEDC provides the key; developer sets |
+| G2a | Request acknowledgement emails: built; not sent until a mail server is configured | MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASSWORD, MAIL_FROM (an SMTP account on the DBEDC domain) | DBEDC IT provides; developer sets |
 | G3 | ETC tag, fleet account and frequent-traveller applications are collected with tracking numbers | Agreement with the national ETC operator; someone to process applications from /admin/requests | Decision (DBEDC) |
 | G4 | The GitHub repository is public and contains the runbook and these audits | Make it private, or move docs/deployment, docs/source-data and docs/audit out of the public history (audit CON-SEC-01) | Decision (DBEDC/owner) |
 | G5 | Admin reachable from any IP | IP allow-list or Cloudflare Access with MFA in front of /admin (W8C.4) | Developer + DBEDC IT |
