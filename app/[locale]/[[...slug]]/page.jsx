@@ -12,6 +12,8 @@ import { withSocialCard } from '../../../lib/seo/social.js';
 import { t } from '../../../lib/i18n/ui.js';
 import { HOME_SLUG, NOT_FOUND_SLUG } from '../../../lib/content/slug.js';
 import BlockRenderer from '../../../components/blocks/BlockRenderer.jsx';
+import StructuredData from '../../../components/chrome/StructuredData.jsx';
+import { breadcrumbJsonLd } from '../../../lib/seo/organization.js';
 
 /**
  * THE ONLY PUBLIC CONTENT RENDERER.
@@ -159,9 +161,37 @@ export default async function CmsPage({ params, searchParams }) {
   }
 
   const blocks = await getPageBlocksCached(page.id, page.slug, locale);
+  // The page's place under its parent, for search engines (concession audit
+  // CON-SEO-D-02): home, then the parent page, then this one, each titled in
+  // the reader's language from page_translations.
+  const crumbs = await breadcrumbsFor(page, locale);
   // Handed on unawaited — see the note in BlockRenderer. A block document
   // carrying INT.2's toll calculator answers a journey straight out of the
   // query string, with no JavaScript; every other document — the home page
   // included — ignores this and renders exactly as it did.
-  return <BlockRenderer blocks={blocks} locale={locale} searchParams={searchParams} />;
+  return (
+    <>
+      <StructuredData data={breadcrumbJsonLd(crumbs)} />
+      <BlockRenderer blocks={blocks} locale={locale} searchParams={searchParams} />
+    </>
+  );
+}
+
+const titleOf = (page, locale) => {
+  const rows = (page?.translations || []).map((tr) => ({ locale: tr.locale, status: tr.status, data: { title: tr.title } }));
+  return resolveTranslation(rows, locale)?.data.title || page?.slug || '';
+};
+
+async function breadcrumbsFor(page, locale) {
+  if (!page || page.slug === HOME_SLUG) return [];
+  const crumbs = [{ name: t(locale, 'navHome'), path: `/${locale}` }];
+  const parentSlug = page.slug.includes('/') ? page.slug.slice(0, page.slug.lastIndexOf('/')) : '';
+  if (parentSlug) {
+    try {
+      const parent = await getPageBySlugCached(parentSlug);
+      if (parent?.status === 'published') crumbs.push({ name: titleOf(parent, locale), path: `/${locale}/${parent.slug}` });
+    } catch { /* no parent page: two crumbs */ }
+  }
+  crumbs.push({ name: titleOf(page, locale), path: `/${locale}/${page.slug}` });
+  return crumbs;
 }

@@ -13,6 +13,8 @@ import BrandTokens from '../../components/chrome/BrandTokens.jsx';
 import StructuredData from '../../components/chrome/StructuredData.jsx';
 import UiStringsBridge from '../../components/chrome/UiStringsBridge.jsx';
 import { loadOrganization } from '../../lib/seo/identity.js';
+import { webSiteJsonLd } from '../../lib/seo/organization.js';
+import { siteSeoCached } from '../../lib/seo/cache.js';
 import ScrollRegions from '../../components/chrome/ScrollRegions.jsx';
 import { t } from '../../lib/i18n/ui.js';
 import { primeUiStrings } from '../../lib/i18n/strings-cache.js';
@@ -103,6 +105,7 @@ export default async function LocaleLayout({ children, params }) {
           lib/seo/identity.js. Both reads degrade to the code constants, so a
           database outage costs this block nothing. */}
       <StructuredData data={await loadOrganization()} />
+      <StructuredData data={webSiteJsonLd(locale, (await siteSeoCached(locale)).orgName)} />
       <AdvisoryBar locale={locale} />
       <SiteHeaderV2 locale={locale} />
       <main id="main">{children}</main>

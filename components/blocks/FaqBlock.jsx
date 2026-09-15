@@ -1,4 +1,6 @@
 import { listItems, text } from '../../lib/blocks/items.js';
+import StructuredData from '../chrome/StructuredData.jsx';
+import { faqJsonLd } from '../../lib/seo/organization.js';
 import ListFilter from './ListFilter.jsx';
 import { filterText, wantsFilter } from '../../lib/blocks/filter.js';
 import { t } from '../../lib/i18n/ui.js';
@@ -17,9 +19,11 @@ import { t } from '../../lib/i18n/ui.js';
 export default function FaqBlock({ data, locale, blockId }) {
   const items = listItems(data.items).filter((item) => text(item.question));
   if (items.length === 0) return null;
+  const jsonLd = faqJsonLd(items);
 
   return (
     <section className="db-block">
+      <StructuredData data={jsonLd} />
       {data.heading ? <h2 className="db-h2">{data.heading}</h2> : null}
       {data.intro ? <p className="db-lede">{data.intro}</p> : null}
       {wantsFilter(data) ? (
