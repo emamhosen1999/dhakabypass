@@ -70,7 +70,7 @@ export default async function TollsAdmin() {
           <TollForm toll={t} />
           <form action={deleteTollRateAction}>
             <input type="hidden" name="id" value={t.id} />
-            <button type="submit" className="text-red-600 text-sm">Delete this rate</button>
+            <button type="submit" className="text-red-700 text-sm underline" data-confirm={`Delete the ${t.class_labels?.en || t.vehicle_class} rate of ${t.amount_bdt} Tk from ${String(t.effective_from).slice(0, 10)}?\n\nIf this is the rate in force, the public table falls back to the previous one. It goes to the trash and can be restored.`}>Delete this rate</button>
           </form>
         </div>
       ))}

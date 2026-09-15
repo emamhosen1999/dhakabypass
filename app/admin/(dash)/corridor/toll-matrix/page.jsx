@@ -156,7 +156,7 @@ export default async function TollMatrixAdmin() {
           <FareForm fare={f} points={points} />
           <form action={deleteTollOdRateAction}>
             <input type="hidden" name="id" value={f.id} />
-            <button type="submit" className="text-red-600 text-sm">Delete this fare</button>
+            <button type="submit" className="text-red-700 text-sm underline" data-confirm={`Delete the ${f.vehicle_class} fare ${plazaName(points, f.origin_interchange_id)} → ${plazaName(points, f.destination_interchange_id)} (${f.amount_bdt} Tk)?\n\nThe calculator answers "not priced" for that journey until a fare is entered again. It goes to the trash and can be restored.`}>Delete this fare</button>
           </form>
         </div>
       ))}

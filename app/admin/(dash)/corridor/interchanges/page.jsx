@@ -1,5 +1,17 @@
 import { listCorridorAction, saveInterchangeAction, deleteInterchangeAction } from '../actions';
 import { formatChainage } from '../../../../../lib/corridor/chainage';
+import { query } from '../../../../../lib/db';
+
+async function fareCountsByInterchange() {
+  try {
+    const rows = await query(`SELECT id, n FROM (
+      SELECT origin_interchange_id AS id, COUNT(*) AS n FROM toll_od_rates GROUP BY origin_interchange_id
+      UNION ALL SELECT destination_interchange_id, COUNT(*) FROM toll_od_rates GROUP BY destination_interchange_id) t`);
+    const out = {};
+    for (const r of rows || []) out[r.id] = (out[r.id] || 0) + Number(r.n);
+    return out;
+  } catch { return {}; }
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -61,6 +73,8 @@ function InterchangeForm({ interchange }) {
 
 export default async function InterchangesAdmin() {
   const { interchanges } = await listCorridorAction();
+  // How many fares each plaza carries, for the delete question (audit U1).
+  const fareCounts = await fareCountsByInterchange();
 
   return (
     <div className="p-6 space-y-6">
@@ -77,7 +91,12 @@ export default async function InterchangesAdmin() {
           <InterchangeForm interchange={i} />
           <form action={deleteInterchangeAction}>
             <input type="hidden" name="id" value={i.id} />
-            <button type="submit" className="text-red-600 text-sm">Delete this interchange</button>
+            <button
+              type="submit" className="text-red-700 text-sm underline"
+              data-confirm={`Delete "${i.names?.en || 'this interchange'}" (${formatChainage(i.chainage_m)}, ${i.kind})?\n\n${fareCounts[i.id] ? `${fareCounts[i.id]} fares start or end here and go to the trash with it. ` : ''}It can be restored from the trash with everything that went with it.`}
+            >
+              Delete this interchange
+            </button>
           </form>
         </div>
       ))}

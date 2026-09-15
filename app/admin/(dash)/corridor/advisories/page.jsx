@@ -60,7 +60,7 @@ export default async function AdvisoriesAdmin() {
           <AdvisoryForm advisory={a} />
           <form action={deleteAdvisoryAction}>
             <input type="hidden" name="id" value={a.id} />
-            <button type="submit" className="text-red-600 text-sm">Delete this advisory</button>
+            <button type="submit" className="text-red-700 text-sm underline" data-confirm={`Delete the ${a.severity} advisory "${String(a.messages?.en || '').slice(0, 80)}"?\n\n${a.is_active ? 'It is active and leaves every page at once. ' : ''}It goes to the trash and can be restored.`}>Delete this advisory</button>
           </form>
         </div>
       ))}

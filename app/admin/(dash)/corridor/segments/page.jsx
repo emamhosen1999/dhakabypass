@@ -32,10 +32,18 @@ function SegmentForm({ segment }) {
           defaultValue={segment?.opened_on ? String(segment.opened_on).slice(0, 10) : ''}
           className="border rounded px-2 py-1" />
       </label>
-      <label className="flex flex-col text-sm">Label (EN)
+      {/* All three languages (audit T3): the form used to offer English only
+          and the save replaced the whole label map, erasing Bangla and Chinese. */}
+      <label className="flex flex-col text-sm">Label (English)
         <input name="label.en" defaultValue={segment?.labels?.en ?? ''} className="border rounded px-2 py-1" />
       </label>
-      <button type="submit" className="px-3 py-1 rounded bg-black text-white h-8">Save</button>
+      <label className="flex flex-col text-sm">Label (বাংলা)
+        <input name="label.bn" lang="bn" defaultValue={segment?.labels?.bn ?? ''} className="border rounded px-2 py-1" />
+      </label>
+      <label className="flex flex-col text-sm">Label (中文)
+        <input name="label.zh" lang="zh-Hans" defaultValue={segment?.labels?.zh ?? ''} className="border rounded px-2 py-1" />
+      </label>
+      <button type="submit" data-noconfirm="" className="px-3 py-1 rounded bg-blue-900 text-white h-8 font-semibold">Save</button>
     </form>
   );
 }
@@ -62,7 +70,7 @@ export default async function SegmentsAdmin() {
           <SegmentForm segment={s} />
           <form action={deleteSegmentAction}>
             <input type="hidden" name="id" value={s.id} />
-            <button type="submit" className="text-red-600 text-sm">Delete this segment</button>
+            <button type="submit" className="text-red-700 text-sm underline" data-confirm={`Delete the segment ${formatChainage(s.from_m)} – ${formatChainage(s.to_m)} (${s.status})?\n\nThe published "% open" figure changes at once. It goes to the trash and can be restored.`}>Delete this segment</button>
           </form>
         </div>
       ))}

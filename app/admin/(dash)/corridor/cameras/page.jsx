@@ -96,7 +96,7 @@ export default async function CamerasAdmin() {
           <CameraForm camera={c} />
           <div className="flex gap-4">
             <form action={testCameraAction}><input type="hidden" name="id" value={c.id} /><button type="submit" className="px-3 py-1 border rounded text-sm">Test now</button></form>
-            <form action={deleteCameraAction}><input type="hidden" name="id" value={c.id} /><button type="submit" className="text-red-600 text-sm">Delete this camera</button></form>
+            <form action={deleteCameraAction}><input type="hidden" name="id" value={c.id} /><button type="submit" className="text-red-700 text-sm underline" data-confirm={`Delete the camera "${c.names?.en || c.id}"?\n\nIts tile leaves the public page. It goes to the trash with its settings and can be restored.`}>Delete this camera</button></form>
           </div>
         </section>
       ))}
