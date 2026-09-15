@@ -103,6 +103,12 @@
   --db-font-zh:'Noto Sans SC','PingFang SC','Hiragino Sans GB','Microsoft YaHei',system-ui,sans-serif;
 }
 
+/* The browser's own controls, scrollbars and form fields follow the theme
+   (UI audit UI-THEME-01): without this a dark page kept white date pickers
+   and a light scrollbar. */
+:root{color-scheme:light dark;}
+:root[data-theme="light"]{color-scheme:light;}
+:root[data-theme="dark"]{color-scheme:dark;}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --db-ground:#0A141D;
@@ -783,7 +789,14 @@
 .db-hero::after{content:"";position:absolute;inset:0;z-index:-1;
   background:linear-gradient(to top,rgba(6,14,20,.95) 0%,rgba(6,14,20,.9) 52%,
     rgba(6,14,20,.84) 88%,rgba(6,14,20,.6) 100%);}
-.db-hero-inner{padding:clamp(22px,4vw,46px);max-width:44rem;}
+/* The hero is full-bleed but its text sits on the same left edge as the
+   header logo and every block below (UI audit UI-VIS-01): the shell's gutter
+   on a narrow screen, and on a wide one the margin that centres the shell.
+   Margin percentages resolve against the hero's own width, which is the
+   viewport's, so no 100vw (and no scrollbar-width error) is involved. */
+.db-hero-inner{max-width:44rem;box-sizing:content-box;
+  padding:clamp(22px,4vw,46px) clamp(12px,3vw,20px);
+  margin-left:max(0px,calc((100% - var(--db-shell)) / 2));}
 /* Opaque, not .72/.84 alpha. Text over a photograph pays for its transparency
    twice — the scrim already dims the ground, and the alpha then dims the text
    against it. Dropping the alpha buys about 2.5x the contrast for no visual
