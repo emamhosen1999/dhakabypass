@@ -135,6 +135,14 @@ export default async function TrafficStatusBlock({ data, locale }) {
         <p className="db-empty-inline">{text(data.emptyMessage) || t(locale, 'mapNoSections')}</p>
       ) : (
         <>
+          {/* Seven rows of "Not measured — —" tell a reader nothing (UI audit
+              UI-CONT-02): when no section carries a measurement the table
+              collapses to one sentence, with the section list one click away. */}
+          {rows.every((r) => !r.measuredAt && r.speed === null) ? (
+            <p className="db-empty-inline">{t(locale, 'trafficNoneMeasured').replace('{n}', nf.format(rows.length))}</p>
+          ) : null}
+          <details className="db-statustable-wrap" open={rows.some((r) => r.measuredAt || r.speed !== null) || undefined}>
+          <summary className="db-statustable-summary">{t(locale, 'trafficShowSections')}</summary>
           <div className="db-scroll-x db-statustable">
             <table className="db-table">
               <caption className="db-table-caption">{caption}</caption>
@@ -172,6 +180,7 @@ export default async function TrafficStatusBlock({ data, locale }) {
               </tbody>
             </table>
           </div>
+          </details>
 
           {legend.length > 0 ? (
             <ul className="db-map-legend db-statuslegend">

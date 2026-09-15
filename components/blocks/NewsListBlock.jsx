@@ -43,10 +43,10 @@ export default async function NewsListBlock({ data, locale, blockId }) {
                 <time dateTime={newsDateISO(item.published_at)}>{formatNewsDate(item.published_at, locale)}</time>
                 {item.category ? <span className="db-newscat">{item.category}</span> : null}
               </p>
-              <h3 className="db-newstitle">
+              <h3 className="db-newstitle" lang={item.translated ? undefined : 'en'}>
                 <Link href={`/${locale}/news/${item.slug}`}>{item.title}</Link>
               </h3>
-              {item.excerpt ? <p className="db-newsexcerpt">{item.excerpt}</p> : null}
+              {item.excerpt ? <p className="db-newsexcerpt" lang={item.translated ? undefined : 'en'}>{item.excerpt}</p> : null}
               {/* An article shown in English inside a Bangla page says so. */}
               {!item.translated ? <p className="db-newsfallback">{t(locale, 'newsInEnglish')}</p> : null}
             </li>

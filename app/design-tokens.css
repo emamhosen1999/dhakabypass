@@ -1516,6 +1516,10 @@
    than fix it. Because the component puts .db-num on the <th> as well as the
    cells, one rule aligns the heading over its own figures. */
 .db-datatable{margin-top:20px;}
+/* The traffic table sits in a disclosure that is open whenever a section has
+   a measurement; the summary is only a control while nothing is measured. */
+.db-statustable-wrap[open] > .db-statustable-summary{display:none;}
+.db-statustable-summary{cursor:pointer;margin-top:12px;font-family:var(--db-font-display);font-weight:600;font-size:.9rem;color:var(--db-ink-2);}
 .db-datatable .db-num{text-align:right;}
 /* Zebra on the flat ground: even rows lift to --db-surface. A published rate
    schedule is read across, often 8 columns wide, on a phone, at arm's length,

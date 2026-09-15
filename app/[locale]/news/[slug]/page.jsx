@@ -106,20 +106,22 @@ export default async function NewsArticle({ params }) {
         </time>
         {article.category ? <span className="db-newscat">{article.category}</span> : null}
       </p>
-      <h1 className="db-h1">{article.title}</h1>
-      {article.excerpt ? <p className="db-lede">{article.excerpt}</p> : null}
-
+      {/* An untranslated article is English inside a Bangla or Chinese page:
+          the notice comes before the heading, and the English parts carry
+          lang="en" so a screen reader switches voice (WCAG 3.1.2, UI-A11Y-02). */}
       {!article.translated ? (
         <p className="db-pending">
           <span className="db-pending-tag">{t(locale, 'newsFallbackTag')}</span>
           {t(locale, 'newsInEnglish')}
         </p>
       ) : null}
+      <h1 className="db-h1" lang={article.translated ? undefined : 'en'}>{article.title}</h1>
+      {article.excerpt ? <p className="db-lede" lang={article.translated ? undefined : 'en'}>{article.excerpt}</p> : null}
 
       {article.body ? (
         // Article bodies come from the admin, which is behind auth and role
         // checks — the same trust boundary as every other rich-text block.
-        <div className="db-prose" dangerouslySetInnerHTML={{ __html: article.body }} />
+        <div className="db-prose" lang={article.translated ? undefined : 'en'} dangerouslySetInnerHTML={{ __html: article.body }} />
       ) : null}
 
       {article.url ? (
