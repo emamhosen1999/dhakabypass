@@ -119,9 +119,24 @@ function FareForm({ fare, points }) {
   );
 }
 
-export default async function TollMatrixAdmin() {
+export default async function TollMatrixAdmin({ searchParams }) {
   const { fares, points } = await listTollMatrixAction();
   const provisional = fares.filter(isProvisional).length;
+  const sp = (await searchParams) || {};
+  // Filters (audit S1): 270 fares are a grid, not a scroll of 270 forms.
+  const classes = [...new Set(fares.map((f) => f.vehicle_class))].sort();
+  const cls = classes.includes(sp.class) ? sp.class : (classes[0] || '');
+  const dir = ['northbound', 'southbound'].includes(sp.direction) ? sp.direction : '';
+  const onlyProvisional = sp.provisional === '1';
+  const plazaId = Number(sp.plaza) || 0;
+  const editId = Number(sp.fare) || 0;
+  const shown = fares.filter((f) => (!cls || f.vehicle_class === cls)
+    && (!dir || f.direction === dir)
+    && (!onlyProvisional || isProvisional(f))
+    && (!plazaId || f.origin_interchange_id === plazaId || f.destination_interchange_id === plazaId));
+  const editing = editId ? fares.find((f) => f.id === editId) : null;
+  const directions = dir ? [dir] : ['northbound', 'southbound'];
+  const link = (extra) => `/admin/corridor/toll-matrix?${new URLSearchParams({ class: cls, ...(dir ? { direction: dir } : {}), ...(onlyProvisional ? { provisional: '1' } : {}), ...(plazaId ? { plaza: String(plazaId) } : {}), ...extra })}`;
 
   return (
     <div className="p-6 space-y-6">
@@ -145,21 +160,83 @@ export default async function TollMatrixAdmin() {
         </p>
       </header>
 
-      {fares.map((f) => (
-        <div key={f.id}>
+
+      <form method="get" className="flex flex-wrap items-end gap-3 border rounded p-3 bg-white">
+        <label className="text-sm">Vehicle class
+          <select name="class" defaultValue={cls} className="block border rounded px-2 py-1">
+            {classes.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+        <label className="text-sm">Direction
+          <select name="direction" defaultValue={dir} className="block border rounded px-2 py-1">
+            <option value="">Both</option><option value="northbound">Northbound</option><option value="southbound">Southbound</option>
+          </select>
+        </label>
+        <label className="text-sm">Plaza
+          <select name="plaza" defaultValue={plazaId || ''} className="block border rounded px-2 py-1">
+            <option value="">Any</option>
+            {points.map((p) => <option key={p.id} value={p.id}>{plazaName(points, p.id)}</option>)}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm pb-1"><input type="checkbox" name="provisional" value="1" defaultChecked={onlyProvisional} /> Provisional only</label>
+        <button type="submit" data-noconfirm="" className="px-3 py-1.5 rounded border border-blue-900 text-blue-900 text-sm font-semibold">Show</button>
+        <span className="text-sm text-gray-600">{shown.length} of {fares.length} fares</span>
+      </form>
+
+      {/* The grid: one table per direction, origins down, destinations across.
+          A cell is a link to that fare's form below; an empty cell is a pair
+          with no fare (the calculator says "not priced" for it). */}
+      {directions.map((d) => {
+        const rows = shown.filter((f) => f.direction === d);
+        if (!rows.length) return null;
+        const cell = (o, t) => rows.find((f) => f.origin_interchange_id === o.id && f.destination_interchange_id === t.id);
+        return (
+          <div key={d} className="overflow-x-auto bg-white border rounded">
+            <table className="min-w-full text-sm">
+              <caption className="text-left px-3 pt-3 font-semibold">{cls} · {d} · Tk</caption>
+              <thead><tr><th className="px-3 py-2 text-left text-xs uppercase text-gray-500">From ↓ / To →</th>{points.map((t) => <th key={t.id} className="px-3 py-2 text-xs uppercase text-gray-500 whitespace-nowrap">{plazaName(points, t.id)}</th>)}</tr></thead>
+              <tbody>
+                {points.map((o) => (
+                  <tr key={o.id} className="border-t">
+                    <th scope="row" className="px-3 py-2 text-left whitespace-nowrap">{plazaName(points, o.id)}</th>
+                    {points.map((t) => {
+                      const f = o.id === t.id ? null : cell(o, t);
+                      return (
+                        <td key={t.id} className="px-3 py-2 text-right tabular-nums">
+                          {o.id === t.id ? <span className="text-gray-300">—</span> : f ? (
+                            <a href={link({ fare: String(f.id) }) + `#fare-${f.id}`} className={`underline ${isProvisional(f) ? 'text-amber-800' : 'text-green-800'}`} title={isProvisional(f) ? 'Provisional' : f.sro_number}>{Number(f.amount_bdt)}</a>
+                          ) : <span className="text-gray-400">·</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+
+      {/* The form for the fare picked in the grid, or every shown fare when
+          the filter is narrow enough to read. */}
+      {(editing ? [editing] : shown.length <= 12 ? shown : []).map((f) => (
+        <div key={f.id} id={`fare-${f.id}`} data-record-label={`the ${f.vehicle_class} fare ${plazaName(points, f.origin_interchange_id)} → ${plazaName(points, f.destination_interchange_id)}`}>
           <p className="text-sm font-semibold pt-2">
             {plazaName(points, f.origin_interchange_id)} → {plazaName(points, f.destination_interchange_id)}
-            {' · '}{f.vehicle_class}{' '}
+            {' · '}{f.vehicle_class}{' · '}{f.direction}{' '}
             {isProvisional(f) ? <span className="ml-2 text-amber-700">provisional</span>
               : <span className="ml-2 text-green-700">{f.sro_number}</span>}
           </p>
           <FareForm fare={f} points={points} />
           <form action={deleteTollOdRateAction}>
             <input type="hidden" name="id" value={f.id} />
-            <button type="submit" className="text-red-700 text-sm underline" data-confirm={`Delete the ${f.vehicle_class} fare ${plazaName(points, f.origin_interchange_id)} → ${plazaName(points, f.destination_interchange_id)} (${f.amount_bdt} Tk)?\n\nThe calculator answers "not priced" for that journey until a fare is entered again. It goes to the trash and can be restored.`}>Delete this fare</button>
+            <button type="submit" className="text-red-700 text-sm underline" data-confirm={`Delete the ${f.vehicle_class} fare ${plazaName(points, f.origin_interchange_id)} → ${plazaName(points, f.destination_interchange_id)} (${f.amount_bdt} Tk)?
+
+The calculator answers "not priced" for that journey until a fare is entered again. It goes to the trash and can be restored.`}>Delete this fare</button>
           </form>
         </div>
       ))}
+      {!editing && shown.length > 12 ? <p className="text-sm text-gray-600">Pick a fare in the grid to edit it, or narrow the filter to 12 or fewer to see the forms.</p> : null}
 
       <div>
         <h2 className="font-semibold">Add a fare</h2>
