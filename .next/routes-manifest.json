@@ -13,8 +13,47 @@
     },
     {
       "source": "/",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "db_locale",
+          "value": "(?<pick>en|bn|zh)"
+        }
+      ],
+      "destination": "/:pick",
+      "statusCode": 307,
+      "regex": "^(?!/_next)/(?:/)?$"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": "(?:bn|bn-[A-Za-z]+)(?:[,;].*)?"
+        }
+      ],
+      "destination": "/bn",
+      "statusCode": 307,
+      "regex": "^(?!/_next)/(?:/)?$"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": "(?:zh|zh-[A-Za-z]+)(?:[,;].*)?"
+        }
+      ],
+      "destination": "/zh",
+      "statusCode": 307,
+      "regex": "^(?!/_next)/(?:/)?$"
+    },
+    {
+      "source": "/",
       "destination": "/en",
-      "statusCode": 308,
+      "statusCode": 307,
       "regex": "^(?!/_next)/(?:/)?$"
     },
     {

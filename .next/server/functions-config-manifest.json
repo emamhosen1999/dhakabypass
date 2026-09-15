@@ -4,7 +4,7 @@
     "/admin/api/upload": {},
     "/api/cameras/[id]/hls/[...path]": {},
     "/api/cameras/[id]/snapshot": {},
-    "/api/cron/cameras": {},
-    "/uploads/[...path]": {}
+    "/uploads/[...path]": {},
+    "/api/cron/cameras": {}
   }
 }

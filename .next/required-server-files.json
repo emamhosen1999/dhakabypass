@@ -305,8 +305,44 @@
     "_originalRedirects": [
       {
         "source": "/",
+        "has": [
+          {
+            "type": "cookie",
+            "key": "db_locale",
+            "value": "(?<pick>en|bn|zh)"
+          }
+        ],
+        "destination": "/:pick",
+        "permanent": false
+      },
+      {
+        "source": "/",
+        "has": [
+          {
+            "type": "header",
+            "key": "accept-language",
+            "value": "(?:bn|bn-[A-Za-z]+)(?:[,;].*)?"
+          }
+        ],
+        "destination": "/bn",
+        "permanent": false
+      },
+      {
+        "source": "/",
+        "has": [
+          {
+            "type": "header",
+            "key": "accept-language",
+            "value": "(?:zh|zh-[A-Za-z]+)(?:[,;].*)?"
+          }
+        ],
+        "destination": "/zh",
+        "permanent": false
+      },
+      {
+        "source": "/",
         "destination": "/en",
-        "permanent": true
+        "permanent": false
       },
       {
         "source": "/:path*",
