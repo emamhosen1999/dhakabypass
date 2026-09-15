@@ -184,4 +184,12 @@ UPDATE `block_translations` bt JOIN `blocks` b ON b.`id` = bt.`block_id`
    SET bt.`data` = JSON_SET(bt.`data`, '$.image', '/photo/20.webp')
  WHERE b.`type` = 'panorama' AND JSON_UNQUOTE(JSON_EXTRACT(bt.`data`, '$.image')) = '/photo/24.webp';
 
+-- ---------------------------------------------------------------- video posters (UI audit UI-MEDIA-01)
+-- The video tiles rendered as blank plates: the block will not fetch a
+-- provider thumbnail (privacy, CSP), and no poster had been set. The site's
+-- own corridor photographs stand in until DBEDC's footage arrives with frames.
+UPDATE `block_translations` bt JOIN `blocks` b ON b.`id` = bt.`block_id`
+   SET bt.`data` = JSON_SET(bt.`data`, '$.poster', ELT(1 + MOD(b.`sort_order`, 4), '/photo/20.webp', '/photo/22.webp', '/photo/23.webp', '/bg-hero.webp'))
+ WHERE b.`type` = 'video-embed' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(bt.`data`, '$.poster')), '') = '';
+
 INSERT IGNORE INTO `schema_migrations` (`name`) VALUES ('39-sample-records');
