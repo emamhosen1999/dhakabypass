@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LOCALES, LOCALE_LABELS, withLocale } from '../../lib/i18n/locales.js';
+import { LOCALES, LOCALE_LABELS, LOCALE_HTML_LANG, withLocale } from '../../lib/i18n/locales.js';
 
 export default function LocaleSwitch({ current, label = 'Language' }) {
   const pathname = usePathname();
@@ -13,6 +13,7 @@ export default function LocaleSwitch({ current, label = 'Language' }) {
           key={l}
           href={withLocale(pathname, l)}
           hrefLang={l}
+          lang={LOCALE_HTML_LANG[l]}
           aria-current={l === current ? 'true' : undefined}
           className="db-locale-btn"
         >

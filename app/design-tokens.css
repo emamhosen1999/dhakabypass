@@ -194,6 +194,25 @@
   }
 }
 .db-root:lang(zh){font-family:var(--db-font-zh);}
+/* ---- Bangla typesetting (UI audit UI-TYPE-02/03) ----------------------------
+   Bangla script carries vowel signs above and below the line and conjuncts
+   that need room: the Latin display settings (1.06 line-height, letter-
+   spaced small caps at 11.5px) clip the marks and pull the glyphs apart.
+   Under lang=bn every letter-spaced component drops its tracking, headings
+   get a taller line, and no text falls under 13.5px. Uppercase is a no-op
+   on Bangla, harmless. */
+.db-root:lang(bn) *{letter-spacing:0 !important;}
+.db-root:lang(bn) h1,.db-root:lang(bn) h2,.db-root:lang(bn) h3,.db-root:lang(bn) .db-display,
+.db-root:lang(bn) .db-hero-title,.db-root:lang(bn) .db-h1,.db-root:lang(bn) .db-h2,.db-root:lang(bn) .db-h3{line-height:1.32;}
+.db-root:lang(bn) p,.db-root:lang(bn) li,.db-root:lang(bn) td,.db-root:lang(bn) th,.db-root:lang(bn) dd{line-height:1.7;}
+.db-root:lang(bn) .db-tag,.db-root:lang(bn) .db-eyebrow,.db-root:lang(bn) .db-stat-label,.db-root:lang(bn) .db-progress-label,
+.db-root:lang(bn) .db-footer-heading,.db-root:lang(bn) .db-advisory-tag,.db-root:lang(bn) .db-marker,.db-root:lang(bn) small,
+.db-root:lang(bn) .db-locale-btn,.db-root:lang(bn) .db-brand-tag{font-size:max(.86rem,13.5px);}
+/* The language switch labels are set in the system stack: with the Bangla
+   face scoped by unicode-range, the word "বাংলা" alone made every English
+   page download 142 kB of Bangla font (UI-PERF-01). Each label carries its
+   own lang attribute for screen readers (WCAG 3.1.2). The rule sits by the
+   switch's own styles below. */
 /* Display runs on Chinese pages: the condensed Latin face has no CJK glyphs,
    so a heading would otherwise be set per glyph from two unrelated fonts.
    Keeping the Latin face first still sets the digits and acronyms (DBEDC,
@@ -332,6 +351,8 @@
 .db-locale-btn{white-space:nowrap;font-family:var(--db-font-display);font-size:.76rem;letter-spacing:.06em;
   padding:4px 9px;border-radius:2px;text-decoration:none;color:inherit;opacity:.6;}
 .db-locale-btn[aria-current="true"]{background:var(--db-plate-accent);color:#0B1620;opacity:1;}
+/* System stack: see the Bangla typesetting note above (no Bangla font on English pages). */
+.db-locale-btn{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans','Noto Sans Bengali','Noto Sans SC',sans-serif;}
 .db-footer{border-top:1px solid var(--db-rule);margin-top:64px;}
 /* Footer navigation: the statutory pages live here rather than in the header,
    so this is the one place a landowner or a supplier finds them. auto-fit means
