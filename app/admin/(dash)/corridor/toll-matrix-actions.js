@@ -42,7 +42,7 @@ async function listTollMatrixAction$inner() {
   // Only `kind = 'toll_plaza'` records may be an origin or a destination, and
   // that is decided by tollPoints() — the same function the public block uses,
   // so the operator cannot pick a plaza the renderer would not recognise.
-  return { fares, points: tollPoints(interchanges) };
+  return { fares, points: tollPoints(interchanges, { openOnly: false }) };
 }
 
 async function saveTollOdRateAction$inner(formData) {

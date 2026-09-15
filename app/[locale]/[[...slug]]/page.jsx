@@ -7,6 +7,8 @@ import { alternatesFor } from '../../../lib/seo/alternates.js';
 import { pathForSlug, HOME_PATH } from '../../../lib/seo/routes.js';
 import { routeMetaFor } from '../../../lib/seo/cache.js';
 import { applyRouteMeta } from '../../../lib/seo/route-meta.js';
+import { getSeoSettingsCached } from '../../../lib/seo/cache.js';
+import { withSocialCard } from '../../../lib/seo/social.js';
 import { t } from '../../../lib/i18n/ui.js';
 import { HOME_SLUG, NOT_FOUND_SLUG } from '../../../lib/content/slug.js';
 import BlockRenderer from '../../../components/blocks/BlockRenderer.jsx';
@@ -98,13 +100,28 @@ export async function generateMetadata({ params }) {
 
   const rows = loaded.page.translations.map((tr) => ({
     locale: tr.locale, status: tr.status,
-    data: { title: tr.seo_title || tr.title, description: tr.seo_description },
+    data: { title: tr.seo_title || tr.title, description: tr.seo_description, ogImage: tr.og_image },
   }));
   const resolved = resolveTranslation(rows, loaded.locale);
   const base = resolved
     ? { title: resolved.data.title, description: resolved.data.description, alternates }
     : { alternates };
-  return applyRouteMeta(base, await routeMetaFor(path, loaded.locale));
+  const meta = applyRouteMeta(base, await routeMetaFor(path, loaded.locale));
+  // A share card on every page: description from the page or its first
+  // prose, image from the page, its first picture, or the site default.
+  let blocks = [];
+  let site = {};
+  try {
+    [blocks, site] = await Promise.all([
+      getPageBlocksCached(loaded.page.id, loaded.page.slug, loaded.locale),
+      getSeoSettingsCached(loaded.locale),
+    ]);
+  } catch { blocks = []; site = {}; }
+  return withSocialCard(meta, {
+    page: { title: resolved?.data.title, description: resolved?.data.description, ogImage: resolved?.data.ogImage },
+    site: { title: site.siteTitle, description: site.siteDescription, ogImage: site.ogImage },
+    blocks, locale: loaded.locale, path,
+  });
 }
 
 export default async function CmsPage({ params, searchParams }) {

@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { isLocale } from '../../../../lib/i18n/locales.js';
 import { t } from '../../../../lib/i18n/ui.js';
 import { alternatesFor } from '../../../../lib/seo/alternates.js';
-import { routeMetaFor } from '../../../../lib/seo/cache.js';
+import { routeMetaFor, getSeoSettingsCached } from '../../../../lib/seo/cache.js';
+import { withSocialCard } from '../../../../lib/seo/social.js';
+import { absoluteUrl } from '../../../../lib/seo/site.js';
 import { applyRouteMeta } from '../../../../lib/seo/route-meta.js';
 import { getNewsBySlugCached } from '../../../../lib/newsroom/cache.js';
 import { formatNewsDate, newsDateISO } from '../../../../lib/newsroom/format.js';
@@ -56,7 +58,7 @@ export async function generateMetadata({ params }) {
   // untouched, so this stays exactly `{}` when there is nothing stored.
   if (!article) return applyRouteMeta({}, meta);
 
-  return applyRouteMeta({
+  const withMeta = applyRouteMeta({
     title: article.title,
     description: article.excerpt || undefined,
     alternates: alternatesFor(path, locale),
@@ -65,8 +67,19 @@ export async function generateMetadata({ params }) {
       title: article.title,
       description: article.excerpt || undefined,
       publishedTime: newsDateISO(article.published_at),
+      ...(article.image ? { images: [{ url: absoluteUrl(article.image) }] } : {}),
     },
   }, meta);
+  // The banner as the share image, or the site default; a card for every article.
+  let site = {};
+  try { site = await getSeoSettingsCached(locale); } catch { site = {}; }
+  const card = withSocialCard(withMeta, {
+    page: { title: article.title, description: article.excerpt, ogImage: article.image },
+    site: { title: site.siteTitle, description: site.siteDescription, ogImage: site.ogImage },
+    locale, path,
+  });
+  card.openGraph.type = 'article';
+  return card;
 }
 
 export default async function NewsArticle({ params }) {
