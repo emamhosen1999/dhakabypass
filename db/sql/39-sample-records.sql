@@ -173,4 +173,15 @@ INSERT INTO `site_settings` (`setting_key`, `value`) VALUES
   ('contact.hours', '{"en":"Sunday–Thursday, 9:00–17:00","bn":"রবিবার–বৃহস্পতিবার, ৯:০০–১৭:০০","zh":"周日至周四 9:00–17:00"}')
   ON DUPLICATE KEY UPDATE `value` = IF(TRIM(BOTH '"' FROM `value`) IN ('', '{}', '01610285004'), VALUES(`value`), `value`);
 
+-- ---------------------------------------------------------------- sample media without people (UI audit UI-CONT-01)
+-- The sample camera stills and panoramas showed workers, residents and a
+-- ceremony beside text saying cameras show traffic, not people. Road-only
+-- frames until real captures arrive.
+UPDATE `cameras` SET `snapshot_url` = '/photo/20.webp' WHERE `is_sample` = 1 AND `snapshot_url` = '/photo/24.webp';
+UPDATE `cameras` SET `snapshot_url` = '/photo/22.webp' WHERE `is_sample` = 1 AND `snapshot_url` = '/photo/25.webp';
+UPDATE `cameras` SET `snapshot_url` = '/photo/23.webp' WHERE `is_sample` = 1 AND `snapshot_url` = '/photo/1.webp';
+UPDATE `block_translations` bt JOIN `blocks` b ON b.`id` = bt.`block_id`
+   SET bt.`data` = JSON_SET(bt.`data`, '$.image', '/photo/20.webp')
+ WHERE b.`type` = 'panorama' AND JSON_UNQUOTE(JSON_EXTRACT(bt.`data`, '$.image')) = '/photo/24.webp';
+
 INSERT IGNORE INTO `schema_migrations` (`name`) VALUES ('39-sample-records');
