@@ -131,6 +131,22 @@
 }
 :root[data-theme="dark"] .db-admin .bg-white { background-color: #101E29; }
 
+/* blue-900 is dual-use too — the plate behind the header and the colour of
+   61 headings and links. Remapping the token would wash out the plate, so the
+   TEXT use is remapped as a class: #9CC3E3 on the dark ground measures 9.6:1,
+   and on a #101E29 card 8.9:1 (UI audit UI-ADM-01). Borders that used it
+   follow, so a "secondary" button keeps a visible edge. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .db-admin .text-blue-900 { color: #9CC3E3; }
+  :root:not([data-theme="light"]) .db-admin .border-blue-900 { border-color: #9CC3E3; }
+  :root:not([data-theme="light"]) .db-admin .text-blue-800 { color: #B6D3EC; }
+  :root:not([data-theme="light"]) .db-admin .text-gray-500 { color: #9CAEBB; }
+}
+:root[data-theme="dark"] .db-admin .text-blue-900 { color: #9CC3E3; }
+:root[data-theme="dark"] .db-admin .border-blue-900 { border-color: #9CC3E3; }
+:root[data-theme="dark"] .db-admin .text-blue-800 { color: #B6D3EC; }
+:root[data-theme="dark"] .db-admin .text-gray-500 { color: #9CAEBB; }
+
 /* `bg-black text-white` is the admin's other primary button: the plate in
    light mode, the logo blue in dark, where a black button would vanish. */
 .db-admin { --color-black: #06263D; }
@@ -152,8 +168,22 @@
 .db-admin input::placeholder, .db-admin textarea::placeholder { color: var(--color-gray-400); }
 .db-admin input:focus-visible, .db-admin select:focus-visible, .db-admin textarea:focus-visible,
 .db-admin button:focus-visible, .db-admin a:focus-visible, .db-admin summary:focus-visible {
-  outline: 2px solid var(--admin-focus);
+  /* Two-tone ring, as on the public site: the orange alone measures 2.66:1
+     on white (UI audit UI-ADM-02). A 3px orange outline set off by a 2px
+     plate-coloured halo is at least 3:1 against white, the #E7EBEE ground,
+     the dark ground and a dark card. */
+  outline: 3px solid var(--admin-focus);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-gray-50), 0 0 0 7px var(--color-blue-900);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .db-admin :focus-visible { box-shadow: 0 0 0 2px var(--color-gray-50), 0 0 0 7px #9CC3E3; }
+}
+:root[data-theme="dark"] .db-admin :focus-visible { box-shadow: 0 0 0 2px var(--color-gray-50), 0 0 0 7px #9CC3E3; }
+/* 44px targets on small screens (UI audit UI-ADM-06). */
+@media (max-width: 767px) {
+  .db-admin button, .db-admin a.inline-flex, .db-admin summary { min-height: 44px; }
+  .db-admin input:not([type="checkbox"]):not([type="radio"]), .db-admin select { min-height: 44px; }
 }
 .db-admin button, .db-admin a { border-radius: 4px; }
 .db-admin h1, .db-admin h2, .db-admin h3 {
