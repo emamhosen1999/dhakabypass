@@ -44,7 +44,26 @@ import '../../lib/blocks/index.js';
  * unique on the page, and two of the same block type on one page must not
  * collide.
  */
+/**
+ * When the page's text last changed: the newest published block text in any
+ * language. A page-header or hero with `showUpdated` prints it (UI audit
+ * UI-TRUST-02, concession audit CON-SEO-K-02), so a statutory page carries a
+ * date a reader can trust, derived from the records rather than typed.
+ */
+export function pageUpdatedAt(blocks = []) {
+  let latest = null;
+  for (const b of blocks) {
+    for (const tr of b.translations || []) {
+      if (tr.status !== 'published' || !tr.updatedAt) continue;
+      const d = tr.updatedAt instanceof Date ? tr.updatedAt : new Date(String(tr.updatedAt).replace(' ', 'T'));
+      if (!Number.isNaN(d.getTime()) && (!latest || d > latest)) latest = d;
+    }
+  }
+  return latest;
+}
+
 export default function BlockRenderer({ blocks = [], locale, searchParams }) {
+  const updatedAt = pageUpdatedAt(blocks);
   return (
     <>
       {blocks.map((block) => {
@@ -65,6 +84,7 @@ export default function BlockRenderer({ blocks = [], locale, searchParams }) {
             locale={locale}
             blockId={block.id}
             searchParams={searchParams}
+            pageUpdatedAt={updatedAt}
           />
         );
         const element = resolved.fallback ? (
