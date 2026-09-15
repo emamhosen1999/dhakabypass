@@ -12,6 +12,24 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     },
     {
+      "source": "/",
+      "destination": "/en",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/(?:/)?$"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.dhakabypass.com"
+        }
+      ],
+      "destination": "https://dhakabypass.com/:path*",
+      "statusCode": 308,
+      "regex": "^(?!/_next)(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
       "source": "/project",
       "destination": "/en/project",
       "statusCode": 308,
@@ -171,13 +189,7 @@
     }
   ],
   "rewrites": {
-    "beforeFiles": [
-      {
-        "source": "/",
-        "destination": "/en",
-        "regex": "^/(?:/)?$"
-      }
-    ],
+    "beforeFiles": [],
     "afterFiles": [],
     "fallback": []
   },

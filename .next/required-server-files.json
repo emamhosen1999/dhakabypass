@@ -302,17 +302,23 @@
     "turbopack": {
       "root": "/home/runner/work/dhakabypass/dhakabypass"
     },
-    "_originalRewrites": {
-      "beforeFiles": [
-        {
-          "source": "/",
-          "destination": "/en"
-        }
-      ],
-      "afterFiles": [],
-      "fallback": []
-    },
     "_originalRedirects": [
+      {
+        "source": "/",
+        "destination": "/en",
+        "permanent": true
+      },
+      {
+        "source": "/:path*",
+        "has": [
+          {
+            "type": "host",
+            "value": "www.dhakabypass.com"
+          }
+        ],
+        "destination": "https://dhakabypass.com/:path*",
+        "permanent": true
+      },
       {
         "source": "/project",
         "destination": "/en/project",

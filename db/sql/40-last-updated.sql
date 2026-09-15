@@ -9,7 +9,7 @@ UPDATE `block_translations` bt
   JOIN `blocks` b ON b.`id` = bt.`block_id`
   JOIN `pages` p ON p.`id` = b.`page_id`
    SET bt.`data` = JSON_SET(bt.`data`, '$.showUpdated', 'yes')
- WHERE b.`type` = 'page-header'
+ WHERE b.`type` IN ('page-header', 'hero') AND b.`sort_order` = 0
    AND (p.`slug` LIKE 'disclosures/%' OR p.`slug` IN ('privacy', 'terms', 'accessibility', 'grievances', 'travel/toll', 'travel/rules', 'travel/toll-dispute', 'about/concession', 'about/governance', 'about/integrity', 'procurement'))
    AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(bt.`data`, '$.showUpdated')), '') <> 'yes';
 
