@@ -170,13 +170,20 @@ const nextConfig = {
       { source: '/:path*', headers: [{ key: 'Content-Security-Policy', value: csp }] },
     ];
   },
-  async rewrites() {
-    // The public domain opens the English homepage without a language suffix.
-    // Locale routes remain available for switching languages and deep links.
-    return { beforeFiles: [{ source: '/', destination: '/en' }] };
-  },
   async redirects() {
     return [
+      // One address per page (concession audit CON-SEO-A-01/02). The bare
+      // domain used to REWRITE to /en, so the home page lived at two URLs;
+      // www served everything too. Both are permanent redirects now, so a
+      // crawler and a shared link land on the one canonical address. The
+      // host condition matches only the www form; the apex is untouched.
+      { source: '/', destination: '/en', permanent: true },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.dhakabypass.com' }],
+        destination: 'https://dhakabypass.com/:path*',
+        permanent: true,
+      },
       ...[
         ['/project', '/en/project'],
         ['/project/overview', '/en/project'],

@@ -1,10 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test('the root opens the English homepage without redirecting', async ({page}) => {
-  const response = await page.goto('/');
-  expect(response.status()).toBe(200);
-  expect(response.request().redirectedFrom()).toBeNull();
-  expect(new URL(page.url()).pathname).toBe('/');
+// One address per page (concession audit CON-SEO-A-02): the bare domain
+// used to rewrite to /en, so the home page lived at two URLs. It redirects.
+test('the root redirects permanently to the English homepage', async ({ page, request }) => {
+  const bare = await request.get('/', { maxRedirects: 0 });
+  expect(bare.status()).toBe(308);
+  expect(new URL(bare.headers().location, 'http://x').pathname).toBe('/en');
+  await page.goto('/');
+  expect(new URL(page.url()).pathname).toBe('/en');
   await expect(page.locator('.db-root')).toHaveAttribute('lang', 'en');
 });
 

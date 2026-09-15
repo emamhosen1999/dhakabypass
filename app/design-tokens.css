@@ -1516,6 +1516,7 @@
    than fix it. Because the component puts .db-num on the <th> as well as the
    cells, one rule aligns the heading over its own figures. */
 .db-page-updated{margin-top:10px;font-size:.84rem;color:var(--db-ink-3);}
+.db-hero-updated{color:inherit;opacity:.8;}
 .db-datatable{margin-top:20px;}
 /* The traffic table sits in a disclosure that is open whenever a section has
    a measurement; the summary is only a control while nothing is measured. */
