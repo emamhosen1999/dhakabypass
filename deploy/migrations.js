@@ -50,6 +50,7 @@ export const MIGRATIONS = Object.freeze([
   '38-corridor-extent',
   '39-sample-records',
   '40-last-updated',
+  '41-request-status',
 ]);
 
 /** Names in MIGRATIONS that the ledger does not carry, in import order. */
