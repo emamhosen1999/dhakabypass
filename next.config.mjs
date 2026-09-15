@@ -83,6 +83,8 @@ const nextConfig = {
    * `base-uri 'self'` and `frame-ancestors 'none'` this is a real policy rather
    * than a decorative one. Revisit if middleware ever becomes editable.
    */
+  // The X-Powered-By header names the framework to every visitor (audit CON-SEC-04).
+  poweredByHeader: false,
   async headers() {
     /**
      * Next's DEV server compiles with eval — hot reload, the React refresh
