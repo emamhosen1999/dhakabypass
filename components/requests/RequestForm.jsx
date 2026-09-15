@@ -36,15 +36,17 @@ export default function RequestForm({ action, plan, labels, successNote }) {
     );
   }
 
-  const field = (name, label, { type = 'text', required = false, autoComplete } = {}) => (
+  const field = (name, label, { type = 'text', required = false, autoComplete, hint = '', inputMode } = {}) => (
     <div className="db-field">
       <label htmlFor={`rf-${name}`} className="db-label">
         {label} {required ? <span className="db-required" aria-hidden="true">*</span> : null}
       </label>
       <input
-        id={`rf-${name}`} name={name} type={type} required={required} autoComplete={autoComplete}
+        id={`rf-${name}`} name={name} type={type} required={required} autoComplete={autoComplete} inputMode={inputMode}
         className="db-input" aria-invalid={invalid(name) || undefined}
+        aria-describedby={hint ? `rf-${name}-hint` : undefined}
       />
+      {hint ? <p id={`rf-${name}-hint`} className="db-form-note">{hint}</p> : null}
     </div>
   );
 
@@ -58,7 +60,7 @@ export default function RequestForm({ action, plan, labels, successNote }) {
       </div>
 
       {field('name', labels.name, { required: true, autoComplete: 'name' })}
-      {plan.phone ? field('phone', labels.phone, { type: 'tel', required: !plan.email, autoComplete: 'tel' }) : null}
+      {plan.phone ? field('phone', labels.phone, { type: 'tel', required: !plan.email, autoComplete: 'tel', inputMode: 'tel', hint: labels.phoneHint }) : null}
       {plan.email ? field('email', labels.email, { type: 'email', required: !plan.phone, autoComplete: 'email' }) : null}
       {plan.phone && plan.email ? <p className="db-form-note">{labels.contactEither}</p> : null}
       {plan.vehicle ? field('vehicle_no', labels.vehicle, { required: true }) : null}

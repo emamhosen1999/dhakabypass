@@ -31,7 +31,7 @@ export default function RequestFormBlock({ data, locale }) {
   const action = submitServiceRequest.bind(null, config);
 
   const labels = {
-    name: t(locale, 'formName'), email: t(locale, 'formEmail'), phone: t(locale, 'formPhone'),
+    name: t(locale, 'formName'), email: t(locale, 'formEmail'), phone: t(locale, 'formPhone'), phoneHint: t(locale, 'formPhoneHint'),
     vehicle: t(locale, 'formVehicle'), location: t(locale, 'formLocation'),
     contactEither: t(locale, 'formContactEither'),
     subject: t(locale, 'formSubject'), message: t(locale, 'formMessage'),

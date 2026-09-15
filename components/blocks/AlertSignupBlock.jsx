@@ -8,7 +8,7 @@ export default function AlertSignupBlock({ data = {}, locale, blockId }) {
   const heading = text(data.heading) || t(locale, 'alertHeading');
   const intro = text(data.intro);
   const labels = {
-    phone: t(locale, 'alertPhone'), channel: t(locale, 'alertChannel'), sms: 'SMS', whatsapp: 'WhatsApp',
+    phone: t(locale, 'alertPhone'), phoneHint: t(locale, 'formPhoneHint'), channel: t(locale, 'alertChannel'), sms: 'SMS', whatsapp: 'WhatsApp',
     consent: t(locale, 'alertConsent'), consentNeeded: t(locale, 'alertConsentNeeded'),
     subscribe: t(locale, 'alertSubscribe'), unsubscribe: t(locale, 'alertUnsubscribe'),
     switchToUnsubscribe: t(locale, 'alertSwitchUnsubscribe'), switchToSubscribe: t(locale, 'alertSwitchSubscribe'),

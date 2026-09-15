@@ -24,7 +24,8 @@ export default function AlertSignup({ labels, locale, blockId }) {
       </div>
       <div className="db-field">
         <label htmlFor={id('phone')} className="db-label">{labels.phone}</label>
-        <input id={id('phone')} name="phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="01XXXXXXXXX" className="db-input" />
+        <input id={id('phone')} name="phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="01711 000000" className="db-input" aria-describedby={id('phone-hint')} />
+        {labels.phoneHint ? <p id={id('phone-hint')} className="db-form-note">{labels.phoneHint}</p> : null}
       </div>
       <fieldset className="db-field db-alert-channels">
         <legend className="db-label">{labels.channel}</legend>

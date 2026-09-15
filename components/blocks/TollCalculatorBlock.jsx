@@ -135,7 +135,8 @@ export default async function TollCalculatorBlock({ data = {}, locale, searchPar
     entry: text(data.entryLabel) || t(locale, 'mapStartPoint'),
     exit: text(data.exitLabel) || t(locale, 'mapEndPoint'),
     vehicle: text(data.vehicleLabel) || t(locale, 'colVehicle'),
-    submit: text(data.submitLabel) || t(locale, 'colToll'),
+    // The button says what pressing it does; the column heading is a noun (UI audit UI-FORM-02).
+    submit: text(data.submitLabel) || t(locale, 'calcShowFare'),
     fare: text(data.fareLabel) || t(locale, 'colToll'),
     distance: text(data.distanceLabel) || t(locale, 'mapMeasuredLength'),
   };
