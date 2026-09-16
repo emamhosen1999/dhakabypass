@@ -196,6 +196,18 @@
   padding:6px 0 2px;font-size:.78rem;color:var(--db-ink-3);}
 .db-scroll-x[data-overflow][data-at-end]::after{visibility:hidden;}
 .db-scroll-x[tabindex]:focus-visible{outline:3px solid var(--db-accent-bright);outline-offset:-3px;}
+/* The arrow buttons ScrollRegions puts under an overflowing region, for the
+   reader with a mouse. 44px targets; the one at an end is disabled rather
+   than hidden, so the pair never jumps. Dropped on paper with the region's
+   hint. */
+.db-scroll-arrows{display:flex;justify-content:flex-end;gap:6px;margin:0 0 6px;}
+.db-scroll-arrows[hidden]{display:none;}
+.db-scroll-btn{min-width:var(--db-tap,44px);min-height:var(--db-tap,44px);padding:0 10px;
+  border:1px solid var(--db-rule-2);border-radius:var(--db-radius-sm);background:var(--db-surface);
+  color:var(--db-ink-2);font-size:1.1rem;line-height:1;cursor:pointer;}
+.db-scroll-btn:hover:not(:disabled),.db-scroll-btn:focus-visible{color:var(--db-ink);border-color:var(--db-ink-3);}
+.db-scroll-btn:disabled{opacity:.35;cursor:default;}
+@media print{.db-scroll-arrows{display:none;}}
 /* Long unbroken strings (URLs, chainages) must not blow out narrow screens. */
 .db-root p,.db-root li,.db-root td,.db-root h1,.db-root h2,.db-root h3{overflow-wrap:break-word;}
 /* Every interactive target meets the 44px minimum on touch devices. */
@@ -296,8 +308,13 @@
    and 4.16:1 (dark). Plate foreground at .72 measures 8.75 and 7.63 and keeps
    the muted weight the control was drawn with. */
 .db-theme-btn{white-space:nowrap;font-family:var(--db-font-display);font-size:.74rem;letter-spacing:.1em;
-  text-transform:uppercase;padding:6px 10px;background:transparent;color:rgba(237,242,245,.72);
+  text-transform:uppercase;padding:6px 10px;background:transparent;color:var(--db-ink-2);
   border:0;border-right:1px solid var(--db-rule);cursor:pointer;}
+/* On the dark header plate (the admin still keeps it there) the muted plate
+   ink; on the footer's surface, where the public control moved in W8N.2, the
+   page's own secondary ink — the plate colour was invisible on a light
+   footer. */
+.db-header .db-theme-btn,.db-admin .db-theme-btn{color:rgba(237,242,245,.72);}
 .db-theme-btn:first-child{border-top-left-radius:2px;border-bottom-left-radius:2px;}
 .db-theme-btn:last-child{border-right:0;border-top-right-radius:2px;border-bottom-right-radius:2px;}
 .db-theme-btn[aria-pressed="true"]{background:var(--db-accent-bright);color:#0B1620;}
@@ -501,7 +518,7 @@
 .db-footer-emergency-number{font-family:var(--db-font-display);font-size:1.25rem;font-weight:700;
   color:var(--db-plate-fg);text-decoration:none;font-variant-numeric:tabular-nums;
   letter-spacing:.04em;padding:6px 0;min-height:var(--db-tap);display:inline-flex;align-items:center;
-  margin-right:10px;}
+  margin-right:10px;min-width:var(--db-tap,44px);justify-content:center;}
 .db-footer-emergency-number:hover,.db-footer-emergency-number:focus-visible{text-decoration:underline;
   text-underline-offset:4px;}
 
@@ -808,9 +825,32 @@
 .db-advisory-closure .db-advisory-tag{color:var(--db-alert);}
 
 /* ---- travel section shell ---- */
+/* The rail WRAPS. It used to scroll sideways with the scrollbar hidden — the
+   same defect the header had (UI-RESP-03) — so on a 1,200px screen a reader
+   with a mouse saw "TRA" cut off at the edge and had no way to reach the six
+   pages behind it: a wheel scrolls up and down, and nothing said there was
+   more. Fourteen labels wrap to two rows and every page is in view. */
 .db-subnav{max-width:var(--db-shell);margin:0 auto;padding:14px max(clamp(12px,3vw,20px),env(safe-area-inset-left),env(safe-area-inset-right)) 0;
-  display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-.db-subnav::-webkit-scrollbar{display:none;}
+  display:flex;flex-wrap:wrap;gap:4px;}
+/* On a phone the rail folds into "In this section · <current page>". The
+   summary is not drawn from 768px, where the rail is always open. */
+.db-subnav-fold{max-width:var(--db-shell);margin:0 auto;}
+.db-subnav-summary{display:none;list-style:none;}
+.db-subnav-summary::-webkit-details-marker{display:none;}
+@media (max-width:767px){
+  .db-subnav-summary{display:flex;align-items:center;gap:10px;min-height:var(--db-tap,44px);
+    margin:12px max(clamp(12px,3vw,20px),env(safe-area-inset-left),env(safe-area-inset-right)) 0;
+    padding:6px 12px;border:1px solid var(--db-rule-2);border-radius:var(--db-radius-sm);cursor:pointer;}
+  .db-subnav-summary-label{font-family:var(--db-font-display);font-size:.72rem;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--db-ink-3);}
+  .db-subnav-summary-current{font-weight:600;color:var(--db-ink);flex:1;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .db-subnav-summary::after{content:"";flex:none;width:9px;height:9px;
+    border-right:2px solid var(--db-ink-3);border-bottom:2px solid var(--db-ink-3);
+    transform:rotate(45deg) translate(-2px,-2px);}
+  .db-subnav-fold[open] > .db-subnav-summary::after{transform:rotate(-135deg) translate(-2px,-2px);}
+  .db-subnav{padding-top:8px;}
+}
 .db-subnav-link{white-space:nowrap;flex:none;font-family:var(--db-font-display);font-weight:600;
   font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;
   border-radius:var(--db-radius-xs);text-decoration:none;color:var(--db-ink-2);}
@@ -819,6 +859,21 @@
    after :hover so it wins on equal specificity — the active item stays
    marked even while hovered. */
 .db-subnav-link[aria-current]{background:var(--db-plate-accent);color:#0B1620;}
+/* ---- section index: a hub's pages as cards ---------------------------------
+   The 2px-gutter mosaic the card grid and the board use. Each tile is one
+   link — title and the page's own one-line description — so a hub says what
+   each page is for instead of listing names. */
+.db-section-cards{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:2px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+.db-section-card{background:var(--db-surface);min-width:0;}
+.db-section-card-link{display:flex;flex-direction:column;gap:6px;height:100%;padding:18px;
+  min-height:var(--db-tap,44px);color:inherit;text-decoration:none;box-shadow:inset 0 -3px 0 transparent;}
+.db-section-card-link:hover,.db-section-card-link:focus-visible{box-shadow:inset 0 -3px 0 var(--db-accent);}
+.db-section-card-title{font-family:var(--db-font-display);font-weight:700;font-size:1.02rem;
+  letter-spacing:.02em;line-height:1.3;color:var(--db-ink);}
+.db-section-card-link:hover .db-section-card-title{text-decoration:underline;text-underline-offset:.18em;}
+.db-section-card-desc{color:var(--db-ink-2);font-size:.9rem;line-height:1.5;}
+@media print{.db-section-cards{gap:8pt;}}
 .db-page-head{max-width:var(--db-shell);margin:0 auto;padding:clamp(24px,4vw,40px) clamp(12px,3vw,20px) 0;}
 .db-h1{font-size:clamp(1.9rem,1.3rem + 2.4vw,3rem);text-transform:uppercase;letter-spacing:.01em;}
 .db-h2{font-size:clamp(1.4rem,1.1rem + 1.4vw,2rem);text-transform:uppercase;letter-spacing:.02em;}
@@ -970,6 +1025,10 @@
 .db-partner-role{margin:0;color:var(--db-ink-2);font-size:.93rem;
   display:flex;justify-content:space-between;gap:10px;}
 .db-partner-share{font-variant-numeric:tabular-nums;color:var(--db-ink);font-weight:600;}
+/* The partner's name is a link to governance: 44px of target, not the 22px
+   of its text line (UI sweep, WCAG 2.5.8). */
+.db-partner-link{display:inline-flex;align-items:center;min-height:var(--db-tap,44px);color:inherit;text-decoration:none;}
+.db-partner-link:hover,.db-partner-link:focus-visible{text-decoration:underline;text-underline-offset:.18em;}
 /* A partner's mark: fixed height, natural width, on the surface so a
    transparent crop reads the same in both themes. */
 .db-partner-logo{height:64px;margin-bottom:8px;display:flex;align-items:center;}

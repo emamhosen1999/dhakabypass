@@ -28,15 +28,20 @@ export default function FooterGroups({ children }) {
     const root = ref.current;
     if (!root) return undefined;
     const groups = () => [...root.querySelectorAll('details.db-footer-group')];
+    // A programmatic change fires `toggle` too, so the handler must know the
+    // difference or every group would count as touched on the first pass.
+    let programmatic = 0;
     const apply = (narrow) => {
       for (const d of groups()) {
-        if (d.dataset.touched === 'yes') continue;
+        if (d.dataset.touched === 'yes' || d.open === !narrow) continue;
+        programmatic += 1;
         d.open = !narrow;
       }
     };
     const mq = window.matchMedia('(max-width: 599px)');
     const onChange = () => apply(mq.matches);
     const onToggle = (event) => {
+      if (programmatic > 0) { programmatic -= 1; return; }
       const d = event.target.closest?.('details.db-footer-group');
       if (d) d.dataset.touched = 'yes';
     };

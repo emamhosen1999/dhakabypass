@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { t } from '../../lib/i18n/ui';
 import { TRAVEL_NAV } from '../../lib/menus/builtin.js';
 
@@ -30,25 +31,52 @@ export const TRAVEL_SECTION = TRAVEL_NAV;
  */
 export default function TravelSubnav({ locale, links, label }) {
   const pathname = usePathname();
+  const fold = useRef(null);
   const items = Array.isArray(links) && links.length
     ? links
     : TRAVEL_SECTION.map((item) => ({ href: `/${locale}${item.href}`, label: t(locale, item.key) }));
+  const current = items.find((item) => pathname === item.href);
+
+  /**
+   * On a phone the rail folds into one row — "In this section · Toll rates" —
+   * that opens to the wrapped list; from 768px it is always open and the
+   * summary is not drawn. Native <details>, rendered OPEN by the server, so
+   * without script every link is visible; this effect only closes it on a
+   * narrow screen, and leaves alone a fold the reader has toggled themselves.
+   */
+  useEffect(() => {
+    const el = fold.current;
+    if (!el) return undefined;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const apply = () => { if (el.dataset.touched !== 'yes' && el.open === mq.matches) el.open = !mq.matches; };
+    const touch = () => { el.dataset.touched = 'yes'; };
+    apply();
+    mq.addEventListener('change', apply);
+    el.querySelector('summary')?.addEventListener('click', touch);
+    return () => {
+      mq.removeEventListener('change', apply);
+      el.querySelector('summary')?.removeEventListener('click', touch);
+    };
+  }, []);
 
   return (
-    <nav className="db-subnav" aria-label={label || t(locale, 'navTravel')}>
-      {items.map((item) => {
-        const current = pathname === item.href;
-        return (
+    <details ref={fold} className="db-subnav-fold" open>
+      <summary className="db-subnav-summary">
+        <span className="db-subnav-summary-label">{t(locale, 'inThisSection')}</span>
+        {current ? <span className="db-subnav-summary-current">{current.label}</span> : null}
+      </summary>
+      <nav className="db-subnav" aria-label={label || t(locale, 'navTravel')}>
+        {items.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            aria-current={current ? 'page' : undefined}
+            aria-current={pathname === item.href ? 'page' : undefined}
             className="db-subnav-link"
           >
             {item.label}
           </Link>
-        );
-      })}
-    </nav>
+        ))}
+      </nav>
+    </details>
   );
 }

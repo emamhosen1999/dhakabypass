@@ -80,19 +80,14 @@ describe('legacy redirects resolve in a single hop', () => {
   });
 
   it('keeps every legacy redirect permanent', () => {
-    // The bare domain is the exception: it opens in the reader's language, so
-    // it must stay temporary or a browser would remember one reader's choice.
-    const legacy = redirects.filter((r) => r.source !== '/');
-    expect(legacy.length).toBeGreaterThan(0);
-    expect(legacy.every((r) => r.permanent === true)).toBe(true);
+    expect(redirects.length).toBeGreaterThan(0);
+    expect(redirects.every((r) => r.permanent === true)).toBe(true);
   });
 
-  it('sends the bare domain to a language temporarily: chosen, then browser, then English', () => {
-    const root = redirects.filter((r) => r.source === '/');
-    expect(root.every((r) => r.permanent === false)).toBe(true);
-    expect(root.at(-1)).toMatchObject({ destination: '/en' });
-    expect(root.at(-1).has).toBeUndefined();
-    expect(root[0].has[0]).toMatchObject({ type: 'cookie', key: 'db_locale' });
+  it('leaves the bare domain to app/route.js, where the redirect can say no-store', () => {
+    // A config redirect cannot carry Cache-Control, and without it the HTTP
+    // cache replayed one reader's language to the next (W8N.7, NAV-I18N-01).
+    expect(redirects.filter((r) => r.source === '/')).toEqual([]);
   });
 });
 

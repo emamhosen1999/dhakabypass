@@ -84,16 +84,28 @@ describe('the site map excludes the page that renders 404s (W8N.7)', () => {
 });
 
 describe('the remembered language survives the cache (W8N.7)', () => {
-  it('sends no-store and varies on the cookie for the bare domain', async () => {
-    const config = (await import('../../next.config.mjs')).default;
-    const headers = await config.headers();
-    const root = headers.find((h) => h.source === '/');
-    expect(root, 'no header rule for the bare domain').toBeTruthy();
-    const byKey = Object.fromEntries(root.headers.map((h) => [h.key, h.value]));
-    expect(byKey['Cache-Control']).toMatch(/no-store/);
-    expect(byKey.Vary).toMatch(/Cookie/);
+  it('chooses the cookie, then the browser language, then English', async () => {
+    const { pickLocale } = await import('../../lib/i18n/pick-locale.js');
+    expect(pickLocale({ cookie: 'bn', acceptLanguage: 'zh-CN' })).toBe('bn');
+    expect(pickLocale({ cookie: '', acceptLanguage: 'zh-CN,zh;q=0.9,en;q=0.8' })).toBe('zh');
+    expect(pickLocale({ cookie: 'fr', acceptLanguage: 'bn-BD,bn;q=0.9' })).toBe('bn');
+    expect(pickLocale({ cookie: '', acceptLanguage: 'en-GB,bn;q=0.9' })).toBe('en');
+    expect(pickLocale({})).toBe('en');
+  });
+  it('answers the bare domain with a 307 that no cache may keep', async () => {
+    const { GET } = await import('../../app/route.js');
+    const request = {
+      cookies: { get: (k) => (k === 'db_locale' ? { value: 'zh' } : undefined) },
+      headers: new Headers({ 'accept-language': 'en-GB' }),
+    };
+    const res = GET(request);
+    expect(res.status).toBe(307);
+    expect(res.headers.get('location')).toBe('/zh');
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect(res.headers.get('vary')).toMatch(/Cookie/);
   });
 });
+
 
 describe('the breadcrumb (W8N.4)', () => {
   it('is named in every language', () => {

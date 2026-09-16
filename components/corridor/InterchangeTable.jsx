@@ -5,6 +5,7 @@ import { t } from '../../lib/i18n/ui';
 // kind/status label keys, so the two tables cannot name the same record
 // differently.
 import { kindKey, statusKey, statusTagClass } from '../../lib/corridor/interchange-labels';
+import ScrollArrows from '../chrome/ScrollArrows.jsx';
 
 /**
  * The accessible equivalent of the strip, and useful in its own right — this is
@@ -17,6 +18,8 @@ export default function InterchangeTable({ interchanges, locale, caption }) {
   }
 
   return (
+    <>
+    <ScrollArrows locale={locale} />
     <div className="db-scroll-x">
       <table className="db-table">
         {caption ? <caption className="db-table-caption">{caption}</caption> : null}
@@ -46,5 +49,6 @@ export default function InterchangeTable({ interchanges, locale, caption }) {
         </tbody>
       </table>
     </div>
+    </>
   );
 }

@@ -42,7 +42,7 @@ export default async function PartnerRowBlock({ data, locale }) {
                     />
                   </span>
                 ) : null}
-                {href ? <Link href={href}>{name}</Link> : name}
+                {href ? <Link href={href} className="db-partner-link">{name}</Link> : name}
               </dt>
               <dd className="db-partner-role">
                 {p && p.role ? p.role : ''}

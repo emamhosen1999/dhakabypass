@@ -1,4 +1,5 @@
 import { normaliseTable } from '../../lib/blocks/table.js';
+import ScrollArrows from '../chrome/ScrollArrows.jsx';
 
 /**
  * Published tabular data: toll schedules, traffic statistics, tariff tables.
@@ -12,7 +13,7 @@ import { normaliseTable } from '../../lib/blocks/table.js';
  * inside its own box on a phone instead of making the page body scroll
  * sideways under the reader's thumb.
  */
-export default function DataTableBlock({ data }) {
+export default function DataTableBlock({ data, locale }) {
   const { columns, rows } = normaliseTable(data);
   if (columns.length === 0 || rows.length === 0) return null;
 
@@ -25,6 +26,7 @@ export default function DataTableBlock({ data }) {
     <section className="db-block">
       {data.heading ? <h2 className="db-h2">{data.heading}</h2> : null}
       {data.intro ? <p className="db-lede">{data.intro}</p> : null}
+      <ScrollArrows locale={locale} />
       <div className="db-scroll-x db-datatable">
         <table className="db-table">
           <caption className="db-table-caption">{data.caption}</caption>

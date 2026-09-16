@@ -6,6 +6,7 @@ import { buildMatrix, hasCitation } from '../../lib/corridor/toll-matrix';
 import { text } from '../../lib/blocks/items.js';
 import { t } from '../../lib/i18n/ui';
 import IllustrativeNotice from '../corridor/IllustrativeNotice';
+import ScrollArrows from '../chrome/ScrollArrows.jsx';
 
 /**
  * The origin–destination fare matrix: what a driver pays entering at one toll
@@ -104,6 +105,7 @@ export default async function TollMatrixBlock({ data, locale }) {
           <IllustrativeNotice locale={locale} id={noticeId} />
         ) : null}
 
+        <ScrollArrows locale={locale} />
         <div className="db-scroll-x db-datatable db-tolltable">
           <table
             className="db-table"

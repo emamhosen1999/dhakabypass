@@ -206,7 +206,10 @@ describe('a database built from db/sql/*.sql alone', () => {
     const titles = await all('SELECT locale FROM page_translations WHERE page_id = ? AND title <> ? ORDER BY locale', [hub.id, '']);
     expect(titles.map((r) => r.locale).sort()).toEqual(['bn', 'en', 'zh']);
     const blocks = await all('SELECT type FROM blocks WHERE page_id = ? ORDER BY sort_order', [hub.id]);
-    expect(blocks.map((b) => b.type)).toEqual(['page-header', 'section-subnav']);
+    // 46 puts the toll calculator between them and turns the index into cards.
+    expect(blocks.map((b) => b.type)).toEqual(['page-header', 'toll-calculator', 'section-subnav']);
+    const index = await one("SELECT JSON_UNQUOTE(JSON_EXTRACT(bt.data, '$.layout')) AS layout FROM block_translations bt JOIN blocks b ON b.id = bt.block_id WHERE b.page_id = ? AND b.type = 'section-subnav' AND bt.locale = 'en'", [hub.id]);
+    expect(index.layout).toBe('cards');
   });
 
   it('gives every section a menu whose labels are the pages own titles (45)', async () => {

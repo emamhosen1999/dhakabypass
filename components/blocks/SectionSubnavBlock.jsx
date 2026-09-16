@@ -4,6 +4,8 @@ import { SECTION_MENU_SLUGS } from '../../lib/menus/slugs.js';
 import { sectionMenuSlugs } from '../../lib/menus/section-menus.js';
 import { t } from '../../lib/i18n/ui.js';
 import TravelSubnav from '../chrome/TravelSubnav.jsx';
+import { pageSummaries } from '../../lib/content/page-summaries.js';
+import { stripLocale } from '../../lib/seo/routes.js';
 
 const text = (v) => (typeof v === 'string' ? v.trim() : '');
 
@@ -35,5 +37,35 @@ export default async function SectionSubnavBlock({ data, locale }) {
   }
 
   const label = text(data?.label) || t(locale, 'navTravel');
+
+  /**
+   * The section index (W8N.3 follow-up). A hub whose whole body was a row of
+   * fourteen uppercase labels — in a strip that scrolled sideways with the
+   * scrollbar hidden, so a reader with a mouse could not reach the last six —
+   * was a page that cost a click and gave nothing back. As cards, each page
+   * says what it is for, in the reader's language, from its own settings.
+   */
+  if (data?.layout === 'cards') {
+    const slugs = links.map((l) => stripLocale(l.href));
+    let summaries = {};
+    try { summaries = await pageSummaries(slugs, locale); } catch { summaries = {}; }
+    return (
+      <nav className="db-block db-section-index" aria-label={label}>
+        <ul className="db-section-cards">
+          {links.map((l) => {
+            const s = summaries[stripLocale(l.href)] || {};
+            return (
+              <li key={l.href} className="db-section-card">
+                <a className="db-section-card-link" href={l.href}>
+                  <span className="db-section-card-title">{l.label}</span>
+                  {s.description ? <span className="db-section-card-desc">{s.description}</span> : null}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    );
+  }
   return <TravelSubnav locale={locale} links={links} label={label} />;
 }

@@ -135,7 +135,13 @@ export default async function SiteFooterV2({ locale }) {
             ))}
           </ul>
         ) : null}
-        <p className="db-footer-legal">© {year} {brand.orgShortName}. {t(locale, 'allRights')}</p>
+        {/* The operator's own line from /admin/settings when set; otherwise
+            composed from the short name and the wording table. */}
+        <p className="db-footer-legal">
+          {brand.copyright
+            ? brand.copyright.replace(/\{year\}/g, String(year))
+            : <>© {year} {brand.orgShortName}. {t(locale, 'allRights')}</>}
+        </p>
       </div>
     </footer>
   );

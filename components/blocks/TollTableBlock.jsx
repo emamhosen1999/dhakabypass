@@ -4,6 +4,7 @@ import { selectRates, hasSectionColumn, tollCitation, inForceSince } from '../..
 import { text } from '../../lib/blocks/items.js';
 import { t } from '../../lib/i18n/ui';
 import PrintShare from './PrintShare.jsx';
+import ScrollArrows from '../chrome/ScrollArrows.jsx';
 
 /**
  * The full toll schedule — a HYBRID block, and the clearest example of why
@@ -53,6 +54,8 @@ export default async function TollTableBlock({ data, locale }) {
   const withSection = hasSectionColumn(rows);
 
   const table = (
+    <>
+    <ScrollArrows locale={locale} />
     <div className="db-scroll-x db-datatable db-tolltable db-tollschedule">
       <table className="db-table">
         {/* A real <caption>, always: a screen reader announces what the
@@ -78,6 +81,7 @@ export default async function TollTableBlock({ data, locale }) {
         </tbody>
       </table>
     </div>
+    </>
   );
 
   return (

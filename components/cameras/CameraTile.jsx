@@ -59,7 +59,7 @@ export default function CameraTile({ camera, labels }) {
         ) : src ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={src} alt={`${camera.name} — ${labels.still}`} loading="lazy" decoding="async"
+            src={src} alt={`${camera.name} — ${labels.still}`} loading="lazy" decoding="async" width={640} height={360}
             onLoad={() => { setOffline(false); setUpdated(new Date()); }}
             onError={() => setOffline(true)}
           />

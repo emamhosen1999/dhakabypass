@@ -42,9 +42,10 @@ export default async function SettingsPage() {
   // next save would store it as an override that outranks any later correction
   // — the same trap db/sql/09-ui-strings.sql refuses to seed itself into. The
   // placeholders below show the default instead.
-  const [storedTitle, storedDescription] = await Promise.all([
+  const [storedTitle, storedDescription, storedCopyright] = await Promise.all([
     getSetting(SEO_KEYS.siteTitle, {}),
     getSetting(SEO_KEYS.siteDescription, {}),
+    getSetting(SEO_KEYS.copyright, {}),
   ]);
   // The single-valued fields have no such problem: an empty box and the code
   // default mean the same thing there, and showing the resolved value tells the
@@ -248,6 +249,18 @@ export default async function SettingsPage() {
             name="org_short_name" label="Short name" defaultValue={seo.orgShortName}
             placeholder={SEO_DEFAULTS.orgShortName}
           />
+          <p className="text-sm text-gray-600 pt-2">
+            The copyright line at the foot of every page. Write <code>{'{year}'}</code> where the
+            current year should appear. Leave blank for “© {'{year}'} short name. All rights reserved.”
+            in each language.
+          </p>
+          {LOCALES.map((l) => (
+            <Text
+              key={l} name={`copyright_line_${l}`} label={`Copyright line — ${LOCALE_LABELS[l]}`}
+              defaultValue={per(storedCopyright, l)}
+              placeholder={l === 'en' ? `© {year} ${SEO_DEFAULTS.orgShortName}. All rights reserved.` : 'Falls back to English'}
+            />
+          ))}
           <Text
             name="header_logo" label="Header logo" defaultValue={seo.headerLogo}
             placeholder="(blank = DBEDC's emblem, /brand/dbedc-mark.webp)"

@@ -7,6 +7,7 @@ import { kindKey, statusKey, statusTagClass } from '../../lib/corridor/interchan
 import { selectInterchanges, visibleColumns } from '../../lib/blocks/interchangeTable.js';
 import { text } from '../../lib/blocks/items.js';
 import { t } from '../../lib/i18n/ui';
+import ScrollArrows from '../chrome/ScrollArrows.jsx';
 
 /**
  * Every interchange, toll plaza, bridge and service area on the corridor —
@@ -54,6 +55,8 @@ export default async function InterchangeTableBlock({ data, locale }) {
            falling back to the editable `noInterchanges` string. */
         <p className="db-empty-inline">{text(data.emptyMessage) || t(locale, 'noInterchanges')}</p>
       ) : (
+        <>
+        <ScrollArrows locale={locale} />
         <div className="db-scroll-x db-interchangetable">
           <table className="db-table">
             <caption className="db-table-caption">{caption}</caption>
@@ -102,6 +105,7 @@ export default async function InterchangeTableBlock({ data, locale }) {
             </tbody>
           </table>
         </div>
+        </>
       )}
       {linkLabel && linkHref ? (
         <p className="db-actions">

@@ -5,6 +5,7 @@ import { conditionColour, conditionLabelKey } from '../../lib/corridor/condition
 import { selectSections, conditionsPresent, waypointNames } from '../../lib/blocks/trafficStatus.js';
 import { text } from '../../lib/blocks/items.js';
 import { t } from '../../lib/i18n/ui';
+import ScrollArrows from '../chrome/ScrollArrows.jsx';
 
 const SEVERITY_KEY = { closure: 'sevClosure', warning: 'sevWarning', info: 'sevInfo' };
 const SEVERITY_TAG = { closure: 'alert', warning: 'build', info: 'planned' };
@@ -143,6 +144,7 @@ export default async function TrafficStatusBlock({ data, locale }) {
           ) : null}
           <details className="db-statustable-wrap" open={rows.some((r) => r.measuredAt || r.speed !== null) || undefined}>
           <summary className="db-statustable-summary">{t(locale, 'trafficShowSections')}</summary>
+          <ScrollArrows locale={locale} />
           <div className="db-scroll-x db-statustable">
             <table className="db-table">
               <caption className="db-table-caption">{caption}</caption>
