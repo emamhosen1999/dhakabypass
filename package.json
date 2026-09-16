@@ -13,6 +13,7 @@
     "format": "prettier --write",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
+    "page-weight": "node scripts/page-weight.mjs",
     "test:db": "vitest run tests/db",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

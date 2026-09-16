@@ -10,7 +10,7 @@ import CorridorExplorer from '../corridor/CorridorExplorer.jsx';
 const text = (v) => (typeof v === 'string' ? v.trim() : '');
 
 const CONDITION_COLOUR = {
-  free: 'var(--db-open)',
+  free: 'var(--db-traffic-free)',
   moderate: 'var(--db-traffic-moderate)',
   slow: 'var(--db-traffic-slow)',
   heavy: 'var(--db-alert)',

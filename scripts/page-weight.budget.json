@@ -1,0 +1,13 @@
+{
+  "why": "W8.7. sharedJsGzipKb is the React and Next runtime baseline (measured 139 kB) with headroom, not a target we chose; the numbers to defend are the route, CSS and font lines. Gzipped kilobytes a first view pays for. Raising a number here must be a deliberate, reviewed line in a diff; `node scripts/page-weight.mjs --update` rewrites them to the measured sizes + 10% when a change makes the old numbers meaningless.",
+  "budgets": {
+    "sharedJsGzipKb": 145,
+    "cssGzipKb": 60,
+    "unconditionalFontsKb": 100,
+    "routeJsGzipKb": {
+      "/[locale]/layout": 60,
+      "/[locale]/[[...slug]]/page": 120,
+      "/[locale]/news/[slug]/page": 60
+    }
+  }
+}

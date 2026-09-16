@@ -123,3 +123,8 @@ jobs:
       # build that only passes with a database is a build that will fail at
       # the worst moment.
       - run: npm run build
+      # W8.7: the chrome, the stylesheet and the fonts stay inside a budget a
+      # reader on a 3G phone can afford. Raising a number is a reviewed line in
+      # scripts/page-weight.budget.json, not a silent drift.
+      - name: Page weight budget
+        run: node scripts/page-weight.mjs

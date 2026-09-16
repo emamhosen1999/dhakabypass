@@ -55,7 +55,7 @@ export default function CorridorMap({
         onMouseLeave={onHoverSection ? () => onHoverSection(null) : undefined}
         onClick={onSelectSection ? e => { e.preventDefault(); onSelectSection(s.id); } : undefined}>
         <title>{s.title}</title><path d={s.d} className="db-map-hitarea" style={roadStyle}/>
-        <path d={s.d} className="db-map-section" stroke={active === s.id ? 'var(--map-selection)' : s.stroke}
+        <path d={s.d} className="db-map-section" data-condition={s.condition} stroke={active === s.id ? 'var(--map-selection)' : s.stroke}
           style={{ ...roadStyle, opacity: active === s.id ? 0.85 : traffic ? 0.8 : 0 }}/>
       </a>)}
       <g className="db-map-direction" pointerEvents="none">
