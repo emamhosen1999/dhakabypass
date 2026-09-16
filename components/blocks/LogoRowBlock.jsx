@@ -1,5 +1,6 @@
 import { localeHref } from '../../lib/blocks/href.js';
 import { listItems, text } from '../../lib/blocks/items.js';
+import Link from 'next/link';
 
 /**
  * Partner and stakeholder marks — RHD, UDC, SDIG/SRBG, DBEDC.
@@ -39,7 +40,7 @@ export default function LogoRowBlock({ data, locale }) {
           );
           return (
             <li key={i} className="db-logo-item">
-              {href ? <a className="db-logo-link" href={href}>{mark}</a> : mark}
+              {href ? <Link className="db-logo-link" href={href}>{mark}</Link> : mark}
               {text(item.role) ? <p className="db-logo-role">{text(item.role)}</p> : null}
             </li>
           );

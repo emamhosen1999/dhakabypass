@@ -6,6 +6,7 @@ import { t } from '../../lib/i18n/ui.js';
 import TravelSubnav from '../chrome/TravelSubnav.jsx';
 import { pageSummaries } from '../../lib/content/page-summaries.js';
 import { stripLocale } from '../../lib/seo/routes.js';
+import Link from 'next/link';
 
 const text = (v) => (typeof v === 'string' ? v.trim() : '');
 
@@ -56,10 +57,10 @@ export default async function SectionSubnavBlock({ data, locale }) {
             const s = summaries[stripLocale(l.href)] || {};
             return (
               <li key={l.href} className="db-section-card">
-                <a className="db-section-card-link" href={l.href}>
+                <Link className="db-section-card-link" href={l.href}>
                   <span className="db-section-card-title">{l.label}</span>
                   {s.description ? <span className="db-section-card-desc">{s.description}</span> : null}
-                </a>
+                </Link>
               </li>
             );
           })}

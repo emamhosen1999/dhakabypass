@@ -2,6 +2,7 @@
 import { getActiveAdvisoriesCached } from '../../lib/corridor/cache';
 import { localeMessage } from '../../lib/corridor/advisories';
 import { t } from '../../lib/i18n/ui';
+import Link from 'next/link';
 
 const SEVERITY_KEY = { closure: 'sevClosure', warning: 'sevWarning', info: 'sevInfo' };
 
@@ -39,7 +40,7 @@ export default async function AdvisoryBar({ locale }) {
         <span className="db-advisory-tag">{t(locale, SEVERITY_KEY[top.severity] || 'sevInfo')}</span>
         {/* A closure notice a reader cannot click through is a notice they
             cannot act on (W8N.8, NAV-WAY-05). */}
-        <a className="db-advisory-msg" href={`/${locale}/travel/advisories`}>{message}</a>
+        <Link className="db-advisory-msg" href={`/${locale}/travel/advisories`}>{message}</Link>
       </div>
     </div>
   );

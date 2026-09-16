@@ -160,7 +160,11 @@ export default async function TollCalculatorBlock({ data = {}, locale, searchPar
     provisionalBody: t(locale, 'provisionalBody'),
     samePoint: text(data.samePointMessage) || empty,
     unpriced: text(data.unpricedMessage) || empty,
+    unopenedTag: t(locale, 'plazaNotOpen'),
+    unopenedBody: t(locale, 'tollUnopenedBody'),
   };
+  // Plazas not yet open to traffic, for the client-side answer to flag.
+  const unopened = result.points.filter((p) => !p.open).map((p) => String(p.id));
 
   /**
    * Every answer, already computed and already formatted, for the client to
@@ -198,6 +202,7 @@ export default async function TollCalculatorBlock({ data = {}, locale, searchPar
       fare: formatTaka(result.amountBdt),
       km: formatKm(result.distanceM),
       provisional: result.provisional,
+      unopened: Boolean(result.unopened),
       minutes: showTime ? result.minutes : null,
       sroNumber: result.row.sro_number || '',
       sroDate: result.row.sro_date || '',
@@ -213,7 +218,9 @@ export default async function TollCalculatorBlock({ data = {}, locale, searchPar
   };
 
   const plazaOptions = result.points.map((p) => (
-    <option key={p.id} value={String(p.id)}>{localeName(p, locale) || p.names?.en || ''}</option>
+    <option key={p.id} value={String(p.id)}>
+      {localeName(p, locale) || p.names?.en || ''}{p.open ? '' : ` (${t(locale, 'plazaNotOpen')})`}
+    </option>
   ));
 
   return (
@@ -285,6 +292,7 @@ export default async function TollCalculatorBlock({ data = {}, locale, searchPar
         answers={answers}
         strings={strings}
         noticeId={noticeId}
+        unopened={unopened}
       />
     </section>
   );

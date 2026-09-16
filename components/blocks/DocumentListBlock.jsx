@@ -3,6 +3,10 @@ import { t } from '../../lib/i18n/ui.js';
 import ListFilter from './ListFilter.jsx';
 import { filterText, wantsFilter } from '../../lib/blocks/filter.js';
 import { listItems, text } from '../../lib/blocks/items.js';
+import Link from 'next/link';
+
+/** A same-site path with no file extension: a page, not a download. */
+const isPagePath = (h) => /^\/[^?#]*$/.test(String(h)) && !/\.[a-z0-9]{2,5}$/i.test(String(h));
 
 /**
  * The downloads centre, and the body of every disclosure page.
@@ -47,7 +51,12 @@ export default function DocumentListBlock({ data, locale, blockId }) {
           return (
             <li key={i} className="db-doc" data-filter-text={filterText(doc.title, doc.description, doc.fileType, doc.date)}>
               {href ? (
-                <a className="db-doc-link" href={href}>{title}{meta}</a>
+                // A row that points at a page on this site navigates like
+                // every other link (client-side); a file is a download and
+                // stays a plain anchor.
+                isPagePath(href)
+                  ? <Link className="db-doc-link" href={href}>{title}{meta}</Link>
+                  : <a className="db-doc-link" href={href}>{title}{meta}</a>
               ) : (
                 /* A document announced but not yet uploaded stays visible as
                    text. A link to nowhere is worse than a line that says the

@@ -4,6 +4,7 @@ import ListFilter from './ListFilter.jsx';
 import { filterText, wantsFilter, tagUnion, tagValue } from '../../lib/blocks/filter.js';
 import { formatCoordinates } from '../../lib/blocks/coords.js';
 import { listItems, text } from '../../lib/blocks/items.js';
+import Link from 'next/link';
 
 /** The amenity tags of one pin. Authored per locale, so nothing here is a
  *  code-side vocabulary; a blank the operator left in the repeater is
@@ -72,7 +73,7 @@ export default function MapPinListBlock({ data, locale, blockId }) {
               {href && linkLabel ? (
                 <p className="db-actions">
                   {/* Often an external mapping service, so a plain anchor. */}
-                  <a className="db-btn db-btn-secondary" href={href}>{linkLabel}</a>
+                  <Link className="db-btn db-btn-secondary" href={href}>{linkLabel}</Link>
                 </p>
               ) : null}
             </li>

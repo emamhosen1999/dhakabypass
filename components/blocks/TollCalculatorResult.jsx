@@ -50,7 +50,7 @@ import IllustrativeNoticeView from '../corridor/IllustrativeNoticeView.jsx';
  * what CorridorExplorer does with the map's own controls.
  */
 export default function TollCalculatorResult({
-  formId, keys, initial, answers = [], strings = {}, noticeId,
+  formId, keys, initial, answers = [], strings = {}, noticeId, unopened = [],
 }) {
   const [view, setView] = useState(initial);
 
@@ -78,6 +78,7 @@ export default function TollCalculatorResult({
       if (!hit) return { status: 'unpriced', provisional: true };
       return {
         status: 'priced',
+        unopened: unopened.includes(from) || unopened.includes(to),
         fare: hit[3],
         km: hit[4],
         provisional: hit[5] === 1,
@@ -117,7 +118,7 @@ export default function TollCalculatorResult({
       form.removeEventListener('change', onChange);
       form.removeEventListener('submit', onSubmit);
     };
-  }, [formId, keys, answers]);
+  }, [formId, keys, answers, unopened]);
 
   const status = view?.status || 'idle';
   // Nothing asked, or asked only halfway: no panel at all. `required` on the
@@ -140,6 +141,9 @@ export default function TollCalculatorResult({
           read out before the price is. */}
       {priced && provisional ? (
         <IllustrativeNoticeView id={noticeId} tag={strings.provisionalTag} body={strings.provisionalBody} />
+      ) : null}
+      {priced && view?.unopened ? (
+        <IllustrativeNoticeView id={`${noticeId}-unopened`} tag={strings.unopenedTag} body={strings.unopenedBody} />
       ) : null}
 
       <div
