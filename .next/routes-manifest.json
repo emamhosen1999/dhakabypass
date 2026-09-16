@@ -12,51 +12,6 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     },
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "cookie",
-          "key": "db_locale",
-          "value": "(?<pick>en|bn|zh)"
-        }
-      ],
-      "destination": "/:pick",
-      "statusCode": 307,
-      "regex": "^(?!/_next)/(?:/)?$"
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept-language",
-          "value": "(?:bn|bn-[A-Za-z]+)(?:[,;].*)?"
-        }
-      ],
-      "destination": "/bn",
-      "statusCode": 307,
-      "regex": "^(?!/_next)/(?:/)?$"
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept-language",
-          "value": "(?:zh|zh-[A-Za-z]+)(?:[,;].*)?"
-        }
-      ],
-      "destination": "/zh",
-      "statusCode": 307,
-      "regex": "^(?!/_next)/(?:/)?$"
-    },
-    {
-      "source": "/",
-      "destination": "/en",
-      "statusCode": 307,
-      "regex": "^(?!/_next)/(?:/)?$"
-    },
-    {
       "source": "/:path*",
       "has": [
         {
@@ -225,20 +180,6 @@
         }
       ],
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
-    },
-    {
-      "source": "/",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        },
-        {
-          "key": "Vary",
-          "value": "Cookie, Accept-Language"
-        }
-      ],
-      "regex": "^/(?:/)?$"
     }
   ],
   "rewrites": {
@@ -341,6 +282,12 @@
     }
   ],
   "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
     {
       "page": "/_not-found",
       "regex": "^/_not\\-found(?:/)?$",

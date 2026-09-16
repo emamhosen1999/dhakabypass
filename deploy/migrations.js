@@ -55,6 +55,7 @@ export const MIGRATIONS = Object.freeze([
   '43-legal-page-headers',
   '44-legal-review',
   '45-section-menus',
+  '46-section-index',
 ]);
 
 /** Names in MIGRATIONS that the ledger does not carry, in import order. */

@@ -1,9 +1,9 @@
 {
   "version": 1,
   "functions": {
+    "/api/cameras/[id]/snapshot": {},
     "/admin/api/upload": {},
     "/api/cameras/[id]/hls/[...path]": {},
-    "/api/cameras/[id]/snapshot": {},
     "/api/cron/cameras": {},
     "/uploads/[...path]": {}
   }
