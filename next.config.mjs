@@ -168,6 +168,19 @@ const nextConfig = {
       // and admin trees so the legacy site kept working; that site is gone
       // (W6.1), and every route this app serves is one we own and test.
       { source: '/:path*', headers: [{ key: 'Content-Security-Policy', value: csp }] },
+      // The bare domain answers differently per reader — the remembered
+      // language (db_locale), then the browser's Accept-Language — so its 307
+      // must never be reused for the next reader or for the same reader's next
+      // visit (W8N.7, NAV-I18N-01). Without this a cached /en redirect defeated
+      // the cookie the language switch had just written: a reader who chose
+      // Bangla landed on English the following day.
+      {
+        source: '/',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store' },
+          { key: 'Vary', value: 'Cookie, Accept-Language' },
+        ],
+      },
     ];
   },
   async redirects() {

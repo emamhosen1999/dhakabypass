@@ -12,6 +12,7 @@ import { withSocialCard } from '../../../lib/seo/social.js';
 import { t } from '../../../lib/i18n/ui.js';
 import { HOME_SLUG, NOT_FOUND_SLUG } from '../../../lib/content/slug.js';
 import BlockRenderer from '../../../components/blocks/BlockRenderer.jsx';
+import Breadcrumbs from '../../../components/chrome/Breadcrumbs.jsx';
 import StructuredData from '../../../components/chrome/StructuredData.jsx';
 import { breadcrumbJsonLd } from '../../../lib/seo/organization.js';
 
@@ -172,6 +173,9 @@ export default async function CmsPage({ params, searchParams }) {
   return (
     <>
       <StructuredData data={breadcrumbJsonLd(crumbs)} />
+      {/* The same trail the structured data above publishes, drawn for the
+          reader as well as the crawler (W8N.4). */}
+      <Breadcrumbs crumbs={crumbs} locale={locale} />
       {/* A commitment page not yet approved by counsel says so (W8C.2). */}
       {page.legal_status === 'review' ? (
         <aside className="db-block db-legal-review" role="note">

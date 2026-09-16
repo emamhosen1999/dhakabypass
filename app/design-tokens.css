@@ -302,11 +302,18 @@
 .db-theme-btn:last-child{border-right:0;border-top-right-radius:2px;border-bottom-right-radius:2px;}
 .db-theme-btn[aria-pressed="true"]{background:var(--db-accent-bright);color:#0B1620;}
 
+/* The five shell rules take the device's own safe area when it is larger than
+   the design gutter (W8N.8, NAV-MOBILE-02). On a notched phone held in
+   landscape the system inflates one side to about 44px; without the env()
+   term the brand and the leftmost navigation link sat under the notch. */
 .db-header{background:var(--db-plate-bg);color:var(--db-plate-fg);}
-.db-header-inner{max-width:var(--db-shell);margin:0 auto;padding:14px clamp(12px,3vw,20px);
+.db-header-inner{max-width:var(--db-shell);margin:0 auto;padding:14px max(clamp(12px,3vw,20px),env(safe-area-inset-left),env(safe-area-inset-right));
   display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;}
 .db-skip{position:absolute;left:-9999px;}
-.db-skip:focus{position:static;display:inline-block;padding:8px 12px;background:var(--db-accent-bright);color:#0B1620;}
+/* margin-left keeps the two-tone focus ring clear of .db-root's overflow clip
+   (W8N.8, NAV-A11Y-02): the ring extends about 10px past the border box, and
+   the first thing a keyboard reader focuses on every page had it shaved off. */
+.db-skip:focus{position:static;display:inline-block;margin-left:10px;padding:8px 12px;background:var(--db-accent-bright);color:#0B1620;}
 .db-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;}
 /* Was a filled amber square containing the letters "DB". It now holds the real
    mark (components/chrome/BrandMark.jsx), which takes its ring from
@@ -345,8 +352,33 @@
   font-family:var(--db-font-display);font-weight:600;font-size:.86rem;
   letter-spacing:.09em;text-transform:uppercase;padding:7px 11px;border-radius:var(--db-radius-xs);text-decoration:none;color:inherit;opacity:.78;}
 .db-nav-link:hover,.db-nav-link[aria-current]{opacity:1;}
-.db-nav-link[aria-current="page"]{box-shadow:inset 0 -2px 0 var(--db-plate-accent);}
-.db-nav-search{display:inline-flex;align-items:center;gap:6px;}
+/* The CTA is a nav link too: CurrentNav marks it, so it must also be drawn as
+   current, or the screen reader and the eye are told different things
+   (W8N.8, NAV-A11Y-03). */
+.db-nav-link[aria-current="page"],.db-nav-cta[aria-current="page"]{box-shadow:inset 0 -2px 0 var(--db-plate-accent);}
+/* The header search field (W8N.6). Hidden below 768px, where the compact row
+   carries the Search LINK instead: a text field costs a header row a 360px
+   screen does not have. On the plate, so the input is drawn in plate ink with a
+   translucent ground rather than the page's surface colours. */
+/* The field appears at 1024px, not 768px: between those widths the header is
+   already wrapping to three rows on a landscape phone (W8N.2), and until then
+   the Search LINK in the row above does the job. Exactly one of the two is
+   visible at any width. */
+.db-nav-search{display:none;align-items:center;gap:6px;flex:none;}
+@media (min-width:1024px){
+  .db-nav-search{display:inline-flex;}
+  .db-nav-link-search{display:none;}
+}
+.db-nav-search-input{min-width:0;width:clamp(120px,14vw,200px);min-height:var(--db-tap,44px);
+  padding:6px 10px;border:1px solid color-mix(in srgb,var(--db-plate-fg) 45%,transparent);
+  border-radius:var(--db-radius-xs);background:color-mix(in srgb,var(--db-plate-fg) 10%,transparent);
+  color:var(--db-plate-fg);font:inherit;font-size:.86rem;}
+.db-nav-search-input::placeholder{color:color-mix(in srgb,var(--db-plate-fg) 65%,transparent);}
+.db-nav-search-btn{min-height:var(--db-tap,44px);padding:6px 12px;border:1px solid var(--db-plate-accent);
+  border-radius:var(--db-radius-xs);background:transparent;color:var(--db-plate-accent);cursor:pointer;
+  font-family:var(--db-font-display);font-weight:600;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;}
+.db-nav-search-btn:hover,.db-nav-search-btn:focus-visible{background:var(--db-plate-accent);color:#0B1620;}
+@media print{.db-nav-search{display:none;}}
 .db-nav-cta{border:1px solid var(--db-plate-accent);color:var(--db-plate-accent);opacity:1;}
 /* At narrow widths the brand alone fills the row, so the utilities wrap onto
    their own line instead of overflowing. .db-root sets overflow-x:hidden, which
@@ -355,33 +387,105 @@
    shrink instead of forcing the row wider than the viewport. */
 .db-header-utils{display:flex;gap:10px;align-items:center;margin-left:auto;
   flex-wrap:wrap;min-width:0;}
-@media (max-width:479px){
-  .db-header-utils{margin-left:0;width:100%;justify-content:flex-start;}
+/* On a phone the utilities go BELOW the navigation (W8N.2, NAV-HEADER-03). The
+   emergency number and the language switch sat above every link on the site,
+   which gave a light/dark preference more vertical priority than the
+   navigation and the content beneath it. The order property moves the row
+   without moving it in the document, so the tab order still follows the
+   reading order of a wide screen. Tighter gaps and padding take the rest: the
+   header measured 340px on a 360px touch screen, 46% of the viewport. */
+/* 768-1023px: the navigation takes a row of its own and the language switch
+   comes up beside the brand, so the header is two rows instead of three
+   (W8N.2, NAV-RESPONSIVE-01). At 163px it was 43% of a landscape phone. */
+@media (min-width:768px) and (max-width:1023px){
+  .db-header-utils{order:1;margin-left:0;}
+  .db-nav{order:2;width:100%;margin-left:0;}
 }
+@media (max-width:479px){
+  .db-header-inner{gap:8px 12px;padding-top:10px;padding-bottom:10px;}
+  .db-header-utils{order:3;margin-left:0;width:100%;justify-content:flex-start;gap:8px;}
+  .db-nav-mobile{order:2;padding-bottom:0;}
+  .db-header-sos{order:1;}
+}
+/* The emergency number in the header (W8N.1, NAV-HEADER-01). It is the one
+   control on the plate drawn as a filled amber tile, because a driver on a hard
+   shoulder is looking for a number, not reading a header: #0B1620 on
+   --db-plate-accent measures 11.4:1, the same pairing the language switch uses
+   for the current language. 44px tall from any pointer — this is the one target
+   that must never need a second attempt. The label is stacked above the digits
+   so the tile stays narrow enough to sit beside the language switch at 320px. */
+.db-header-sos{display:inline-flex;flex-direction:column;justify-content:center;
+  min-height:44px;padding:4px 12px;border-radius:var(--db-radius-sm);
+  background:var(--db-plate-accent);color:#0B1620;text-decoration:none;flex:none;}
+.db-header-sos-label{font-family:var(--db-font-display);font-size:.6rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;opacity:.8;line-height:1.1;}
+.db-header-sos-number{font-family:var(--db-font-display);font-weight:700;font-size:.98rem;
+  letter-spacing:.04em;line-height:1.2;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.db-header-sos:hover,.db-header-sos:focus-visible{background:var(--db-plate-fg);color:var(--db-plate-bg);}
 .db-locale-switch{display:inline-flex;gap:2px;flex-wrap:wrap;}
 .db-locale-btn{white-space:nowrap;font-family:var(--db-font-display);font-size:.76rem;letter-spacing:.06em;
   padding:4px 9px;border-radius:var(--db-radius-xs);text-decoration:none;color:inherit;opacity:.6;}
 .db-locale-btn[aria-current="true"]{background:var(--db-plate-accent);color:#0B1620;opacity:1;}
 /* System stack: see the Bangla typesetting note above (no Bangla font on English pages). */
 .db-locale-btn{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans','Noto Sans Bengali','Noto Sans SC',sans-serif;}
+/* ---- breadcrumbs (W8N.4) --------------------------------------------------
+   A trail, not a control strip: small, quiet ink, and the page's own name at
+   the end as plain text. The separator is drawn with ::before on every item but
+   the first, so it is never read aloud as a character. The row scrolls rather
+   than wraps on a narrow screen, because a wrapped trail reads as two trails. */
+.db-breadcrumbs{max-width:var(--db-shell);margin:0 auto;
+  padding:10px max(clamp(12px,3vw,20px),env(safe-area-inset-left),env(safe-area-inset-right)) 0;}
+.db-breadcrumb-list{list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:0 6px;
+  margin:0;padding:0;font-size:.82rem;}
+.db-breadcrumb-item{display:flex;align-items:center;gap:6px;min-width:0;}
+.db-breadcrumb-item + .db-breadcrumb-item::before{content:"/";color:var(--db-ink-3);opacity:.7;}
+.db-breadcrumb-link{color:var(--db-ink-2);text-decoration:none;padding:4px 0;}
+.db-breadcrumb-link:hover,.db-breadcrumb-link:focus-visible{color:var(--db-ink);text-decoration:underline;}
+.db-breadcrumb-here{color:var(--db-ink-3);padding:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60ch;}
+@media print{.db-breadcrumbs{display:none;}}
+
 .db-footer{border-top:1px solid var(--db-rule);margin-top:64px;}
+.db-backtotop{display:block;max-width:var(--db-shell);margin:0 auto;
+  padding:14px max(clamp(12px,3vw,20px),env(safe-area-inset-left),env(safe-area-inset-right)) 0;
+  min-height:var(--db-tap,44px);color:var(--db-ink-2);font-size:.86rem;text-decoration:none;}
+.db-backtotop:hover,.db-backtotop:focus-visible{color:var(--db-ink);text-decoration:underline;}
+@media print{.db-backtotop{display:none;}}
 /* Footer navigation: the statutory pages live here rather than in the header,
    so this is the one place a landowner or a supplier finds them. auto-fit means
    the four groups become two columns on a tablet and one on a phone without a
    breakpoint for each step. */
 .db-footer-nav{max-width:var(--db-shell);margin:0 auto;
-  padding:32px clamp(12px,3vw,20px) 8px;
-  display:grid;gap:24px 32px;
+  padding:32px max(clamp(12px,3vw,20px),env(safe-area-inset-left),env(safe-area-inset-right)) 8px;}
+.db-footer-groups{display:grid;gap:24px 32px;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
 .db-footer-heading{font-family:var(--db-font-display);font-size:.72rem;font-weight:700;
-  letter-spacing:.12em;text-transform:uppercase;color:var(--db-ink-3);margin:0 0 10px;}
+  letter-spacing:.12em;text-transform:uppercase;color:var(--db-ink-3);margin:0;}
+/* The group heading is a <summary> so the map can collapse on a phone (W8N.5).
+   Above 600px it is not a control at all: no marker, no pointer, no tap target
+   inflation — it reads exactly as the heading it used to be. Below 600px it
+   becomes a 44px row with a chevron that turns when the group opens. */
+.db-footer-summary{list-style:none;margin:0 0 10px;cursor:default;}
+.db-footer-summary::-webkit-details-marker{display:none;}
+@media (max-width:599px){
+  .db-footer-groups{gap:0;}
+  .db-footer-group{border-top:1px solid var(--db-rule);}
+  .db-footer-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    min-height:var(--db-tap,44px);margin:0;cursor:pointer;}
+  .db-footer-summary::after{content:"";flex:none;width:9px;height:9px;margin-right:2px;
+    border-right:2px solid var(--db-ink-3);border-bottom:2px solid var(--db-ink-3);
+    transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s;}
+  .db-footer-group[open] > .db-footer-summary::after{transform:rotate(-135deg) translate(-2px,-2px);}
+  .db-footer-group[open] > .db-footer-links{padding-bottom:10px;}
+}
+/* On paper the map is dropped entirely (see the print block), so a closed
+   group can never hide a link from a printed page. */
 .db-footer-links{list-style:none;margin:0;padding:0;display:grid;gap:2px;}
 /* 44px of tap target: these sit close together and are often reached for on a
    phone, at the bottom of a long page. */
 .db-footer-link{display:block;padding:7px 0;min-height:var(--db-tap,44px);
   color:var(--db-ink-2);text-decoration:none;font-size:.9rem;line-height:1.5;}
 .db-footer-link:hover,.db-footer-link:focus-visible{color:var(--db-ink);text-decoration:underline;}
-.db-footer-inner{max-width:var(--db-shell);margin:0 auto;padding:24px clamp(12px,3vw,20px);
+.db-footer-inner{max-width:var(--db-shell);margin:0 auto;padding:24px max(clamp(12px,3vw,20px),env(safe-area-inset-left),env(safe-area-inset-right));padding-bottom:max(24px,env(safe-area-inset-bottom));
   display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;
   color:var(--db-ink-3);font-size:.86rem;}
 /* The emergency strip. On the plate, not in the muted footer grey: this is the
@@ -390,7 +494,7 @@
    large, tabular, and real tel: links. --db-plate-fg on --db-plate-bg measures
    13.76:1 and --db-plate-accent 5.83:1 (see the token comments above). */
 .db-footer-emergency{background:var(--db-plate-bg);color:var(--db-plate-fg);}
-.db-footer-emergency-inner{max-width:var(--db-shell);margin:0 auto;padding:12px clamp(12px,3vw,20px);
+.db-footer-emergency-inner{max-width:var(--db-shell);margin:0 auto;padding:12px max(clamp(12px,3vw,20px),env(safe-area-inset-left),env(safe-area-inset-right));
   display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;}
 .db-footer-emergency-label{font-family:var(--db-font-display);font-size:.78rem;letter-spacing:.1em;
   text-transform:uppercase;color:var(--db-plate-accent);}
@@ -704,7 +808,7 @@
 .db-advisory-closure .db-advisory-tag{color:var(--db-alert);}
 
 /* ---- travel section shell ---- */
-.db-subnav{max-width:var(--db-shell);margin:0 auto;padding:14px clamp(12px,3vw,20px) 0;
+.db-subnav{max-width:var(--db-shell);margin:0 auto;padding:14px max(clamp(12px,3vw,20px),env(safe-area-inset-left),env(safe-area-inset-right)) 0;
   display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .db-subnav::-webkit-scrollbar{display:none;}
 .db-subnav-link{white-space:nowrap;flex:none;font-family:var(--db-font-display);font-weight:600;

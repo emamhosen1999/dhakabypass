@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import LocaleSwitch from './LocaleSwitch.jsx';
-import ThemeToggle from './ThemeToggle.jsx';
 import { t } from '../../lib/i18n/ui.js';
 import { getMenuCached } from '../../lib/menus/cache.js';
 import { MAIN_NAV, CTA_NAV } from '../../lib/menus/builtin.js';
@@ -8,6 +7,7 @@ import { siteSeoCached } from '../../lib/seo/cache.js';
 import { localeHref } from '../../lib/blocks/href.js';
 import { resolveLogo } from '../../lib/seo/identity.js';
 import CurrentNav from './CurrentNav.jsx';
+import { getContactDetailsCached } from '../../lib/settings-cache.js';
 
 /**
  * The primary navigation.
@@ -53,6 +53,28 @@ export default async function SiteHeaderV2({ locale }) {
   const ctas = (ctaItems || []).length
     ? ctaItems.filter((i) => i.href).map((i) => ({ key: i.id, href: localeHref(i.href, locale), label: i.label }))
     : CTA_NAV.map((n) => ({ key: n.href, href: `/${locale}${n.href}`, label: t(locale, n.key) }));
+  /**
+   * The emergency number, in the header, on every page (navigation audit
+   * NAV-HEADER-01).
+   *
+   * It was in the footer alone. On a 360x740 phone that put 999 at y=10,001 of
+   * a 10,191px page — thirteen and a half screens below a driver standing on a
+   * hard shoulder. A number that takes thirteen screens of scrolling is not an
+   * emergency number.
+   *
+   * The national service comes first because it answers everywhere and at every
+   * hour; DBEDC's own control room is the fallback while that setting is blank.
+   * Both are /admin/settings values, and when neither is set the header renders
+   * nothing rather than a number nobody answers — the same rule the footer and
+   * the emergency-strip block already follow.
+   */
+  let sos = '';
+  try {
+    const details = await getContactDetailsCached(locale);
+    sos = details.nationalEmergency || details.emergency || '';
+  } catch {
+    sos = '';
+  }
   const brand = await siteSeoCached(locale);
   // The picture's own proportions, measured (audit 2.14): the mark is drawn
   // 34px tall, so the width attribute follows whatever file is configured.
@@ -64,9 +86,18 @@ export default async function SiteHeaderV2({ locale }) {
     logoWidth = null;
   }
 
-  const links = items.length
+  const allLinks = items.length
     ? items.map((i) => ({ key: i.id, href: localeHref(i.href, locale), label: i.label }))
     : NAV.map((n) => ({ key: n.href, href: `/${locale}${n.href}`, label: t(locale, n.key) }));
+
+  /**
+   * Search is a field on a wide screen and a link on a narrow one (W8N.6,
+   * NAV-HEADER-02). Twelve pages on this site were reachable only by searching,
+   * which made a link to a search page a page load before the reader could type
+   * a word. The compact row keeps the link, because a text field in a 360px
+   * header costs a row nobody has (W8N.2).
+   */
+  const searchLink = allLinks.find((l) => /\/search$/.test(String(l.href)));
 
   return (
     <header className="db-header">
@@ -85,25 +116,47 @@ export default async function SiteHeaderV2({ locale }) {
           </span>
         </Link>
 
+        {/* Beside the brand at every width, so it stays in the first row of the
+            header on a phone rather than travelling with the utilities to the
+            row below the navigation (W8N.1/W8N.2). */}
+        {sos ? (
+          <a className="db-header-sos" href={`tel:${sos.replace(/[^\d+]/g, '')}`}>
+            <span className="db-header-sos-label">{t(locale, 'emergency')}</span>
+            <span className="db-header-sos-number">{sos}</span>
+          </a>
+        ) : null}
+
         {/* Visible from md, not xl — the old header vanished between 1024 and 1279px. */}
         <nav className="db-nav" aria-label={t(locale, 'navPrimary')}>
-          {links.map((item) => (
-            <Link key={item.key} href={item.href} className="db-nav-link">
+          {allLinks.map((item) => (
+            <Link key={item.key} href={item.href}
+              className={item === searchLink ? 'db-nav-link db-nav-link-search' : 'db-nav-link'}>
               {item.label}
             </Link>
           ))}
           {ctas.map((c) => <Link key={c.key} href={c.href} className="db-nav-cta">{c.label}</Link>)}
         </nav>
 
+        {/* A plain GET form: it works with no script, and /search reads `q`
+            exactly as the search page's own form does. */}
+        <form className="db-nav-search" role="search" action={searchLink ? searchLink.href : `/${locale}/search`}>
+          <label className="db-visually-hidden" htmlFor="db-header-q">{t(locale, 'searchLabel')}</label>
+          <input id="db-header-q" className="db-nav-search-input" type="search" name="q" autoComplete="off" />
+          <button type="submit" className="db-nav-search-btn">{t(locale, 'searchButton')}</button>
+        </form>
+
         <div className="db-header-utils">
+          {/* The theme control moved to the footer (W8N.2). On a 360px phone
+              the header cost three rows — brand, utilities, navigation — and a
+              light/dark preference is not what a reader opens a road's website
+              to do. It is one control, in one place, at every width. */}
           <LocaleSwitch current={locale} label={t(locale, 'language')} />
-          <ThemeToggle label={t(locale, 'theme')} labels={{ light: t(locale, 'themeLight'), dark: t(locale, 'themeDark'), system: t(locale, 'themeSystem') }} />
         </div>
 
         {/* Below 768px the same links live here, wrapping onto a second line,
             so no destination is ever off-screen on a narrow screen. */}
         <nav className="db-nav-mobile" aria-label={t(locale, 'navPrimaryCompact')}>
-          {links.map((item) => (
+          {allLinks.map((item) => (
             <Link key={item.key} href={item.href} className="db-nav-link">
               {item.label}
             </Link>

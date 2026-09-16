@@ -195,13 +195,32 @@ describe('a database built from db/sql/*.sql alone', () => {
     expect(cta.body).not.toMatch(/Until the dedicated grievance channels/);
   });
 
-  it('seeds the /travel redirect for every locale (21)', async () => {
-    const rows = await all("SELECT source, destination FROM redirects WHERE source LIKE '%/travel' ORDER BY source");
-    expect(rows).toEqual([
-      { source: '/bn/travel', destination: '/bn/travel/status' },
-      { source: '/en/travel', destination: '/en/travel/status' },
-      { source: '/zh/travel', destination: '/zh/travel/status' },
-    ]);
+  it('gives /travel a page of its own and removes the redirect 21 seeded (45)', async () => {
+    // 21 sent /travel to /travel/status. 45 makes /travel the section's hub —
+    // the first item in the primary navigation had no address of its own — so
+    // the redirect must be gone or it would shadow the page.
+    const rows = await all("SELECT source FROM redirects WHERE source LIKE '%/travel'");
+    expect(rows).toEqual([]);
+    const hub = await one("SELECT id, status FROM pages WHERE slug = 'travel'");
+    expect(hub?.status).toBe('published');
+    const titles = await all('SELECT locale FROM page_translations WHERE page_id = ? AND title <> ? ORDER BY locale', [hub.id, '']);
+    expect(titles.map((r) => r.locale).sort()).toEqual(['bn', 'en', 'zh']);
+    const blocks = await all('SELECT type FROM blocks WHERE page_id = ? ORDER BY sort_order', [hub.id]);
+    expect(blocks.map((b) => b.type)).toEqual(['page-header', 'section-subnav']);
+  });
+
+  it('gives every section a menu whose labels are the pages own titles (45)', async () => {
+    const menus = await all('SELECT m.slug, COUNT(mi.id) AS n FROM menus m LEFT JOIN menu_items mi ON mi.menu_id = m.id GROUP BY m.slug ORDER BY m.slug');
+    const counts = Object.fromEntries(menus.map((m) => [m.slug, Number(m.n)]));
+    expect(counts).toMatchObject({ about: 6, project: 3, disclosures: 9, safety: 4, media: 6, travel: 14 });
+    // Authored form: no leading slash, so one stored link serves all three languages.
+    expect((await one("SELECT COUNT(*) AS c FROM menu_items WHERE href LIKE '/%'")).c).toBe(0);
+    const item = await one("SELECT labels FROM menu_items WHERE href = 'disclosures/reports'");
+    const labels = typeof item.labels === 'string' ? JSON.parse(item.labels) : item.labels;
+    const page = await one("SELECT pt.title FROM page_translations pt JOIN pages p ON p.id = pt.page_id WHERE p.slug = 'disclosures/reports' AND pt.locale = 'bn'");
+    expect(labels.bn).toBe(page.title);
+    const subnavs = await all("SELECT p.slug FROM blocks b JOIN pages p ON p.id = b.page_id WHERE b.type = 'section-subnav' AND p.slug NOT LIKE 'travel/%' ORDER BY p.slug");
+    expect(subnavs.map((r) => r.slug)).toEqual(['about', 'disclosures', 'media', 'project', 'safety', 'travel']);
   });
 
   it('shows 24 gallery images and the provisional O-D matrix', async () => {

@@ -37,7 +37,9 @@ export default async function AdvisoryBar({ locale }) {
     >
       <div className="db-advisory-inner">
         <span className="db-advisory-tag">{t(locale, SEVERITY_KEY[top.severity] || 'sevInfo')}</span>
-        <span className="db-advisory-msg">{message}</span>
+        {/* A closure notice a reader cannot click through is a notice they
+            cannot act on (W8N.8, NAV-WAY-05). */}
+        <a className="db-advisory-msg" href={`/${locale}/travel/advisories`}>{message}</a>
       </div>
     </div>
   );

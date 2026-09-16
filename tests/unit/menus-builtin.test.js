@@ -44,7 +44,7 @@ describe('builtinRows', () => {
         expect(localeHref(r.href, 'bn').startsWith('/bn/')).toBe(true);
       }
     }
-    expect(builtinRows('legal').map((r) => r.href)).toEqual(['privacy', 'terms', 'accessibility', 'search']);
+    expect(builtinRows('legal').map((r) => r.href)).toEqual(['privacy', 'terms', 'accessibility']);
     expect(builtinRows('cta').map((r) => r.href)).toEqual(['contact']);
   });
 

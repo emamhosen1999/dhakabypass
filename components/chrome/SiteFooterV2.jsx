@@ -5,6 +5,8 @@ import { FOOTER_GROUPS, LEGAL_NAV } from '../../lib/menus/builtin.js';
 import { localeHref } from '../../lib/blocks/href.js';
 import { getContactDetailsCached } from '../../lib/settings-cache.js';
 import EmergencyNumbers from '../contact/EmergencyNumbers.jsx';
+import ThemeToggle from './ThemeToggle.jsx';
+import FooterGroups from './FooterGroups.jsx';
 import { siteSeoCached } from '../../lib/seo/cache.js';
 
 /**
@@ -82,10 +84,22 @@ export default async function SiteFooterV2({ locale }) {
 
   return (
     <footer className="db-footer">
+      {details.emergency || details.nationalEmergency ? (
+        <div className="db-footer-emergency">
+          <EmergencyNumbers locale={locale} emergency={details.emergency} national={details.nationalEmergency} />
+        </div>
+      ) : null}
+      {/* The way back up from a page that can run to nine screens (W8N.4,
+          NAV-WAY-03). An anchor, not a script: it works on the first paint and
+          it moves focus, because #main carries tabindex="-1". */}
+      <a className="db-backtotop" href="#main">{t(locale, 'backToTop')}</a>
       <nav className="db-footer-nav" aria-label={t(locale, 'footerNavLabel')}>
+        {/* Open on the server; FooterGroups closes them below 600px. Without
+            script every link stays visible, which is the point. */}
+        <FooterGroups>
         {groups.map((group) => (
-          <div key={group.key} className="db-footer-group">
-            <h2 className="db-footer-heading">{group.heading}</h2>
+          <details key={group.key} className="db-footer-group" open>
+            <summary className="db-footer-summary"><h2 className="db-footer-heading">{group.heading}</h2></summary>
             <ul className="db-footer-links">
               {group.links.map((link) => (
                 <li key={link.key}>
@@ -95,17 +109,15 @@ export default async function SiteFooterV2({ locale }) {
                 </li>
               ))}
             </ul>
-          </div>
+          </details>
         ))}
+        </FooterGroups>
       </nav>
-      {details.emergency || details.nationalEmergency ? (
-        <div className="db-footer-emergency">
-          <EmergencyNumbers locale={locale} emergency={details.emergency} national={details.nationalEmergency} />
-        </div>
-      ) : null}
       <div className="db-footer-inner">
         {/* The organisation's full name from /admin/settings (W1.10). */}
         <p className="db-footer-brand">{brand.orgName}</p>
+        {/* The light/dark preference, out of the header since W8N.2. */}
+        <ThemeToggle label={t(locale, 'theme')} labels={{ light: t(locale, 'themeLight'), dark: t(locale, 'themeDark'), system: t(locale, 'themeSystem') }} />
         {/* The policy links sit in the bottom bar, where a reader looks for
             them. They are the `legal` menu (audit 4.2) — an operator can rename,
             re-point or add one — and fall back to the three built-in policy

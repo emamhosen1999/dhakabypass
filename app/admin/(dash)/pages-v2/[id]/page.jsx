@@ -12,6 +12,7 @@ import { PRESENTATION, PRESENTATION_KEYS, presentationOf } from '../../../../../
 import { translationStatus } from '../../../../../lib/content/resolve';
 import { stampOf } from '../../../../../lib/admin/history';
 import BlockFields from '../../../../../components/admin/BlockFields';
+import { resolveFieldOptions } from '../../../../../lib/blocks/field-options.js';
 import BlockSortableList from '../../../../../components/admin/BlockSortableList';
 import PreviewPane from '../../../../../components/admin/PreviewPane';
 import ImageField from '../../../../../components/admin/ImageField';
@@ -69,6 +70,15 @@ export default async function BlockEditor({ params, searchParams }) {
 
   // Per-language progress for the tabs (audit T2).
   const progress = Object.fromEntries(LOCALES.map((l) => [l, blocks.filter((b) => translationStatus(b.translations, l) === 'published').length]));
+
+  // Fields whose options are records — the section menu's list of menus — are
+  // resolved once per block type here, because the map below is not async
+  // (W8N.3).
+  const fieldsByType = new Map();
+  for (const type of new Set(blocks.map((b) => b.type))) {
+    const def = getBlock(type);
+    if (def) fieldsByType.set(type, await resolveFieldOptions(def.fields));
+  }
 
   const items = blocks
     .map((block, index) => {
@@ -133,7 +143,7 @@ export default async function BlockEditor({ params, searchParams }) {
               <input type="hidden" name="locale" value={locale} />
               <input type="hidden" name="type" value={block.type} />
               {row?.updatedAt ? <input type="hidden" name="_stamp" value={stampOf(row.updatedAt)} /> : null}
-              <BlockFields fields={def.fields} data={data} source={locale !== 'en' ? (english?.data ?? null) : null} />
+              <BlockFields fields={fieldsByType.get(block.type) || def.fields} data={data} source={locale !== 'en' ? (english?.data ?? null) : null} />
               <div className="flex flex-wrap gap-2 items-center">
                 <Button variant="secondary" name="status" value="draft" data-noconfirm="" data-pending="Saving draft…">
                   Save draft

@@ -108,7 +108,11 @@ export default async function LocaleLayout({ children, params }) {
       <StructuredData data={webSiteJsonLd(locale, (await siteSeoCached(locale)).orgName)} />
       <AdvisoryBar locale={locale} />
       <SiteHeaderV2 locale={locale} />
-      <main id="main">{children}</main>
+      {/* tabIndex={-1} so the skip link MOVES FOCUS, not only the scroll
+          position (W8N.8, NAV-A11Y-01). Chrome and Firefox set the sequential
+          focus start on a non-focusable fragment target; Safari does not, and
+          the next Tab sent the reader back into the navigation they skipped. */}
+      <main id="main" tabIndex={-1}>{children}</main>
       <SiteFooterV2 locale={locale} />
       <ScrollRegions hint={t(locale, 'scrollForMore')} />
       {/* Renders nothing unless ANALYTICS_PROVIDER is configured. Only the
