@@ -225,6 +225,20 @@
         }
       ],
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Vary",
+          "value": "Cookie, Accept-Language"
+        }
+      ],
+      "regex": "^/(?:/)?$"
     }
   ],
   "rewrites": {
