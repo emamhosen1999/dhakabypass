@@ -3,8 +3,8 @@
   "functions": {
     "/admin/api/upload": {},
     "/api/cameras/[id]/hls/[...path]": {},
+    "/api/cameras/[id]/snapshot": {},
     "/api/cron/cameras": {},
-    "/uploads/[...path]": {},
-    "/api/cameras/[id]/snapshot": {}
+    "/uploads/[...path]": {}
   }
 }
