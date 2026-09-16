@@ -88,9 +88,9 @@ export default async function NewsTranslations({ params }) {
                 <button type="submit" name="status" value="draft" data-noconfirm="" data-pending="Saving draft…" className="px-4 py-2 border border-blue-900 text-blue-900 rounded font-semibold">
                   Save draft
                 </button>
-                <button type="submit" name="status" value="published" data-noconfirm="" data-pending="Publishing…" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">
+                <Button name="status" value="published" data-noconfirm="" data-pending="Publishing…">
                   {status === 'published' || status === 'changes' ? 'Publish changes' : 'Publish'}
-                </button>
+                </Button>
                 {status === 'published' || status === 'changes' ? <span className="text-xs text-gray-500 self-center">Save draft keeps the live translation unchanged.</span> : null}
               </div>
             </form>

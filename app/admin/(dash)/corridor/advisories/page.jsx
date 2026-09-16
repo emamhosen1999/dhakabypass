@@ -1,4 +1,5 @@
 import { listCorridorAction, saveAdvisoryAction, deleteAdvisoryAction } from '../actions';
+import { AdminPage, Button } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,7 @@ function AdvisoryForm({ advisory }) {
         <input type="checkbox" name="is_active" defaultChecked={advisory ? Boolean(advisory.is_active) : true} />
         Active
       </label>
-      <button type="submit" className="px-3 py-1 rounded bg-blue-900 text-white font-semibold h-8">Save</button>
+      <Button>Save</Button>
     </form>
   );
 }
@@ -46,14 +47,15 @@ export default async function AdvisoriesAdmin() {
   const { advisories } = await listCorridorAction();
 
   return (
-    <div className="p-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Advisories</h1>
-        <p className="text-sm text-gray-500">
-          The most severe active advisory appears at the top of every page. Leave both
-          dates blank for a notice that stays until you switch it off.
-        </p>
-      </header>
+    <AdminPage title="Advisories"
+      intro={(
+        <>
+          <p className="text-sm text-gray-500">
+                    The most severe active advisory appears at the top of every page. Leave both
+                    dates blank for a notice that stays until you switch it off.
+                  </p>
+        </>
+      )}>
 
       {advisories.map((a) => (
         <div key={a.id}>
@@ -69,6 +71,6 @@ export default async function AdvisoriesAdmin() {
         <h2 className="font-semibold">Add an advisory</h2>
         <AdvisoryForm />
       </div>
-    </div>
+    </AdminPage>
   );
 }

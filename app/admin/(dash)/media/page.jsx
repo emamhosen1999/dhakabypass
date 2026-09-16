@@ -7,7 +7,7 @@ import { LOCALES, LOCALE_LABELS, LOCALE_HTML_LANG } from '../../../../lib/i18n/l
 import GuideNotice from './GuideNotice';
 import { query } from '../../../../lib/db';
 import { mediaUsageMap, usageCount, describeUsage } from '../../../../lib/media/usages';
-import { HistoryLink } from '../../../../components/admin/ui';
+import { AdminPage, HistoryLink, Button } from '../../../../components/admin/ui';
 import { auth } from '../../../../auth';
 import { can } from '../../../../lib/auth/roles';
 import { NoAccess } from '../../../../components/admin/ui';
@@ -216,14 +216,15 @@ export default async function MediaLibrary({ searchParams }) {
   const soft = all.filter((m) => m.width > 0 && m.width < SOFT_WIDTH).length;
 
   return (
-    <div className="p-6 space-y-8">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold">Media</h1>
-        <p className="text-sm text-gray-500">
-          Every picture used anywhere on the new site. Replacing one here updates every
-          page that uses it — there is nothing else to edit afterwards.
-        </p>
-      </header>
+    <AdminPage title="Media"
+      intro={(
+        <>
+          <p className="text-sm text-gray-500">
+                    Every picture used anywhere on the new site. Replacing one here updates every
+                    page that uses it — there is nothing else to edit afterwards.
+                  </p>
+        </>
+      )}>
 
       <GuideNotice />
 
@@ -257,7 +258,7 @@ export default async function MediaLibrary({ searchParams }) {
         <label className="text-xs font-semibold text-gray-700 grow min-w-[260px]">Description (English — what is in the frame) <span aria-hidden="true" className="text-red-700">*</span>
           <input type="text" name="alt_en" required maxLength={300} placeholder="Traffic on the open carriageway at Vogra" className="block mt-1 w-full rounded border px-2 py-1 text-sm font-normal" />
         </label>
-        <button type="submit" data-noconfirm="" className="px-3 py-1.5 rounded bg-blue-900 text-white text-sm font-semibold">Add to library</button>
+        <Button data-noconfirm="">Add to library</Button>
         <p className="text-xs text-gray-500 basis-full">JPEG, PNG or WebP, under 8 MB. At least {SOFT_WIDTH} pixels wide for anything shown across the screen.</p>
       </form>
 
@@ -295,6 +296,6 @@ export default async function MediaLibrary({ searchParams }) {
           <p className="text-sm text-gray-500 py-4">Nothing uploaded yet.</p>
         )}
       </section>
-    </div>
+    </AdminPage>
   );
 }

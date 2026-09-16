@@ -45,7 +45,10 @@ export default function CorridorExplorer({ view, ui, initialSelected = null }) {
   const [dragging, setDragging] = useState(false);
   const [connections, setConnections] = useState(true);
   const [landmarks, setLandmarks] = useState(true);
-  const [traffic, setTraffic] = useState(false);
+  // The traffic overlay starts ON when the conditions are measured, and off
+  // while they are sample data: a live map that opens grey is a live map
+  // nobody notices, and a sample map that opens coloured is a claim.
+  const [traffic, setTraffic] = useState(Boolean(view.live));
   const [layersOpen, setLayersOpen] = useState(false);
   const [selectedRoad, setSelectedRoad] = useState(null);
   const [hoveredRoad, setHoveredRoad] = useState(null);

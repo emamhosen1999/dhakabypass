@@ -1,6 +1,7 @@
 import { listCorridorAction, saveInterchangeAction, deleteInterchangeAction } from '../actions';
 import { formatChainage } from '../../../../../lib/corridor/chainage';
 import { query } from '../../../../../lib/db';
+import { AdminPage, Button } from '../../../../../components/admin/ui';
 
 async function fareCountsByInterchange() {
   try {
@@ -66,7 +67,7 @@ function InterchangeForm({ interchange }) {
       <label className="flex flex-col text-sm">Longitude
         <input name="lng" type="number" step="0.0000001" defaultValue={interchange?.lng ?? ''} className="border rounded px-2 py-1" />
       </label>
-      <button type="submit" className="px-3 py-1 rounded bg-blue-900 text-white font-semibold h-8">Save</button>
+      <Button>Save</Button>
     </form>
   );
 }
@@ -77,14 +78,15 @@ export default async function InterchangesAdmin() {
   const fareCounts = await fareCountsByInterchange();
 
   return (
-    <div className="p-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Interchanges</h1>
-        <p className="text-sm text-gray-500">
-          Entry and exit points, toll plazas and service areas. Latitude and longitude may
-          be left blank until survey data arrives.
-        </p>
-      </header>
+    <AdminPage title="Interchanges"
+      intro={(
+        <>
+          <p className="text-sm text-gray-500">
+                    Entry and exit points, toll plazas and service areas. Latitude and longitude may
+                    be left blank until survey data arrives.
+                  </p>
+        </>
+      )}>
 
       {interchanges.map((i) => (
         <div key={i.id}>
@@ -105,6 +107,6 @@ export default async function InterchangesAdmin() {
         <h2 className="font-semibold">Add an interchange</h2>
         <InterchangeForm />
       </div>
-    </div>
+    </AdminPage>
   );
 }

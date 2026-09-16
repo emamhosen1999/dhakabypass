@@ -8,6 +8,7 @@ import { UI_STRING_GROUPS } from '../../../../lib/i18n/groups';
 import { listUiStringRows } from '../../../../lib/i18n/strings-repo';
 import { normalizeUiStringRows } from '../../../../lib/i18n/overrides';
 import { saveUiStringAction, resetUiStringAction } from './actions';
+import { AdminPage, Button } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,32 +74,33 @@ export default async function TranslationDashboard({ searchParams }) {
   const rows = summarizeTranslations(withBlocks);
 
   return (
-    <div className="p-6 space-y-10 max-w-5xl">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold text-blue-900">Words on the site</h1>
-        <p className="text-gray-600">
-          Headings, buttons, form labels, error messages, the map legend and the navigation —
-          every fixed piece of wording on the public site, in all three languages.
-        </p>
-        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded p-3">
-          <strong>Leaving a box empty restores the built-in wording.</strong> The site never shows a
-          blank label: anything not set here falls back to the wording that ships with the site, so
-          the pages keep working even if the database cannot be reached.
-        </p>
-        {readFailed ? (
-          <p className="text-sm text-red-900 bg-red-50 border border-red-200 rounded p-3">
-            <strong>These strings cannot be stored yet.</strong> The <code>ui_strings</code> table is
-            missing or unreadable, so the site is showing its built-in wording and saving here will
-            fail. Import <code>db/sql/09-ui-strings.sql</code> through phpMyAdmin, then reload.
-          </p>
-        ) : (
-          <p className="text-sm text-gray-500">
-            {overriddenCount === 0
-              ? `All ${UI_STRING_CATALOGUE.length} strings are using the built-in wording.`
-              : `${overriddenCount} of ${UI_STRING_CATALOGUE.length * LOCALES.length} translations have been changed here.`}
-          </p>
-        )}
-      </header>
+    <AdminPage title="Words on the site" width="max-w-5xl"
+      intro={(
+        <>
+          <p className="text-gray-600">
+                    Headings, buttons, form labels, error messages, the map legend and the navigation —
+                    every fixed piece of wording on the public site, in all three languages.
+                  </p>
+                  <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded p-3">
+                    <strong>Leaving a box empty restores the built-in wording.</strong> The site never shows a
+                    blank label: anything not set here falls back to the wording that ships with the site, so
+                    the pages keep working even if the database cannot be reached.
+                  </p>
+                  {readFailed ? (
+                    <p className="text-sm text-red-900 bg-red-50 border border-red-200 rounded p-3">
+                      <strong>These strings cannot be stored yet.</strong> The <code>ui_strings</code> table is
+                      missing or unreadable, so the site is showing its built-in wording and saving here will
+                      fail. Import <code>db/sql/09-ui-strings.sql</code> through phpMyAdmin, then reload.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      {overriddenCount === 0
+                        ? `All ${UI_STRING_CATALOGUE.length} strings are using the built-in wording.`
+                        : `${overriddenCount} of ${UI_STRING_CATALOGUE.length * LOCALES.length} translations have been changed here.`}
+                    </p>
+                  )}
+        </>
+      )}>
 
       <section className="space-y-4">
         <form method="get" className="flex flex-wrap items-end gap-3">
@@ -109,9 +111,9 @@ export default async function TranslationDashboard({ searchParams }) {
               className="border rounded px-3 py-2 w-72"
             />
           </div>
-          <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white text-sm font-semibold">
+          <Button>
             Search
-          </button>
+          </Button>
           {query ? (
             <Link href={BASE} className="text-sm underline text-gray-600">Clear</Link>
           ) : null}
@@ -184,9 +186,9 @@ export default async function TranslationDashboard({ searchParams }) {
                     })}
                   </div>
                   <div className="flex items-center gap-4">
-                    <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white text-sm font-semibold">
+                    <Button>
                       Save
-                    </button>
+                    </Button>
                   </div>
                 </form>
 
@@ -231,6 +233,6 @@ export default async function TranslationDashboard({ searchParams }) {
           </tbody>
         </table>
       </section>
-    </div>
+    </AdminPage>
   );
 }

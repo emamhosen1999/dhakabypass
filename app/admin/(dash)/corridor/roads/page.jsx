@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { assertCan } from '../../../../../lib/auth/assert-can';
 import { listCorridorRoads, mapRoads } from '../../../../../lib/corridor/roads';
 import { saveCorridorRoadAction } from '../actions';
+import { AdminPage, Button } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +48,7 @@ export default async function CorridorRoadsPage() {
             <input id={id('source')} name="source_url" maxLength={500} defaultValue={rec?.source ?? ''}
               placeholder="https://www.rhd.gov.bd/…" className={input} />
           </div>
-          <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold text-sm">Save</button>
+          <Button>Save</Button>
           <span className="ml-3 text-xs text-gray-600">Clear every field and save to go back to the OpenStreetMap name.</span>
         </form>
       </li>
@@ -55,15 +56,16 @@ export default async function CorridorRoadsPage() {
   };
 
   return (
-    <div className="p-6 space-y-8 max-w-4xl">
-      <header className="space-y-1">
-        <p className="text-sm"><Link href="/admin/corridor" className="underline">Corridor data</Link></p>
-        <h1 className="text-2xl font-bold">Road names</h1>
-        <p className="text-sm text-gray-600">
-          The highways and roads the corridor map shows. A name here replaces the OpenStreetMap name on the
-          public map, in that language; English is used where a language is left blank.
-        </p>
-      </header>
+    <AdminPage title="Road names" width="max-w-4xl"
+      intro={(
+        <>
+          <p className="text-sm"><Link href="/admin/corridor" className="underline">Corridor data</Link></p>
+          <p className="text-sm text-gray-600">
+                    The highways and roads the corridor map shows. A name here replaces the OpenStreetMap name on the
+                    public map, in that language; English is used where a language is left blank.
+                  </p>
+        </>
+      )}>
       <section className="space-y-3">
         <h2 className="text-lg font-bold">Numbered roads ({numbered.length})</h2>
         <ul className="space-y-3">{numbered.map((r) => <Row key={r.key} road={r} />)}</ul>
@@ -72,6 +74,6 @@ export default async function CorridorRoadsPage() {
         <h2 className="text-lg font-bold">Other roads ({named.length})</h2>
         <ul className="space-y-3">{named.map((r) => <Row key={r.key} road={r} />)}</ul>
       </section>
-    </div>
+    </AdminPage>
   );
 }

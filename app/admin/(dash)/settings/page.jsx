@@ -5,6 +5,7 @@ import { getSeoSettings, SEO_DEFAULTS, SEO_KEYS } from '../../../../lib/seo/sett
 import { saveContactSettingsAction, saveSeoSettingsAction, saveBrandSettingsAction } from './actions';
 import { BRAND_KEYS, BRAND_DEFAULTS, SHELL_MIN, SHELL_MAX } from '../../../../lib/brand/tokens';
 import ColorField from '../../../../components/admin/ColorField';
+import { AdminPage, Button } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,21 +62,24 @@ export default async function SettingsPage() {
     (value && typeof value === 'object' ? value[locale] : locale === 'en' ? value : '') || '';
 
   return (
-    <div className="p-6 space-y-8 max-w-3xl">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-blue-900">Contact details</h1>
-        <p className="text-gray-600">
-          These appear on the contact page and in the footer. While a field is empty the site
-          says that detail has not been published yet — filling it in replaces that notice
-          with the real thing, immediately, with no need to rebuild the site.
-        </p>
-        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded p-3">
-          <strong>Leaving a field empty is a real choice.</strong> Clearing one removes it from
-          the site and brings the notice back. Please do that rather than leaving a number
-          published that no longer works — an emergency number nobody answers is worse than
-          none, because the caller believes they have tried.
-        </p>
-      </header>
+    <AdminPage
+      title="Contact details"
+      width="max-w-3xl"
+      intro={(
+        <>
+          <p className="text-gray-600">
+                    These appear on the contact page and in the footer. While a field is empty the site
+                    says that detail has not been published yet — filling it in replaces that notice
+                    with the real thing, immediately, with no need to rebuild the site.
+                  </p>
+                  <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded p-3">
+                    <strong>Leaving a field empty is a real choice.</strong> Clearing one removes it from
+                    the site and brings the notice back. Please do that rather than leaving a number
+                    published that no longer works — an emergency number nobody answers is worse than
+                    none, because the caller believes they have tried.
+                  </p>
+        </>
+      )}>
 
       <form action={saveContactSettingsAction} className="space-y-6">
         <section className="space-y-4">
@@ -143,15 +147,15 @@ export default async function SettingsPage() {
             Remove the emergency number from the site (only needed if you empty that box)
           </label>
         ) : null}
-        <button type="submit" data-noconfirm="" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">
+        <Button data-noconfirm="">
           Save contact details
-        </button>
+        </Button>
       </form>
 
       <hr className="border-gray-200" />
 
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-blue-900">Search engines and site identity</h1>
+        <h2 className="text-2xl font-bold text-blue-900">Search engines and site identity</h2>
         <p className="text-gray-600">
           How the site describes itself to Google and to anything that shows a link preview.
           Every field here has a built-in value that the site uses while the box is empty —
@@ -181,7 +185,7 @@ export default async function SettingsPage() {
               placeholder={String(BRAND_DEFAULTS.shell)} type="number"
             />
           </div>
-          <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold text-sm">Save brand</button>
+          <Button>Save brand</Button>
         </section>
       </form>
 
@@ -280,6 +284,13 @@ export default async function SettingsPage() {
 
         <section className="space-y-4">
           <h2 className="text-lg font-bold">Crawling</h2>
+          <Text
+            name="google_site_verification" label="Google Search Console verification"
+            defaultValue={seo.siteVerification}
+            placeholder="Paste the code from the HTML-tag method, or the whole <meta> tag"
+            hint="Search Console → Settings → Ownership verification → HTML tag. The site publishes it as
+                  <meta name=&quot;google-site-verification&quot;>. Leave blank to publish nothing (W8C.9)."
+          />
           <div className="space-y-1">
             <label htmlFor="robots_mode" className="block text-sm font-semibold">
               Search engine access
@@ -315,11 +326,11 @@ export default async function SettingsPage() {
             I want to hide the whole site from search engines (only needed if you choose &ldquo;Blocked&rdquo;)
           </label>
         ) : null}
-        <button type="submit" data-noconfirm="" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">
+        <Button data-noconfirm="">
           Save SEO settings
-        </button>
+        </Button>
       </form>
-    </div>
+    </AdminPage>
   );
 }
 

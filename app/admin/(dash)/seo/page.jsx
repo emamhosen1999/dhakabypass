@@ -4,6 +4,7 @@ import { LOCALES, LOCALE_LABELS } from '../../../../lib/i18n/locales';
 import { listRouteMeta, TEMPLATE_ROUTES, normaliseRoute } from '../../../../lib/seo/route-meta';
 import { STATIC_LOCALISED_PATHS, HOME_PATH } from '../../../../lib/seo/routes';
 import { saveRouteMetaAction, deleteRouteMetaAction } from './actions';
+import { AdminPage, Button } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,21 +80,22 @@ export default async function SeoRoutesPage({ searchParams }) {
   const en = (field) => value('en', field);
 
   return (
-    <div className="p-6 space-y-8 max-w-3xl">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-blue-900">Search settings by page</h1>
-        <p className="text-gray-600">
-          Two things this screen can do that nothing else can: keep a single page out of
-          search results, and tell search engines that a page is a copy of another one.
-          Both take effect within a few minutes, with no need to rebuild the site.
-        </p>
-        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded p-3">
-          <strong>A page&rsquo;s own title and description are edited on the page,</strong> under
-          Content. Anything typed here is only used when the page itself has left that field
-          empty — so this is the place for the news article template, which has no page of its
-          own, rather than for an ordinary page.
-        </p>
-      </header>
+    <AdminPage title="Search settings by page" width="max-w-3xl"
+      intro={(
+        <>
+          <p className="text-gray-600">
+                    Two things this screen can do that nothing else can: keep a single page out of
+                    search results, and tell search engines that a page is a copy of another one.
+                    Both take effect within a few minutes, with no need to rebuild the site.
+                  </p>
+                  <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded p-3">
+                    <strong>A page&rsquo;s own title and description are edited on the page,</strong> under
+                    Content. Anything typed here is only used when the page itself has left that field
+                    empty — so this is the place for the news article template, which has no page of its
+                    own, rather than for an ordinary page.
+                  </p>
+        </>
+      )}>
 
       {unavailable ? (
         <p className="text-sm text-red-900 bg-red-50 border border-red-200 rounded p-3">
@@ -258,9 +260,9 @@ export default async function SeoRoutesPage({ searchParams }) {
         </section>
 
         <div className="flex items-center gap-3">
-          <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">
+          <Button>
             Save these settings
-          </button>
+          </Button>
           {current ? (
             <Link href="/admin/seo" className="text-sm text-gray-600 hover:underline">
               Cancel
@@ -268,6 +270,6 @@ export default async function SeoRoutesPage({ searchParams }) {
           ) : null}
         </div>
       </form>
-    </div>
+    </AdminPage>
   );
 }

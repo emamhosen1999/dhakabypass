@@ -4,6 +4,7 @@ import { providerStatus } from '../../../../lib/alerts/providers';
 import { maskPhone } from '../../../../lib/alerts/policy';
 import { sendBroadcastAction, deleteSubscriberAction } from './actions';
 import SmsComposer from '../../../../components/admin/SmsComposer';
+import { AdminPage } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,15 +21,16 @@ export default async function AlertsAdmin() {
   const providers = providerStatus();
   const total = (channel) => counts.filter((c) => c.channel === channel).reduce((n, c) => n + c.count, 0);
   return (
-    <div className="p-6 space-y-8 max-w-5xl">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold">Road alerts</h1>
-        <p className="text-sm text-gray-600">Closures and major notices sent to subscribers by SMS or WhatsApp, each in the language they chose.</p>
-        <ul className="flex flex-wrap gap-3 text-sm">
-          <li className="border rounded px-3 py-1">SMS subscribers: <strong>{total('sms')}</strong> · provider {providers.sms ? 'configured' : <span className="text-red-700">not configured</span>}</li>
-          <li className="border rounded px-3 py-1">WhatsApp subscribers: <strong>{total('whatsapp')}</strong> · provider {providers.whatsapp ? 'configured' : <span className="text-red-700">not configured</span>}</li>
-        </ul>
-      </header>
+    <AdminPage title="Road alerts" width="max-w-5xl"
+      intro={(
+        <>
+          <p className="text-sm text-gray-600">Closures and major notices sent to subscribers by SMS or WhatsApp, each in the language they chose.</p>
+                  <ul className="flex flex-wrap gap-3 text-sm">
+                    <li className="border rounded px-3 py-1">SMS subscribers: <strong>{total('sms')}</strong> · provider {providers.sms ? 'configured' : <span className="text-red-700">not configured</span>}</li>
+                    <li className="border rounded px-3 py-1">WhatsApp subscribers: <strong>{total('whatsapp')}</strong> · provider {providers.whatsapp ? 'configured' : <span className="text-red-700">not configured</span>}</li>
+                  </ul>
+        </>
+      )}>
 
       <section className="border rounded p-4 space-y-3 bg-white">
         <h2 className="font-semibold">Send an alert</h2>
@@ -76,6 +78,6 @@ export default async function AlertsAdmin() {
             ))}</tbody></table>
         )}
       </section>
-    </div>
+    </AdminPage>
   );
 }

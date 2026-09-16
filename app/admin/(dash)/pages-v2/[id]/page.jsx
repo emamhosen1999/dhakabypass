@@ -17,7 +17,7 @@ import BlockSortableList from '../../../../../components/admin/BlockSortableList
 import PreviewPane from '../../../../../components/admin/PreviewPane';
 import ImageField from '../../../../../components/admin/ImageField';
 import CountedField from '../../../../../components/admin/CountedField';
-import { Button, NoAccess, HistoryLink, formatWhen } from '../../../../../components/admin/ui';
+import { AdminPage, Button, NoAccess, HistoryLink, formatWhen } from '../../../../../components/admin/ui';
 import {
   addBlockAction, deleteBlockAction, duplicateBlockAction, reorderBlocksAction, saveTranslationAction,
   restoreRevisionAction, saveBlockSettingsAction, discardDraftAction, unpublishTranslationAction,
@@ -262,29 +262,30 @@ export default async function BlockEditor({ params, searchParams }) {
   const title = settings?.translations?.en?.title || page.slug;
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold text-blue-900">{title}</h1>
+    <AdminPage title={<>{title}</>}
+      intro={(
+        <>
+          <div className="flex flex-wrap items-center gap-3">
           <span className={`rounded px-2 py-0.5 text-xs font-semibold ${page.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-900'}`}>
-            {page.status === 'published' ? 'Page published' : 'Page is a draft: not on the public site'}
-          </span>
-          <HistoryLink type="page_settings" id={pageId} />
-          <Link href="/admin/pages-v2" className="text-sm underline text-blue-900">All pages</Link>
-        </div>
-        <p className="text-sm text-gray-500">
-          <code>/{page.slug}</code>
-          {settings?.updated_at ? <> · last changed {formatWhen(settings.updated_at)}{settings.updated_by ? ` by ${settings.updated_by}` : ''}</> : null}
-        </p>
-        <nav aria-label="Language" className="flex flex-wrap gap-2 pt-1">
-          {LOCALES.map((l) => (
-            <Link key={l} href={`?locale=${l}`} aria-current={l === locale ? 'page' : undefined}
-              className={`px-3 py-1 rounded text-sm ${l === locale ? 'bg-blue-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-              {LOCALE_LABELS[l]} <span className="opacity-80">({progress[l]}/{blocks.length} published)</span>
-            </Link>
-          ))}
-        </nav>
-      </header>
+                      {page.status === 'published' ? 'Page published' : 'Page is a draft: not on the public site'}
+                    </span>
+                    <HistoryLink type="page_settings" id={pageId} />
+                    <Link href="/admin/pages-v2" className="text-sm underline text-blue-900">All pages</Link>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    <code>/{page.slug}</code>
+                    {settings?.updated_at ? <> · last changed {formatWhen(settings.updated_at)}{settings.updated_by ? ` by ${settings.updated_by}` : ''}</> : null}
+                  </p>
+                  <nav aria-label="Language" className="flex flex-wrap gap-2 pt-1">
+                    {LOCALES.map((l) => (
+                      <Link key={l} href={`?locale=${l}`} aria-current={l === locale ? 'page' : undefined}
+                        className={`px-3 py-1 rounded text-sm ${l === locale ? 'bg-blue-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                        {LOCALE_LABELS[l]} <span className="opacity-80">({progress[l]}/{blocks.length} published)</span>
+                      </Link>
+                    ))}
+                  </nav>
+        </>
+      )}>
 
       {canManagePages && settings ? (
         <details className="bg-white border rounded-lg p-4" open={page.status !== 'published'}>
@@ -405,7 +406,7 @@ export default async function BlockEditor({ params, searchParams }) {
           />
         </div>
       </div>
-    </div>
+    </AdminPage>
   );
 }
 

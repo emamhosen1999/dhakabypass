@@ -5,6 +5,7 @@ import { listWaypointsForAdmin } from '../../../../lib/corridor/waypoints-admin'
 import { getGeometryOverview } from '../../../../lib/corridor/geometry-admin';
 import { listTollMatrixAction } from './toll-matrix-actions';
 import { isProvisional } from '../../../../lib/corridor/toll-matrix';
+import { AdminPage, Button } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,11 +45,12 @@ export default async function CorridorHub() {
   ];
 
   return (
-    <div className="p-6 space-y-8">
-      <header>
-        <h1 className="text-2xl font-bold">Corridor data</h1>
-        <p className="text-sm text-gray-500">The operational figures behind the Travel Info pages.</p>
-      </header>
+    <AdminPage title="Corridor data"
+      intro={(
+        <>
+          <p className="text-sm text-gray-500">The operational figures behind the Travel Info pages.</p>
+        </>
+      )}>
 
       <form action={setIllustrativeAction} className="border rounded p-4 space-y-2">
         <label className="flex items-center gap-2 text-sm">
@@ -67,7 +69,7 @@ export default async function CorridorHub() {
           </label>
         ) : null}
         <div className="flex items-center gap-3">
-          <button type="submit" data-noconfirm="" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">Save</button>
+          <Button data-noconfirm="">Save</Button>
           <a href="/admin/history?type=setting&id=corridor.illustrative" className="text-sm underline text-blue-900">History</a>
         </div>
       </form>
@@ -100,7 +102,7 @@ export default async function CorridorHub() {
           ))}
         </fieldset>
         <p className="text-sm text-gray-500">Shown by every “Prohibited vehicles” block. A language left blank shows the English list.</p>
-        <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">Save</button>
+        <Button>Save</Button>
       </form>
 
       <ul className="grid gap-4 sm:grid-cols-2">
@@ -112,6 +114,6 @@ export default async function CorridorHub() {
           </li>
         ))}
       </ul>
-    </div>
+    </AdminPage>
   );
 }

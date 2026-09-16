@@ -72,7 +72,7 @@ Where the row says **/admin/…** the operator replaces it in the admin without 
 | # | Now | Needed | Who |
 |---|---|---|---|
 | G1 | Road alerts sign-up works; broadcasts are recorded as "not sent — no provider" | SMS gateway URL/token/sender and WhatsApp Cloud API token/phone-id/template in the server environment (ALERTS_SMS_*, ALERTS_WHATSAPP_*) | DBEDC procures; developer sets |
-| G2 | Live traffic: Google Routes implemented; CRON_SECRET set and both cron jobs scheduled (15 Sep) | GOOGLE_ROUTES_API_KEY on the server (Google Cloud → Routes API) | DBEDC provides the key; developer sets |
+| G2 | Live traffic: Google Routes implemented; cron every 30 min 05:00–23:59 Dhaka (≈8,250 calls/month, inside the 10,000 free); Google Cloud project `dhaka-bypass-expressway` created with Routes API enabled (16 Sep) | An ACTIVE billing account linked to that project (the developer's Google payments profile is closed — use DBEDC's Google account), then an API key restricted to Routes API, set as GOOGLE_ROUTES_API_KEY on the server | DBEDC provides billing/key; developer sets and verifies |
 | G2a | Request acknowledgement emails: built; not sent until a mail server is configured | MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASSWORD, MAIL_FROM (an SMTP account on the DBEDC domain) | DBEDC IT provides; developer sets |
 | G3 | ETC tag, fleet account and frequent-traveller applications are collected with tracking numbers | Agreement with the national ETC operator; someone to process applications from /admin/requests | Decision (DBEDC) |
 | G4 | The GitHub repository is public and contains the runbook and these audits | Make it private, or move docs/deployment, docs/source-data and docs/audit out of the public history (audit CON-SEC-01) | Decision (DBEDC/owner) |

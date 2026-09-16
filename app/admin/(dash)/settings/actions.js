@@ -183,6 +183,7 @@ async function saveSeoSettingsAction$inner(formData) {
     await setSetting(SEO_KEYS.orgName, text('org_name'));
     await setSetting(SEO_KEYS.orgShortName, text('org_short_name'));
     await setSetting(SEO_KEYS.copyright, perLocale('copyright_line'));
+    await setSetting(SEO_KEYS.siteVerification, text('google_site_verification').replace(/^.*content="([^"]+)".*$/, '$1'));
     await setSetting(SEO_KEYS.logoPath, logoPath);
     await setSetting(SEO_KEYS.headerLogo, headerLogo);
   } catch (err) {

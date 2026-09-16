@@ -1,7 +1,7 @@
 import { assertCan } from '../../../../lib/auth/assert-can';
 import { listRedirects, REDIRECT_STATUSES } from '../../../../lib/redirects/repo';
 import { saveRedirectAction, deleteRedirectAction } from './actions';
-import { HistoryLink } from '../../../../components/admin/ui';
+import { AdminPage, HistoryLink, Button } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,20 +30,21 @@ export default async function RedirectsPage() {
   const rows = await listRedirects();
 
   return (
-    <div className="p-6 space-y-8 max-w-4xl">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-blue-900">Redirects</h1>
-        <p className="text-gray-600">
-          Send an old address to a new one. Use this when a page has moved and people or
-          search engines still have the old link.
-        </p>
-        <p className="text-sm text-gray-600 bg-gray-50 border rounded p-3">
-          Trailing slashes do not matter — a redirect for <code>/project</code> also covers
-          <code> /project/</code>. Redirects only apply to addresses that would otherwise show
-          the &ldquo;page not found&rdquo; screen, so they can never shadow a page that exists.
-          A few permanent redirects are built into the site itself and are not listed here.
-        </p>
-      </header>
+    <AdminPage title="Redirects" width="max-w-4xl"
+      intro={(
+        <>
+          <p className="text-gray-600">
+                    Send an old address to a new one. Use this when a page has moved and people or
+                    search engines still have the old link.
+                  </p>
+                  <p className="text-sm text-gray-600 bg-gray-50 border rounded p-3">
+                    Trailing slashes do not matter — a redirect for <code>/project</code> also covers
+                    <code> /project/</code>. Redirects only apply to addresses that would otherwise show
+                    the &ldquo;page not found&rdquo; screen, so they can never shadow a page that exists.
+                    A few permanent redirects are built into the site itself and are not listed here.
+                  </p>
+        </>
+      )}>
 
       <form action={saveRedirectAction} className="space-y-4 border rounded p-4">
         <h2 className="text-lg font-bold">Add or update a redirect</h2>
@@ -78,7 +79,7 @@ export default async function RedirectsPage() {
           <input type="checkbox" name="overwrite" />
           Replace the existing redirect if this address already has one
         </label>
-        <button type="submit" data-noconfirm="" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">Save redirect</button>
+        <Button data-noconfirm="">Save redirect</Button>
       </form>
 
       <section className="space-y-2">
@@ -105,6 +106,6 @@ export default async function RedirectsPage() {
           </ul>
         )}
       </section>
-    </div>
+    </AdminPage>
   );
 }

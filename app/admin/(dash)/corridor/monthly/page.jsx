@@ -4,6 +4,7 @@ import { listMonthlyForAdmin } from '../../../../../lib/corridor/traffic-admin';
 import { getMonthlyTrafficSource } from '../../../../../lib/corridor/traffic';
 import TrafficForm from '../../../../../components/admin/TrafficForm';
 import { saveMonthlyAction, deleteMonthlyAction } from '../traffic-actions';
+import { AdminPage } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,13 +24,14 @@ export default async function MonthlyPage() {
   await assertCan('edit_blocks');
   const [rows, source] = await Promise.all([listMonthlyForAdmin(), getMonthlyTrafficSource()]);
   return (
-    <div className="max-w-5xl mx-auto space-y-8 text-gray-900">
-      <header className="space-y-2">
-        <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
-        <h1 className="text-2xl font-bold text-blue-900">Monthly traffic</h1>
-        <p>Enter the vehicle count recorded at each toll plaza. Use <strong>all</strong> for the confirmed corridor total shown on the public chart. Plaza rows are stored separately and are not added together automatically.</p>
-        <p className="rounded border border-amber-300 bg-amber-50 p-3">Monthly data source: <strong>{source}</strong>. <Link className="underline" href="/admin/corridor/sections">Review publication settings</Link>.</p>
-      </header>
+    <AdminPage title="Monthly traffic" width="max-w-5xl"
+      intro={(
+        <>
+          <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
+          <p>Enter the vehicle count recorded at each toll plaza. Use <strong>all</strong> for the confirmed corridor total shown on the public chart. Plaza rows are stored separately and are not added together automatically.</p>
+                  <p className="rounded border border-amber-300 bg-amber-50 p-3">Monthly data source: <strong>{source}</strong>. <Link className="underline" href="/admin/corridor/sections">Review publication settings</Link>.</p>
+        </>
+      )}>
       <section className="rounded border border-gray-300 bg-white p-5 space-y-4">
         <h2 className="text-xl font-bold">Add a month</h2>
         <TrafficForm action={saveMonthlyAction} submitLabel="Add monthly count"><Fields suffix="new" /></TrafficForm>
@@ -50,6 +52,6 @@ export default async function MonthlyPage() {
           </article>
         ))}
       </section>
-    </div>
+    </AdminPage>
   );
 }

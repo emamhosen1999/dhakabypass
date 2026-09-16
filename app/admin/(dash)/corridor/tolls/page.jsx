@@ -1,4 +1,5 @@
 import { listCorridorAction, saveTollRateAction, deleteTollRateAction } from '../actions';
+import { AdminPage, Button } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +47,7 @@ function TollForm({ toll }) {
       <label className="flex flex-col text-sm">Link to the notification
         <input name="sro_link" defaultValue={toll?.sro_link ?? ''} placeholder="https://… or /uploads/…" className="border rounded px-2 py-1" />
       </label>
-      <button type="submit" className="px-3 py-1 rounded bg-blue-900 text-white font-semibold h-8">Save</button>
+      <Button>Save</Button>
     </form>
   );
 }
@@ -55,15 +56,16 @@ export default async function TollsAdmin() {
   const { tolls } = await listCorridorAction();
 
   return (
-    <div className="p-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Toll rates</h1>
-        <p className="text-sm text-gray-500">
-          The public table shows only the rate in force today. To schedule a change, add a
-          new row for the same vehicle class with a future effective date — do not edit the
-          current one.
-        </p>
-      </header>
+    <AdminPage title="Toll rates"
+      intro={(
+        <>
+          <p className="text-sm text-gray-500">
+                    The public table shows only the rate in force today. To schedule a change, add a
+                    new row for the same vehicle class with a future effective date — do not edit the
+                    current one.
+                  </p>
+        </>
+      )}>
 
       {tolls.map((t) => (
         <div key={t.id}>
@@ -79,6 +81,6 @@ export default async function TollsAdmin() {
         <h2 className="font-semibold">Add a toll rate</h2>
         <TollForm />
       </div>
-    </div>
+    </AdminPage>
   );
 }

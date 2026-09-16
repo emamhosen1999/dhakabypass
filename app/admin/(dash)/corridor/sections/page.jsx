@@ -5,6 +5,7 @@ import { listCorridorSections, listCorridorWaypoints, getTrafficSource, getMonth
 import { CONDITIONS, CONDITION_LABELS } from '../../../../../lib/corridor/traffic-admin';
 import TrafficForm from '../../../../../components/admin/TrafficForm';
 import { saveSectionAction, saveTrafficSourcesAction, refreshTrafficAction } from '../traffic-actions';
+import { AdminPage } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 const input = 'w-full border border-gray-400 rounded px-3 py-2 bg-white text-gray-900';
@@ -20,18 +21,19 @@ export default async function SectionsPage() {
     catch { return `Waypoint ${code}`; }
   };
   return (
-    <div className="max-w-5xl mx-auto space-y-8 text-gray-900">
-      <header className="space-y-2">
-        <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
-        <h1 className="text-2xl font-bold text-blue-900">Section traffic conditions</h1>
-        <p>Update each section after checking the road. Leave speed empty when it has not been measured.</p>
-        <p className="text-sm text-gray-600">
-          A section headed &ldquo;Waypoint 4&rdquo; is a waypoint nobody has named yet.
-          Name it on the <Link className="underline" href="/admin/corridor/waypoints">waypoints</Link> screen
-          and the heading changes here and on the public map at the same time.
-        </p>
-        <p className="rounded border border-amber-300 bg-amber-50 p-3">Current traffic source: <strong>{source}</strong>. Saving a measurement does not remove the sample notice.</p>
-      </header>
+    <AdminPage title="Section traffic conditions" width="max-w-5xl"
+      intro={(
+        <>
+          <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
+          <p>Update each section after checking the road. Leave speed empty when it has not been measured.</p>
+                  <p className="text-sm text-gray-600">
+                    A section headed &ldquo;Waypoint 4&rdquo; is a waypoint nobody has named yet.
+                    Name it on the <Link className="underline" href="/admin/corridor/waypoints">waypoints</Link> screen
+                    and the heading changes here and on the public map at the same time.
+                  </p>
+                  <p className="rounded border border-amber-300 bg-amber-50 p-3">Current traffic source: <strong>{source}</strong>. Saving a measurement does not remove the sample notice.</p>
+        </>
+      )}>
       <div className="grid gap-4 md:grid-cols-2">
         {sections.map((s) => (
           <TrafficForm key={s.id} action={saveSectionAction} submitLabel="Save section" className="rounded border border-gray-300 bg-white p-5">
@@ -77,6 +79,6 @@ export default async function SectionsPage() {
         </section>
       ) : <p>An administrator can confirm data sources after review.</p>}
       <Link href="/admin/corridor/monthly" className="inline-block text-blue-900 underline">Edit monthly traffic counts →</Link>
-    </div>
+    </AdminPage>
   );
 }

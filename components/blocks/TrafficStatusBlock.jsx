@@ -6,6 +6,8 @@ import { selectSections, conditionsPresent, waypointNames } from '../../lib/bloc
 import { text } from '../../lib/blocks/items.js';
 import { t } from '../../lib/i18n/ui';
 import ScrollArrows from '../chrome/ScrollArrows.jsx';
+import LiveRefresh from '../corridor/LiveRefresh.jsx';
+import { newestMeasurement } from '../../lib/corridor/freshness.js';
 
 const SEVERITY_KEY = { closure: 'sevClosure', warning: 'sevWarning', info: 'sevInfo' };
 const SEVERITY_TAG = { closure: 'alert', warning: 'build', info: 'planned' };
@@ -110,7 +112,12 @@ export default async function TrafficStatusBlock({ data, locale }) {
           <span className="db-pending-tag">{t(locale, 'mapSampleTag')}</span>
           {text(data.sourceNotice) || t(locale, 'mapSampleBody')}
         </p>
-      ) : null}
+      ) : (
+        <LiveRefresh
+          measuredAt={newestMeasurement(status.sections)}
+          labels={{ live: t(locale, 'liveTag'), justNow: t(locale, 'liveJustNow'), minutesAgo: t(locale, 'liveMinutesAgo') }}
+        />
+      )}
 
       {/* role="status" + aria-live="polite", never "alert": this is standing
           context present on page load, and an assertive region would

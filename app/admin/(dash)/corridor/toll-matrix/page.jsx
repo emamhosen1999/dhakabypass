@@ -3,6 +3,7 @@ import {
 } from '../toll-matrix-actions';
 import { formatChainage } from '../../../../../lib/corridor/chainage';
 import { isProvisional } from '../../../../../lib/corridor/toll-matrix';
+import { AdminPage, Button } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,7 +115,7 @@ function FareForm({ fare, points }) {
       <label className="flex flex-col text-sm">Link to the notification
         <input name="sro_link" defaultValue={fare?.sro_link ?? ''} className="border rounded px-2 py-1" />
       </label>
-      <button type="submit" className="px-3 py-1 rounded bg-blue-900 text-white font-semibold h-8">Save</button>
+      <Button>Save</Button>
     </form>
   );
 }
@@ -139,26 +140,27 @@ export default async function TollMatrixAdmin({ searchParams }) {
   const link = (extra) => `/admin/corridor/toll-matrix?${new URLSearchParams({ class: cls, ...(dir ? { direction: dir } : {}), ...(onlyProvisional ? { provisional: '1' } : {}), ...(plazaId ? { plaza: String(plazaId) } : {}), ...extra })}`;
 
   return (
-    <div className="p-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Toll fare matrix</h1>
-        <p className="text-sm text-gray-500">
-          What a driver pays entering at one toll plaza and leaving at another. Each
-          direction is its own row, so a southbound fare and the northbound fare for the
-          same pair can differ. Distances are in metres between the two plazas&rsquo;
-          recorded chainages. To schedule a change, add a new row for the same pair and
-          vehicle class with a later effective date — do not edit the current one.
-        </p>
-        <p className="text-sm text-gray-500 mt-2">
-          <strong>{provisional} of {fares.length} fares are provisional.</strong> They were
-          computed from the toll formula DBEDC published on the previous website, so the
-          calculator could be built before the gazetted matrix exists. Every page showing
-          them carries a notice saying so, and that notice cannot be switched off in the
-          page editor. A fare stops being provisional when you enter its S.R.O. number and
-          the date it was notified — there is no other way to mark one confirmed, and
-          entering a number without a date is refused.
-        </p>
-      </header>
+    <AdminPage title="Toll fare matrix"
+      intro={(
+        <>
+          <p className="text-sm text-gray-500">
+                    What a driver pays entering at one toll plaza and leaving at another. Each
+                    direction is its own row, so a southbound fare and the northbound fare for the
+                    same pair can differ. Distances are in metres between the two plazas&rsquo;
+                    recorded chainages. To schedule a change, add a new row for the same pair and
+                    vehicle class with a later effective date — do not edit the current one.
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    <strong>{provisional} of {fares.length} fares are provisional.</strong> They were
+                    computed from the toll formula DBEDC published on the previous website, so the
+                    calculator could be built before the gazetted matrix exists. Every page showing
+                    them carries a notice saying so, and that notice cannot be switched off in the
+                    page editor. A fare stops being provisional when you enter its S.R.O. number and
+                    the date it was notified — there is no other way to mark one confirmed, and
+                    entering a number without a date is refused.
+                  </p>
+        </>
+      )}>
 
 
       <form method="get" className="flex flex-wrap items-end gap-3 border rounded p-3 bg-white">
@@ -242,6 +244,6 @@ The calculator answers "not priced" for that journey until a fare is entered aga
         <h2 className="font-semibold">Add a fare</h2>
         <FareForm points={points} />
       </div>
-    </div>
+    </AdminPage>
   );
 }

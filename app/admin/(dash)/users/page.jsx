@@ -4,6 +4,7 @@ import { can, ROLES } from '../../../../lib/auth/roles';
 import { listUsers } from '../../../../lib/auth/users-repo';
 import { MIN_PASSWORD, ROLE_VALUES } from '../../../../lib/auth/users-policy';
 import { addUserAction, setRoleAction, setPasswordAction, removeUserAction } from './actions';
+import { AdminPage, Button } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,13 +39,16 @@ export default async function AdminUsers() {
   const me = String(session.user.email || '').toLowerCase();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-blue-900">Staff</h1>
-        <p className="text-gray-600 mt-1">
-          Who can sign in to this admin, and what they may do. Removing someone takes effect on their next click.
-        </p>
-      </div>
+    <AdminPage
+      title="Staff"
+      intro={(
+        <>
+          <p className="text-gray-600 mt-1">
+            Who can sign in to this admin, and what they may do. Removing someone takes effect on their next click.
+          </p>
+        </>
+      )}
+    >
 
       <form action={addUserAction} className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm grid gap-3 sm:grid-cols-2 lg:grid-cols-5 items-end">
         <label className="text-xs font-semibold text-gray-700">Email
@@ -61,7 +65,7 @@ export default async function AdminUsers() {
         <label className="text-xs font-semibold text-gray-700">Password (min {MIN_PASSWORD})
           <input name="password" type="password" required minLength={MIN_PASSWORD} autoComplete="new-password" className={INPUT} />
         </label>
-        <button type="submit" className="px-3 py-2 rounded-md bg-blue-900 text-white text-sm font-semibold hover:bg-blue-800">Add person</button>
+        <Button>Add person</Button>
         <p className="sm:col-span-2 lg:col-span-5 text-xs text-gray-500">
           {ROLE_VALUES.map((r) => <span key={r} className="mr-4"><strong>{ROLE_LABEL[r]}:</strong> {ROLE_HELP[r]}</span>)}
         </p>
@@ -141,6 +145,6 @@ export default async function AdminUsers() {
           })}
         </div>
       )}
-    </div>
+    </AdminPage>
   );
 }

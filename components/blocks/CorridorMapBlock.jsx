@@ -6,8 +6,11 @@ import { getInterchangesCached, getCorridorRoadsCached } from '../../lib/corrido
 import { localeName } from '../../lib/corridor/interchanges.js';
 import { getSetting } from '../../lib/settings.js';
 import CorridorExplorer from '../corridor/CorridorExplorer.jsx';
+import LiveRefresh from '../corridor/LiveRefresh.jsx';
+import { newestMeasurement } from '../../lib/corridor/freshness.js';
 
 const text = (v) => (typeof v === 'string' ? v.trim() : '');
+
 
 const CONDITION_COLOUR = {
   free: 'var(--db-traffic-free)',
@@ -100,7 +103,12 @@ export default async function CorridorMapBlock({ data, locale }) {
           <span className="db-pending-tag">{t(locale, 'mapSampleTag')}</span>
           {t(locale, 'mapSampleBody')}
         </p>
-      ) : null}
+      ) : (
+        <LiveRefresh
+          measuredAt={newestMeasurement(sections)}
+          labels={{ live: t(locale, 'liveTag'), justNow: t(locale, 'liveJustNow'), minutesAgo: t(locale, 'liveMinutesAgo') }}
+        />
+      )}
       {view.ok && !view.hasCentreline ? (
         <p className="db-pending">
           <span className="db-pending-tag">{t(locale, 'mapSchematicTag')}</span>
@@ -113,7 +121,7 @@ export default async function CorridorMapBlock({ data, locale }) {
       ) : (
         <>
           <CorridorExplorer
-            view={view}
+            view={{ ...view, live: source !== 'sample' }}
             ui={{
               ...mapUi(locale),
               // The corridor's national road number, from /admin/corridor.

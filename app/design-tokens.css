@@ -767,6 +767,18 @@
    this corridor has four markers between K11+365 and K13+403, so alternating
    rows still put two of them on the same line ~45px apart with labels twice
    that wide. See assignRows() in lib/corridor/strip.js. */
+/* A leader on a lower row passes BEHIND the labels above it, never through
+   their text (W8.11, UI-VIS-02). First-fit row assignment means a marker lands
+   on row 2 precisely because a row-1 label already covers its position, so
+   the vertical line would otherwise cross that label's words. The labels
+   carry the strip's own ground as a background and sit above the lines; the
+   line runs from the rail to its pin and simply disappears where a label
+   stands in the way. Every leader sits on one layer beneath every label and
+   pin, inside the marker area's own stacking context. */
+.db-strip-markers{isolation:isolate;}
+.db-marker::before{z-index:0;}
+.db-marker-pin,.db-marker-name,.db-marker-ch{position:relative;z-index:1;}
+.db-marker-name,.db-marker-ch{background:var(--db-ground);padding:0 3px;border-radius:var(--db-radius-xs);}
 .db-marker-pin{width:13px;height:13px;border-radius:50%;border:3px solid var(--db-ground);background:var(--db-rule-2);}
 .db-marker-open{background:var(--db-open);}
 .db-marker-construction{background:var(--db-build);}
@@ -1234,6 +1246,16 @@
   --db-traffic-slow:#F0813A;
 }
 
+/* "Live · updated 4 min ago" above the map and the status table, ticking in
+   the browser (components/corridor/LiveRefresh.jsx). The dot breathes only
+   where motion is allowed. */
+.db-live{display:flex;align-items:center;gap:8px;margin:12px 0 0;font-size:.84rem;color:var(--db-ink-2);}
+.db-live-dot{width:9px;height:9px;border-radius:50%;background:var(--db-open);flex:none;}
+@media (prefers-reduced-motion:no-preference){
+  .db-live-dot{animation:db-live-pulse 2s ease-in-out infinite;}
+  @keyframes db-live-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--db-open) 45%,transparent);}50%{box-shadow:0 0 0 6px transparent;}}
+}
+.db-live-tag{font-family:var(--db-font-display);font-weight:700;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--db-open);}
 .db-map-wrap{position:relative;background:var(--db-surface-2);
   border:1px solid var(--db-rule);border-radius:var(--db-radius-md);overflow:hidden;
   /* aspect-ratio comes from the view: the frame wraps the corridor's own

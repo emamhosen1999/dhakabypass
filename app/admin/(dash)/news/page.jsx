@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Plus, Edit2, Trash2, Globe, Calendar, ExternalLink } from 'lucide-react';
 import { listNewsForAdmin } from '../../../../lib/newsroom/admin';
 import { deleteNewsAction } from '../../actions';
+import { AdminPage } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,30 +21,23 @@ export default async function AdminNewsPage() {
   const news = await listNewsForAdmin();
 
   return (
-    <div>
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-blue-900">News &amp; Updates</h1>
-          <p className="text-gray-600 mt-1">
-            Manage press releases, media coverage, and project milestones shown on{' '}
-            <a
-              href="/latest-updates"
-              target="_blank"
-              className="text-blue-900 font-semibold hover:underline"
-            >
-              /latest-updates
-            </a>
-            .
-          </p>
-        </div>
+    <AdminPage
+      title={<>News &amp; updates</>}
+      intro={(
+        <p className="text-gray-600 mt-1">
+          Press releases, media coverage and project milestones, shown on the newsroom.
+        </p>
+      )}
+      actions={(
         <Link
           href="/admin/news/new"
           className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-md font-semibold text-sm transition-all shrink-0"
         >
           <Plus className="w-4 h-4" />
-          Add Article
+          Add article
         </Link>
-      </div>
+      )}
+    >
 
       {news.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
@@ -125,6 +119,6 @@ export default async function AdminNewsPage() {
           ))}
         </div>
       )}
-    </div>
+    </AdminPage>
   );
 }

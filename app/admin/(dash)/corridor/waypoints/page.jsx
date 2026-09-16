@@ -4,6 +4,7 @@ import { listWaypointsForAdmin, sectionsByWaypoint } from '../../../../../lib/co
 import { formatChainage } from '../../../../../lib/corridor/chainage';
 import TrafficForm from '../../../../../components/admin/TrafficForm';
 import { saveWaypointAction, deleteWaypointAction } from '../alignment-actions';
+import { AdminPage } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,29 +85,30 @@ export default async function WaypointsPage() {
   const unnamed = rows.filter((r) => !readNames(r.names).en).length;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 text-gray-900">
-      <header className="space-y-2">
-        <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
-        <h1 className="text-2xl font-bold text-blue-900">Waypoints</h1>
-        <p>
-          The surveyed points that define the corridor. Their names are what the public
-          corridor map prints beside each marker, and what the section traffic table and the
-          traffic status block use to say which stretch of road they mean —
-          &ldquo;Bhulta → Madanpur&rdquo; rather than &ldquo;Waypoint 4 → Waypoint 5&rdquo;.
-        </p>
-        <p>
-          A waypoint is not a place a driver can leave the road at. Name it after the
-          nearest recognisable landmark, not after the junction; entry and exit points
-          belong on the <Link className="underline" href="/admin/corridor/interchanges">interchanges</Link> screen.
-        </p>
-        {unnamed ? (
-          <p className="rounded border border-amber-300 bg-amber-50 p-3">
-            <strong>{unnamed}</strong> of {rows.length} waypoints have no English name, so the map and the
-            traffic table currently call each of them &ldquo;Waypoint&nbsp;<em>code</em>&rdquo;. Naming one here
-            changes every public page that mentions it.
-          </p>
-        ) : null}
-      </header>
+    <AdminPage title="Waypoints" width="max-w-5xl"
+      intro={(
+        <>
+          <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
+          <p>
+                    The surveyed points that define the corridor. Their names are what the public
+                    corridor map prints beside each marker, and what the section traffic table and the
+                    traffic status block use to say which stretch of road they mean —
+                    &ldquo;Bhulta → Madanpur&rdquo; rather than &ldquo;Waypoint 4 → Waypoint 5&rdquo;.
+                  </p>
+                  <p>
+                    A waypoint is not a place a driver can leave the road at. Name it after the
+                    nearest recognisable landmark, not after the junction; entry and exit points
+                    belong on the <Link className="underline" href="/admin/corridor/interchanges">interchanges</Link> screen.
+                  </p>
+                  {unnamed ? (
+                    <p className="rounded border border-amber-300 bg-amber-50 p-3">
+                      <strong>{unnamed}</strong> of {rows.length} waypoints have no English name, so the map and the
+                      traffic table currently call each of them &ldquo;Waypoint&nbsp;<em>code</em>&rdquo;. Naming one here
+                      changes every public page that mentions it.
+                    </p>
+                  ) : null}
+        </>
+      )}>
 
       <section className="space-y-4">
         <h2 className="text-xl font-bold">
@@ -173,6 +175,6 @@ export default async function WaypointsPage() {
           Edit the drawn centreline →
         </Link>
       </p>
-    </div>
+    </AdminPage>
   );
 }

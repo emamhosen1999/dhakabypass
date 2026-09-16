@@ -5,7 +5,7 @@ import { getSetting } from '../../../../lib/settings';
 import { updateRequestAction, deleteRequestAction, saveStandardsAction } from './actions';
 import { auth } from '../../../../auth';
 import { can } from '../../../../lib/auth/roles';
-import { NoAccess, Pager, pageNumber, formatWhen } from '../../../../components/admin/ui';
+import { AdminPage, NoAccess, Pager, pageNumber, formatWhen, Button } from '../../../../components/admin/ui';
 
 const PER_PAGE = 50;
 
@@ -95,19 +95,22 @@ export default async function AdminRequests({ searchParams }) {
   );
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-blue-900">Service requests</h1>
-        <p className="text-gray-600 mt-1">
-          Grievances, toll disputes, breakdown calls and lost &amp; found reports filed through a
-          &ldquo;Service request form&rdquo; block. Each carries a tracking number the sender was shown.
-        </p>
-        {overdue > 0 ? (
-          <p className="mt-2 text-sm font-semibold text-red-700 flex items-center gap-1.5">
-            <AlertTriangle className="w-4 h-4" /> {overdue} past the response deadline
+    <AdminPage
+      title="Service requests"
+      intro={(
+        <>
+          <p className="text-gray-600 mt-1">
+            Grievances, toll disputes, breakdown calls and lost &amp; found reports filed through a
+            &ldquo;Service request form&rdquo; block. Each carries a tracking number the sender was shown.
           </p>
-        ) : null}
-      </div>
+          {overdue > 0 ? (
+            <p className="mt-2 text-sm font-semibold text-red-700 flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4" /> {overdue} past the response deadline
+            </p>
+          ) : null}
+        </>
+      )}
+    >
 
       <details className="mb-6 bg-white rounded-lg border border-gray-200 p-4">
         <summary className="font-semibold cursor-pointer">Standard response deadlines</summary>
@@ -128,7 +131,7 @@ export default async function AdminRequests({ searchParams }) {
               </label>
             ))}
           </div>
-          <button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white text-sm font-semibold">Save deadlines</button>
+          <Button>Save deadlines</Button>
         </form>
       </details>
 
@@ -235,9 +238,9 @@ export default async function AdminRequests({ searchParams }) {
                       className="block mt-1 w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm font-normal"
                     />
                   </label>
-                  <button type="submit" data-noconfirm="" className="text-xs px-3 py-2 rounded-md bg-blue-900 text-white font-semibold hover:bg-blue-800">
+                  <Button data-noconfirm="">
                     Save
-                  </button>
+                  </Button>
                 </form>
                 <form action={deleteRequestAction} className="mt-2 text-right">
                   <input type="hidden" name="id" value={r.id} />
@@ -255,6 +258,6 @@ export default async function AdminRequests({ searchParams }) {
         </div>
       )}
       <div className="mt-6"><Pager total={total} page={page} perPage={PER_PAGE} basePath="/admin/requests" params={{ kind, status, q }} /></div>
-    </div>
+    </AdminPage>
   );
 }

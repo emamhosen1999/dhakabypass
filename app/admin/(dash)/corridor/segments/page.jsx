@@ -1,5 +1,6 @@
 import { listCorridorAction, saveSegmentAction, deleteSegmentAction } from '../actions';
 import { formatChainage } from '../../../../../lib/corridor/chainage';
+import { AdminPage, Button } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +44,7 @@ function SegmentForm({ segment }) {
       <label className="flex flex-col text-sm">Label (中文)
         <input name="label.zh" lang="zh-Hans" defaultValue={segment?.labels?.zh ?? ''} className="border rounded px-2 py-1" />
       </label>
-      <button type="submit" data-noconfirm="" className="px-3 py-1 rounded bg-blue-900 text-white h-8 font-semibold">Save</button>
+      <Button data-noconfirm="">Save</Button>
     </form>
   );
 }
@@ -52,18 +53,19 @@ export default async function SegmentsAdmin() {
   const { segments } = await listCorridorAction();
 
   return (
-    <div className="p-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Segments</h1>
-        <p className="text-sm text-gray-500">
-          Chainage may be entered as K3+900 or as a plain number of metres. Segments may
-          touch but must not overlap. The published progress figure is calculated from
-          these rows — it is never typed in. The date is the day an open segment opened,
-          or the day a planned or under-construction segment is expected to open; the
-          public corridor diagram shows it either way. Leave it blank when no date is
-          confirmed.
-        </p>
-      </header>
+    <AdminPage title="Segments"
+      intro={(
+        <>
+          <p className="text-sm text-gray-500">
+                    Chainage may be entered as K3+900 or as a plain number of metres. Segments may
+                    touch but must not overlap. The published progress figure is calculated from
+                    these rows — it is never typed in. The date is the day an open segment opened,
+                    or the day a planned or under-construction segment is expected to open; the
+                    public corridor diagram shows it either way. Leave it blank when no date is
+                    confirmed.
+                  </p>
+        </>
+      )}>
 
       {segments.map((s) => (
         <div key={s.id}>
@@ -79,6 +81,6 @@ export default async function SegmentsAdmin() {
         <h2 className="font-semibold">Add a segment</h2>
         <SegmentForm />
       </div>
-    </div>
+    </AdminPage>
   );
 }

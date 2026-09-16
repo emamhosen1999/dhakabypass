@@ -3,6 +3,7 @@ import { assertCan } from '../../../../../lib/auth/assert-can';
 import { listCameras } from '../../../../../lib/cameras/repo';
 import { formatChainage } from '../../../../../lib/corridor/chainage';
 import { saveCameraAction, deleteCameraAction, testCameraAction } from './actions';
+import { AdminPage, Button } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,7 +59,7 @@ function CameraForm({ camera }) {
         <label className="flex items-center gap-2"><input type="checkbox" name="is_active" defaultChecked={camera ? camera.is_active : true} /> Shown on the website</label>
         <label className="flex items-center gap-2"><input type="checkbox" name="is_sample" defaultChecked={camera ? camera.is_sample : false} /> Sample (placeholder picture)</label>
       </div>
-      <div className="sm:col-span-3"><button type="submit" className="px-4 py-2 rounded bg-blue-900 text-white font-semibold">Save camera</button></div>
+      <div className="sm:col-span-3"><Button>Save camera</Button></div>
     </form>
   );
 }
@@ -72,16 +73,17 @@ export default async function CamerasAdmin() {
   await assertCan('edit_blocks');
   const cameras = await listCameras();
   return (
-    <div className="p-6 space-y-8 max-w-5xl">
-      <header className="space-y-2">
-        <Link href="/admin/corridor" className="text-sm underline">Corridor data</Link>
-        <h1 className="text-2xl font-bold">Traffic cameras</h1>
-        <p className="text-sm text-gray-600">
-          Shown by every “Traffic cameras” block (the travel cameras page). A camera needs a snapshot address that
-          returns a JPEG, a live stream address that returns an HLS playlist (.m3u8), or both. Most NVRs (Hikvision,
-          Dahua, Uniview, Milestone) can publish both; the supplier gives the addresses. Use “Test now” after saving.
-        </p>
-      </header>
+    <AdminPage title="Traffic cameras" width="max-w-5xl"
+      intro={(
+        <>
+          <Link href="/admin/corridor" className="text-sm underline">Corridor data</Link>
+          <p className="text-sm text-gray-600">
+                    Shown by every “Traffic cameras” block (the travel cameras page). A camera needs a snapshot address that
+                    returns a JPEG, a live stream address that returns an HLS playlist (.m3u8), or both. Most NVRs (Hikvision,
+                    Dahua, Uniview, Milestone) can publish both; the supplier gives the addresses. Use “Test now” after saving.
+                  </p>
+        </>
+      )}>
       {cameras.map((c) => (
         <section key={c.id} className="border rounded p-4 space-y-3 bg-white">
           <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -104,6 +106,6 @@ export default async function CamerasAdmin() {
         <h2 className="font-semibold">Add a camera</h2>
         <CameraForm />
       </section>
-    </div>
+    </AdminPage>
   );
 }

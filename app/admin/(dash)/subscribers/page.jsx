@@ -3,6 +3,7 @@ import { query, dbEnabled } from '../../../../lib/db';
 import { auth } from '../../../../auth';
 import { can } from '../../../../lib/auth/roles';
 import { deleteSubscriberAction } from './actions';
+import { AdminPage } from '../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,14 +38,17 @@ export default async function AdminSubscribers() {
   const rows = await getSubscribers();
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-blue-900">Email sign-ups</h1>
-        <p className="text-gray-600 mt-1">
-          Addresses collected by the &ldquo;Email sign-up&rdquo; block. {rows.length} on the list.
-          Select the column to copy it; remove an address when its owner asks.
-        </p>
-      </div>
+    <AdminPage
+      title="Email sign-ups"
+      intro={(
+        <>
+          <p className="text-gray-600 mt-1">
+            Addresses collected by the &ldquo;Email sign-up&rdquo; block. {rows.length} on the list.
+            Select the column to copy it; remove an address when its owner asks.
+          </p>
+        </>
+      )}
+    >
 
       {rows.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center shadow-sm">
@@ -84,6 +88,6 @@ export default async function AdminSubscribers() {
           </table>
         </div>
       )}
-    </div>
+    </AdminPage>
   );
 }

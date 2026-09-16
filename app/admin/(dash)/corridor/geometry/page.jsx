@@ -7,6 +7,7 @@ import {
 import { listWaypointsForAdmin } from '../../../../../lib/corridor/waypoints-admin';
 import TrafficForm from '../../../../../components/admin/TrafficForm';
 import { saveAlignmentAction, clearAlignmentAction } from '../alignment-actions';
+import { AdminPage } from '../../../../../components/admin/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,29 +29,30 @@ export default async function GeometryPage() {
   const source = overview.source?.source || 'waypoints';
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 text-gray-900">
-      <header className="space-y-2">
-        <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
-        <h1 className="text-2xl font-bold text-blue-900">Corridor alignment</h1>
-        <p>
-          The centreline the public map draws. It is one fact, so it is replaced whole rather
-          than edited point by point — a single moved coordinate silently changes the road&rsquo;s
-          shape, the colouring of every section and the map&rsquo;s scale bar at the same time.
-        </p>
-        <div className="rounded border border-amber-300 bg-amber-50 p-3 space-y-1">
-          <p className="font-semibold">Replacing this changes, on the public site:</p>
-          <ul className="list-disc pl-5">
-            <li>the road drawn on <strong>Travel info → Corridor map</strong>, and its zoom and extent;</li>
-            <li>where each section&rsquo;s colour starts and stops — the line is split at every waypoint chainage;</li>
-            <li>the scale bar, measured from the line&rsquo;s own first and last point;</li>
-            <li>the attribution printed under the map.</li>
-          </ul>
+    <AdminPage title="Corridor alignment" width="max-w-5xl"
+      intro={(
+        <>
+          <Link href="/admin/corridor" className="text-sm text-blue-900 underline">Corridor data</Link>
           <p>
-            It does <strong>not</strong> change chainages on the toll table, the interchange list or the
-            segment progress figure. Those come from their own screens.
-          </p>
-        </div>
-      </header>
+                    The centreline the public map draws. It is one fact, so it is replaced whole rather
+                    than edited point by point — a single moved coordinate silently changes the road&rsquo;s
+                    shape, the colouring of every section and the map&rsquo;s scale bar at the same time.
+                  </p>
+                  <div className="rounded border border-amber-300 bg-amber-50 p-3 space-y-1">
+                    <p className="font-semibold">Replacing this changes, on the public site:</p>
+                    <ul className="list-disc pl-5">
+                      <li>the road drawn on <strong>Travel info → Corridor map</strong>, and its zoom and extent;</li>
+                      <li>where each section&rsquo;s colour starts and stops — the line is split at every waypoint chainage;</li>
+                      <li>the scale bar, measured from the line&rsquo;s own first and last point;</li>
+                      <li>the attribution printed under the map.</li>
+                    </ul>
+                    <p>
+                      It does <strong>not</strong> change chainages on the toll table, the interchange list or the
+                      segment progress figure. Those come from their own screens.
+                    </p>
+                  </div>
+        </>
+      )}>
 
       <section className="rounded border border-gray-300 bg-white p-5 space-y-3">
         <h2 className="text-xl font-bold">What is stored now</h2>
@@ -164,6 +166,6 @@ export default async function GeometryPage() {
           Edit the surveyed waypoints →
         </Link>
       </p>
-    </div>
+    </AdminPage>
   );
 }

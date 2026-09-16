@@ -3,7 +3,7 @@ import { query, dbEnabled } from '../../../../lib/db';
 import { deleteMessageAction, toggleMessageReadAction } from '../../actions';
 import { auth } from '../../../../auth';
 import { can } from '../../../../lib/auth/roles';
-import { NoAccess, Pager, pageNumber, formatWhen } from '../../../../components/admin/ui';
+import { AdminPage, NoAccess, Pager, pageNumber, formatWhen } from '../../../../components/admin/ui';
 
 const PER_PAGE = 50;
 
@@ -40,13 +40,16 @@ export default async function AdminMessages({ searchParams }) {
   const { messages, total } = await getMessages({ q, unread, page });
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-blue-900">Contact Messages</h1>
-        <p className="text-gray-600 mt-1">
-          Inquiries and feedback submitted through the website&apos;s contact form.
-        </p>
-      </div>
+    <AdminPage
+      title="Contact messages"
+      intro={(
+        <>
+          <p className="text-gray-600 mt-1">
+            Inquiries and feedback submitted through the website&apos;s contact form.
+          </p>
+        </>
+      )}
+    >
 
       <form method="get" className="mb-6 flex flex-wrap items-end gap-2">
         <label className="flex-1 min-w-[14rem] text-sm">
@@ -151,6 +154,6 @@ export default async function AdminMessages({ searchParams }) {
         </div>
       )}
       <div className="mt-6"><Pager total={total} page={page} perPage={PER_PAGE} basePath="/admin/messages" params={{ q, unread: unread ? '1' : '' }} /></div>
-    </div>
+    </AdminPage>
   );
 }
