@@ -14,7 +14,7 @@ export default async function TollPreviewBlock({ data, locale }) {
   if (shown.length === 0) return null;
 
   return (
-    <section className="db-block">
+    <section className="db-block db-tollpreview-block">
       {data.heading ? <h2 className="db-h2">{data.heading}</h2> : null}
       {data.intro ? <p className="db-lede">{data.intro}</p> : null}
       <dl className="db-tollpreview">

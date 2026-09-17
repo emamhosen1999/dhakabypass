@@ -1442,6 +1442,9 @@
 .db-map-block-compact .db-map-titleplate{transform:scale(.9);transform-origin:top left;}
 .db-map-open{margin:14px 0 0;}
 .db-map-block-compact{padding-bottom:8px;}
+/* Featured fares and the calculator are one "tolls" section on the home page
+   (49): the calculator follows without a heading, so no block gap between. */
+.db-tollpreview-block + .db-tollcalc{padding-top:0;margin-top:-8px;}
 /* The progress figure and the live band are one statement — "this much is
    open, and this is how it runs" — so the band sits close under the figure
    instead of a block-gap away. */

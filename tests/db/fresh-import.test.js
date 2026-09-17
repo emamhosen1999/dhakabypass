@@ -181,7 +181,7 @@ describe('a database built from db/sql/*.sql alone', () => {
     const rows = await all(`SELECT b.type, b.sort_order FROM blocks b JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'home' ORDER BY b.sort_order, b.id`);
     const types = rows.map((r) => r.type);
-    expect(types.slice(0, 5)).toEqual(['hero', 'progress-bar', 'corridor-map', 'toll-calculator', 'toll-preview']);
+    expect(types.slice(0, 5)).toEqual(['hero', 'progress-bar', 'corridor-map', 'toll-preview', 'toll-calculator']); // 49: fares first, then the calculator
     expect(types).not.toContain('corridor-strip');
     expect(types).not.toContain('interchange-table');
     expect(types.filter((t) => t === 'progress-bar')).toHaveLength(1);
