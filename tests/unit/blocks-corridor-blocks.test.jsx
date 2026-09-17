@@ -104,7 +104,8 @@ describe('corridor-map', () => {
     getInterchangesCached.mockResolvedValue([]);
     const out = await html(CorridorMapBlock, { heading: 'Map', showLegend: 'no', hideNotice: true });
     expect(out).toContain('db-pending');
-    expect(getBlock('corridor-map').fields.map((f) => f.name)).toEqual(['heading', 'intro', 'showLegend']);
+    // No field can hide the notice: the block's fields are presentation only.
+    expect(getBlock('corridor-map').fields.map((f) => f.name)).toEqual(['heading', 'intro', 'showLegend', 'layout', 'linkHref', 'linkLabel']);
   });
 
   it('renders the no-geometry state, not a blank, when there is nothing to draw', async () => {
