@@ -1,4 +1,5 @@
 import { t } from '../../lib/i18n/ui.js';
+import { localiseProseLinks } from '../../lib/html/prose-links.js';
 
 const TONES = new Set(['pending', 'legacy', 'warning', 'info']);
 
@@ -31,7 +32,7 @@ export default function CalloutBlock({ data, locale }) {
         {/* Sanitised on save by lib/blocks/form.js, the single chokepoint every
             rich-text field on this site passes through. Not sanitised again
             here: a second path is a second place to get it wrong. */}
-        <div className="db-callout-body db-prose" dangerouslySetInnerHTML={{ __html: body }} />
+        <div className="db-callout-body db-prose" dangerouslySetInnerHTML={{ __html: localiseProseLinks(body, locale) }} />
       </aside>
     </section>
   );

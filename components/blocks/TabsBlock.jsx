@@ -2,6 +2,7 @@
 
 import { useId, useRef, useState } from 'react';
 import { listItems, text } from '../../lib/blocks/items.js';
+import { localiseProseLinks } from '../../lib/html/prose-links.js';
 
 /**
  * Tabbed panels, built to the WAI-ARIA tabs pattern.
@@ -24,7 +25,7 @@ import { listItems, text } from '../../lib/blocks/items.js';
  * with JavaScript unavailable the reader still gets one panel plus, in the
  * source, everything else.
  */
-export default function TabsBlock({ data }) {
+export default function TabsBlock({ data, locale }) {
   const items = listItems(data.items).filter((item) => text(item.label));
   const [active, setActive] = useState(0);
   const uid = useId();
@@ -84,7 +85,7 @@ export default function TabsBlock({ data }) {
             {/* Sanitised on save: lib/blocks/form.js runs every declared
                 `richtext` sub-field of a list row through the same
                 sanitizeHtml() as a top-level rich field. */}
-            <div className="db-prose" dangerouslySetInnerHTML={{ __html: text(item.body) ? item.body : '' }} />
+            <div className="db-prose" dangerouslySetInnerHTML={{ __html: text(item.body) ? localiseProseLinks(item.body, locale) : '' }} />
           </div>
         ))}
       </div>

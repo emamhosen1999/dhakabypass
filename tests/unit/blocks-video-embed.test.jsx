@@ -127,7 +127,7 @@ describe('VideoEmbedBlock — click-to-load, and nothing before', () => {
       { provider: 'vimeo', reference: '76979871', transcriptHref: '/en/transcripts/naojor' },
       'bn',
     );
-    expect(html).toContain('প্রতিলিপি পড়ুন');
+    expect(html).toContain('ট্রান্সক্রিপ্ট পড়ুন');
     expect(html).toContain('href="/en/transcripts/naojor"');
   });
 });

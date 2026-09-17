@@ -1,6 +1,7 @@
 import SiteImage from '../SiteImage.jsx';
 import { getMediaByPath } from '../../lib/media/repo.js';
 import { listItems, text } from '../../lib/blocks/items.js';
+import { localiseProseLinks } from '../../lib/html/prose-links.js';
 
 /**
  * The board and senior management (benchmark A3: absence of named people
@@ -42,7 +43,7 @@ export default async function PersonCardBlock({ data, locale }) {
               /* Sanitised on save: lib/blocks/form.js runs every declared
                  `richtext` sub-field of a list row through the same
                  sanitizeHtml() as a top-level rich field. */
-              <div className="db-prose db-person-bio" dangerouslySetInnerHTML={{ __html: person.bio }} />
+              <div className="db-prose db-person-bio" dangerouslySetInnerHTML={{ __html: localiseProseLinks(person.bio, locale) }} />
             ) : null}
           </li>
         ))}

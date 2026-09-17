@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { localeHref } from '../../lib/blocks/href.js';
 import SiteImage from '../SiteImage.jsx';
 import { getMediaByPath } from '../../lib/media/repo.js';
+import { localiseProseLinks } from '../../lib/html/prose-links.js';
 
 export default async function MediaProseBlock({ data, locale }) {
   let media = null;
@@ -16,7 +17,7 @@ export default async function MediaProseBlock({ data, locale }) {
       <div className="db-mediaprose-text">
         <h2 className="db-h2">{data.heading}</h2>
         {data.body ? (
-          <div className="db-prose" dangerouslySetInnerHTML={{ __html: data.body }} />
+          <div className="db-prose" dangerouslySetInnerHTML={{ __html: localiseProseLinks(data.body, locale) }} />
         ) : null}
         {data.linkLabel && data.linkHref ? (
           <p className="db-actions">

@@ -1,6 +1,7 @@
 import SiteImage from '../SiteImage.jsx';
 import { getMediaByPath } from '../../lib/media/repo.js';
 import { listItems, text } from '../../lib/blocks/items.js';
+import { localiseProseLinks } from '../../lib/html/prose-links.js';
 
 /**
  * Milestone completion, 0-100, or null for an entry that has none. Anything
@@ -69,7 +70,7 @@ export default async function TimelineBlock({ data, locale }) {
               /* Description HTML is sanitised on save — lib/blocks/form.js
                  runs the declared `richtext` sub-fields of every list row
                  through the same sanitizeHtml() as a top-level rich field. */
-              <div className="db-prose db-timeline-body" dangerouslySetInnerHTML={{ __html: item.description }} />
+              <div className="db-prose db-timeline-body" dangerouslySetInnerHTML={{ __html: localiseProseLinks(item.description, locale) }} />
             ) : null}
             {percent(item.progress) !== null ? (
               /* A milestone under construction. The bar carries its own value

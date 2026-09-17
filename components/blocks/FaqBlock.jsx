@@ -4,6 +4,7 @@ import { faqJsonLd } from '../../lib/seo/organization.js';
 import ListFilter from './ListFilter.jsx';
 import { filterText, wantsFilter } from '../../lib/blocks/filter.js';
 import { t } from '../../lib/i18n/ui.js';
+import { localiseProseLinks } from '../../lib/html/prose-links.js';
 
 /**
  * Questions and answers, built on <details>/<summary>.
@@ -40,7 +41,7 @@ export default function FaqBlock({ data, locale, blockId }) {
               /* Sanitised on save: lib/blocks/form.js runs every declared
                  `richtext` sub-field of a list row through the same
                  sanitizeHtml() as a top-level rich field. */
-              <div className="db-prose db-faq-a" dangerouslySetInnerHTML={{ __html: item.answer }} />
+              <div className="db-prose db-faq-a" dangerouslySetInnerHTML={{ __html: localiseProseLinks(item.answer, locale) }} />
             ) : null}
           </details>
         ))}

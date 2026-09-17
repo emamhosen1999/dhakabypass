@@ -11,6 +11,7 @@ import { getNewsBySlugCached } from '../../../../lib/newsroom/cache.js';
 import { formatNewsDate, newsDateISO } from '../../../../lib/newsroom/format.js';
 import StructuredData from '../../../../components/chrome/StructuredData.jsx';
 import { newsArticleJsonLd } from '../../../../lib/seo/organization.js';
+import { localiseProseLinks } from '../../../../lib/html/prose-links.js';
 
 /**
  * One article.
@@ -121,7 +122,7 @@ export default async function NewsArticle({ params }) {
       {article.body ? (
         // Article bodies come from the admin, which is behind auth and role
         // checks — the same trust boundary as every other rich-text block.
-        <div className="db-prose" lang={article.translated ? undefined : 'en'} dangerouslySetInnerHTML={{ __html: article.body }} />
+        <div className="db-prose" lang={article.translated ? undefined : 'en'} dangerouslySetInnerHTML={{ __html: localiseProseLinks(article.body, locale) }} />
       ) : null}
 
       {article.url ? (

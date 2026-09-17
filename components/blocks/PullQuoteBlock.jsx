@@ -1,4 +1,5 @@
 import { t } from '../../lib/i18n/ui.js';
+import { localiseProseLinks } from '../../lib/html/prose-links.js';
 const text = (v) => (typeof v === 'string' ? v.trim() : '');
 
 /**
@@ -7,7 +8,7 @@ const text = (v) => (typeof v === 'string' ? v.trim() : '');
  * carries the source URL where one is given. The quotation mark is drawn in
  * CSS, not typed, so it never appears twice and never in the wrong script.
  */
-export default function PullQuoteBlock({ data }) {
+export default function PullQuoteBlock({ data, locale }) {
   const quote = text(data?.quote);
   if (!quote) return null;
   const attribution = text(data?.attribution);
@@ -19,7 +20,7 @@ export default function PullQuoteBlock({ data }) {
       <figure className="db-pullquote">
         <blockquote cite={sourceHref || undefined}>
           {/* Sanitised on save by lib/blocks/form.js — the single chokepoint. */}
-          <div className="db-pullquote-text" dangerouslySetInnerHTML={{ __html: quote }} />
+          <div className="db-pullquote-text" dangerouslySetInnerHTML={{ __html: localiseProseLinks(quote, locale) }} />
         </blockquote>
         {attribution || role ? (
           <figcaption className="db-pullquote-cite">
