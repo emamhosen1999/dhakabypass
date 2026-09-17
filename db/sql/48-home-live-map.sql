@@ -11,14 +11,12 @@ SET NAMES utf8mb4;
 
 SET @home = (SELECT `id` FROM `pages` WHERE `slug` = 'home');
 
--- The strip and the interchange table leave the home page (unpublished, not
--- deleted: the operator can bring either back from the page editor).
-UPDATE `blocks` SET `status` = 'draft' WHERE `page_id` = @home AND `type` IN ('corridor-strip', 'interchange-table');
--- Publication is per translation (lib/content/pages.js): a block with no
--- published translation does not render, and its text is kept as the draft.
-UPDATE `block_translations` bt JOIN `blocks` b ON b.`id` = bt.`block_id`
-   SET bt.`status` = 'draft'
+-- The strip and the interchange table leave the home page. Removed rather
+-- than left as drafts: both are record-driven blocks with no authored text
+-- of their own, and either can be placed again from the block picker.
+DELETE bt FROM `block_translations` bt JOIN `blocks` b ON b.`id` = bt.`block_id`
  WHERE b.`page_id` = @home AND b.`type` IN ('corridor-strip', 'interchange-table');
+DELETE FROM `blocks` WHERE `page_id` = @home AND `type` IN ('corridor-strip', 'interchange-table');
 
 -- The compact map, once.
 SET @ok = (@home IS NOT NULL AND (SELECT COUNT(*) FROM `blocks` WHERE `page_id` = @home AND `type` = 'corridor-map') = 0);

@@ -175,12 +175,20 @@ describe('a database built from db/sql/*.sql alone', () => {
     expect(pins.c).toBe(1);
   });
 
-  it('put the home corridor blocks on the home page, after the hero (18)', async () => {
-    const rows = await all(`SELECT b.type FROM blocks b JOIN pages p ON p.id = b.page_id
+  it('opens the home page with the hero, the progress figure and the live map (18, 48)', async () => {
+    // 18 put the strip and the interchange table here; 48 replaced them with
+    // the compact corridor map and gave the opening blocks a real order.
+    const rows = await all(`SELECT b.type, b.sort_order FROM blocks b JOIN pages p ON p.id = b.page_id
       WHERE p.slug = 'home' ORDER BY b.sort_order, b.id`);
     const types = rows.map((r) => r.type);
-    expect(types.slice(0, 4)).toEqual(['hero', 'progress-bar', 'corridor-strip', 'interchange-table']);
+    expect(types.slice(0, 5)).toEqual(['hero', 'progress-bar', 'corridor-map', 'toll-calculator', 'toll-preview']);
+    expect(types).not.toContain('corridor-strip');
+    expect(types).not.toContain('interchange-table');
     expect(types.filter((t) => t === 'progress-bar')).toHaveLength(1);
+    expect(new Set(rows.map((r) => r.sort_order)).size).toBe(rows.length);
+    const map = await one(`SELECT JSON_UNQUOTE(JSON_EXTRACT(bt.data, '$.layout')) AS layout FROM block_translations bt
+      JOIN blocks b ON b.id = bt.block_id JOIN pages p ON p.id = b.page_id WHERE p.slug = 'home' AND b.type = 'corridor-map' AND bt.locale = 'en'`);
+    expect(map.layout).toBe('compact');
   });
 
   it('put the grievance form on the grievances page and rewrote its cta-band (20)', async () => {
