@@ -2204,6 +2204,78 @@ a.db-toll-sro{display:inline-flex;align-items:center;min-height:var(--db-tap);
   @keyframes db-tollcalc-in{from{opacity:.4;}to{opacity:1;}}
 }
 
+/* ---- the five blocks of 17 September: typical speed by hour, the
+   kilometre-post finder, corridor weather, open data, the scorecard ------
+   All on existing tokens. Tables reuse .db-table/.db-scroll-x; forms reuse
+   .db-field/.db-input/.db-btn; notices reuse .db-statusnotice; nothing here
+   introduces a colour. */
+
+/* Typical speed by hour: 24 narrow cells across, one row per day type. The
+   condition sits as a bar under the figure, so the number stays the thing
+   read and the colour is secondary; the word is in the cell for readers who
+   cannot separate the ramp. */
+.db-history-basis{margin:12px 0 0;color:var(--db-ink-3);font-size:.86rem;}
+.db-history-section{margin-top:20px;}
+.db-history-title{font-family:var(--db-font-display);font-size:1.05rem;margin:0 0 8px;}
+.db-history-table{min-width:0;font-size:.82rem;}
+.db-history-table th,.db-history-table td{padding:6px 4px;}
+.db-history-table th[scope="row"]{white-space:nowrap;padding-right:10px;}
+.db-history-hour{min-width:32px;text-align:center;color:var(--db-ink-3);font-weight:600;}
+.db-history-cell{text-align:center;min-width:32px;font-variant-numeric:tabular-nums;}
+.db-history-empty{color:var(--db-rule-2);}
+.db-statuslegend li:first-child{color:var(--db-ink-3);}
+
+/* Where am I: one field, two buttons, and the answer as a definition list. */
+.db-locate-form{max-width:34rem;}
+.db-locate-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.db-locate-geo{display:contents;}
+.db-locate-geo .db-form-live{flex-basis:100%;margin:0;}
+.db-locate-answer{max-width:var(--db-measure);}
+.db-locate-here{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin:0 0 12px;}
+.db-locate-here-label{font-family:var(--db-font-display);font-size:.72rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--db-ink-3);}
+.db-root:lang(bn) .db-locate-here-label,.db-root:lang(zh) .db-locate-here-label{letter-spacing:0;text-transform:none;}
+.db-locate-chainage{font-family:var(--db-font-display);font-weight:700;font-size:clamp(1.6rem,1.2rem + 1.5vw,2.2rem);
+  line-height:1;color:var(--db-ink);}
+.db-locate-facts{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:8px 16px;margin:0;}
+.db-locate-facts dt{color:var(--db-ink-3);font-size:.9rem;}
+.db-locate-facts dd{margin:0;}
+.db-locate-name{display:block;font-weight:600;}
+.db-locate-list{margin:0;padding-left:18px;}
+.db-locate-emergency{margin-top:20px;}
+@media (max-width:479px){.db-locate-facts{grid-template-columns:1fr;gap:2px 0;}
+  .db-locate-facts dd{margin-bottom:10px;}}
+
+/* Corridor weather: the advisory first, then the readings. */
+.db-weather-clear{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:20px 0 0;color:var(--db-ink-2);}
+.db-weather-notices{margin-top:20px;}
+.db-weather-advice{display:block;margin-top:4px;color:var(--db-ink);}
+.db-weather-table{margin-top:16px;}
+.db-weather-table .db-table{min-width:520px;}
+.db-weather-table th[scope="row"]{white-space:nowrap;}
+.db-weather-flagged{border-color:var(--db-alert);}
+.db-weather-source{margin-top:10px;}
+
+/* Open data: one card per feed, the address in a monospace line a
+   dispatcher can select in one gesture. */
+.db-opendata-list{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:2px;}
+.db-opendata-item{background:var(--db-surface);padding:14px 16px;border-top:3px solid var(--db-accent);}
+.db-opendata-name{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0;
+  font-family:var(--db-font-display);font-size:1.05rem;}
+.db-opendata-desc{margin:6px 0 8px;color:var(--db-ink-2);font-size:.94rem;max-width:var(--db-measure);}
+.db-opendata-url{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.86rem;overflow-wrap:anywhere;color:var(--db-ink);}
+.db-opendata-note{margin-top:12px;}
+.db-opendata-terms-heading{font-family:var(--db-font-display);font-size:1.05rem;margin:20px 0 8px;}
+
+/* Concession scorecard: the term bar reuses the progress rail. */
+.db-scorecard-term{margin-top:20px;max-width:var(--db-measure);}
+.db-scorecard-source{color:var(--db-ink-3);}
+.db-scorecard-table{margin-top:20px;}
+.db-scorecard-pending{display:inline-block;font-family:var(--db-font-display);font-size:.7rem;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--db-build);}
+.db-root:lang(bn) .db-scorecard-pending,.db-root:lang(zh) .db-scorecard-pending{letter-spacing:0;text-transform:none;}
+
 /* ---- print: the page, not the website (W8.15, UI-EDGE-02) -----------------
    A toll page printed for a notice board ran to three A4 sheets: the menu, the
    language switch, the section menu, the calculator's form and a 930px footer
@@ -2213,7 +2285,7 @@ a.db-toll-sro{display:inline-flex;align-items:center;min-height:var(--db-tap);
 @page{size:A4;margin:12mm 12mm 14mm;}
 @media print{
   .db-nav,.db-locale-switch,.db-subnav,.db-footer-nav,.db-tollcalc,
-  .db-request-form,.db-alert-signup,.db-scroll-hint,.db-skip{display:none!important;}
+  .db-request-form,.db-alert-signup,.db-scroll-hint,.db-skip,.db-locate-form{display:none!important;}
   .db-block{padding-top:8pt;padding-bottom:8pt;}
   .db-page-head{padding-top:4pt;padding-bottom:4pt;}
   .db-header,.db-footer{background:none;color:var(--db-paper-ink);}

@@ -36,8 +36,10 @@ describe('the ten new block types', () => {
     // The number is here as a guard against a type silently disappearing from
     // lib/blocks/index.js, so it moves with a deliberate addition and only then.
     // 42 with W5.14's site-search; 43 with W4.8's advisory-list; 44 with camera-grid;
-    // 46 with alert-signup and panorama; 47 with request-status.
-    expect(allBlocks()).toHaveLength(47);
+    // 46 with alert-signup and panorama; 47 with request-status; 52 with the
+    // five of 17 September (travel-time-history, km-finder, corridor-weather,
+    // open-data, concession-scorecard).
+    expect(allBlocks()).toHaveLength(52);
   });
 
   it.each(NEW_TYPES)('gives %s a default record covering every declared field', (type) => {

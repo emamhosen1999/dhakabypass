@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { listCorridorAction, setIllustrativeAction, saveCorridorFactsAction } from './actions';
+import { listCorridorAction, setIllustrativeAction, saveCorridorFactsAction, listWeatherThresholdsAction, saveWeatherThresholdsAction } from './actions';
 import { LOCALES } from '../../../../lib/i18n/locales';
 import { listWaypointsForAdmin } from '../../../../lib/corridor/waypoints-admin';
 import { getGeometryOverview } from '../../../../lib/corridor/geometry-admin';
@@ -10,9 +10,9 @@ import { AdminPage, Button } from '../../../../components/admin/ui';
 export const dynamic = 'force-dynamic';
 
 export default async function CorridorHub() {
-  const [{ segments, interchanges, tolls, advisories, illustrative, publishedLengthKm, prohibited, roadCode }, waypoints, geometry, matrix] =
+  const [{ segments, interchanges, tolls, advisories, illustrative, publishedLengthKm, prohibited, roadCode }, waypoints, geometry, matrix, weather] =
     await Promise.all([
-      listCorridorAction(), listWaypointsForAdmin(), getGeometryOverview(), listTollMatrixAction(),
+      listCorridorAction(), listWaypointsForAdmin(), getGeometryOverview(), listTollMatrixAction(), listWeatherThresholdsAction(),
     ]);
   // Counted here rather than shown as a bare total: "270 fares" reads as work
   // finished, and the number that matters on this hub is how many of them are
@@ -103,6 +103,32 @@ export default async function CorridorHub() {
         </fieldset>
         <p className="text-sm text-gray-500">Shown by every “Prohibited vehicles” block. A language left blank shows the English list.</p>
         <Button>Save</Button>
+      </form>
+
+      <form action={saveWeatherThresholdsAction} className="border rounded p-4 space-y-3">
+        <h2 className="font-semibold">Weather advisory thresholds</h2>
+        <p className="text-sm text-gray-500">
+          The corridor-weather block reads Open-Meteo at the two ends of the road and its middle, and
+          raises an advisory when a reading crosses one of these. Blank puts a figure back to its default.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <label className="flex flex-col gap-1 text-sm">
+            Fog: visibility below (metres)
+            <input type="number" min="50" max="20000" step="50" name="weather_fog" defaultValue={weather.fog} className="border rounded px-3 py-2" />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Heavy rain: at or above (mm in the last hour)
+            <input type="number" min="0.5" max="200" step="0.5" name="weather_rain" defaultValue={weather.rain} className="border rounded px-3 py-2" />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Strong wind: at or above (km/h, gusts included)
+            <input type="number" min="10" max="200" step="1" name="weather_wind" defaultValue={weather.wind} className="border rounded px-3 py-2" />
+          </label>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button>Save</Button>
+          <a href="/admin/history?type=setting&id=weather.fog_visibility_m" className="text-sm underline text-blue-900">History</a>
+        </div>
       </form>
 
       <ul className="grid gap-4 sm:grid-cols-2">

@@ -19,6 +19,9 @@ import { setSetting, getSetting, isDataIllustrative, getPublishedLengthKm } from
 import { LOCALES } from '../../../../lib/i18n/locales';
 import { saveCorridorRoad } from '../../../../lib/corridor/roads';
 import { saveRecord, deleteRecord } from '../../../../lib/admin/record-actions';
+import { revalidateWeather } from '../../../../lib/revalidate';
+import { WEATHER_KEYS, WEATHER_DEFAULTS } from '../../../../lib/weather/advisory';
+import { readThresholds } from '../../../../lib/weather/cache';
 
 const ADMIN = '/admin/corridor';
 
@@ -36,6 +39,38 @@ async function listCorridorAction$inner() {
     getPublishedLengthKm(), getSetting('corridor.prohibited_vehicles', {}), getSetting('corridor.road_code', ''),
   ]);
   return { segments, interchanges, tolls, advisories, illustrative, publishedLengthKm, prohibited, roadCode };
+}
+
+async function listWeatherThresholdsAction$inner() {
+  await assertCan(ACTION);
+  return readThresholds();
+}
+
+/**
+ * The three figures that turn an Open-Meteo reading into a fog, rain or
+ * wind advisory on the corridor-weather block. Each must be a positive
+ * number; a blank goes back to the default rather than switching the
+ * hazard off, because there is no honest "never warn about fog".
+ */
+async function saveWeatherThresholdsAction$inner(formData) {
+  await assertCan(ACTION);
+  const values = {};
+  const bounds = { fog: [50, 20000], rain: [0.5, 200], wind: [10, 200] };
+  for (const name of Object.keys(WEATHER_KEYS)) {
+    const raw = String(formData.get(`weather_${name}`) ?? '').trim();
+    if (raw === '') { values[name] = WEATHER_DEFAULTS[name]; continue; }
+    const n = Number(raw);
+    const [lo, hi] = bounds[name];
+    if (!Number.isFinite(n) || n < lo || n > hi) {
+      throw validationError(`The ${name} threshold must be a number between ${lo} and ${hi}.`);
+    }
+    values[name] = n;
+  }
+  try {
+    for (const [name, key] of Object.entries(WEATHER_KEYS)) await setSetting(key, values[name]);
+  } catch { throw validationError('Could not save the weather thresholds. Please try again.'); }
+  revalidateWeather();
+  revalidatePath(ADMIN);
 }
 
 async function saveSegmentAction$inner(formData) {
@@ -282,6 +317,12 @@ export async function saveCorridorRoadAction(formData) {
 }
 export async function saveCorridorFactsAction(formData) {
   return runAction(() => saveCorridorFactsAction$inner(formData), { name: 'saveCorridorFactsAction', form: formData });
+}
+export async function listWeatherThresholdsAction() {
+  return runAction(() => listWeatherThresholdsAction$inner(), { name: 'listWeatherThresholdsAction' });
+}
+export async function saveWeatherThresholdsAction(formData) {
+  return runAction(() => saveWeatherThresholdsAction$inner(formData), { name: 'saveWeatherThresholdsAction', form: formData });
 }
 export async function setIllustrativeAction(formData) {
   return runAction(() => setIllustrativeAction$inner(formData), { name: 'setIllustrativeAction', form: formData });
