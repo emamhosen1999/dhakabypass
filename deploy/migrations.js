@@ -58,6 +58,7 @@ export const MIGRATIONS = Object.freeze([
   '46-section-index',
   '47-progress-videos',
   '48-home-live-map',
+  '49-home-one-toll-section',
 ]);
 
 /** Names in MIGRATIONS that the ledger does not carry, in import order. */
