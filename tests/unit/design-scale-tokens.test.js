@@ -47,3 +47,15 @@ describe('print (W8.15, UI-EDGE-02)', () => {
     expect(css).toMatch(/main > \.db-block\{break-inside:avoid/);
   });
 });
+
+describe('secondary buttons keep their border', () => {
+  // The base .db-btn rule sets a transparent border; a .db-btn-secondary rule
+  // declared before it lost by source order and every secondary button on the
+  // site rendered as bare text. The restated rule must come after the base.
+  it('restates .db-btn-secondary after the base .db-btn rule', () => {
+    const base = css.lastIndexOf('.db-btn{');
+    const secondary = css.lastIndexOf('.db-btn.db-btn-secondary{');
+    expect(secondary).toBeGreaterThan(base);
+    expect(css.slice(secondary, secondary + 120)).toMatch(/border-color:var\(--db-ink-3\)/);
+  });
+});

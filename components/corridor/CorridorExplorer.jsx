@@ -45,7 +45,7 @@ export default function CorridorExplorer({ view, ui, initialSelected = null, mod
   const home = useMemo(() => {
     const [x, y, w, h] = String(view.viewBox).split(' ').map(Number);
     if (banded && !compact) {
-      const aspect = 2.1;
+      const aspect = 1.7;
       const targetW = Math.max(w, h * aspect);
       const targetH = targetW / aspect;
       return { x: x + w / 2 - targetW / 2, y: y + h / 2 - targetH / 2, w: targetW, h: targetH };

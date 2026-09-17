@@ -1147,6 +1147,12 @@
 .db-btn-primary:hover{filter:brightness(1.08);}
 .db-btn-primary:disabled{opacity:.6;cursor:progress;}
 .db-btn:focus-visible{outline:2px solid var(--db-accent);outline-offset:2px;}
+/* Restated AFTER the base rule above: that rule's `border:1px solid
+   transparent` outranked the secondary button's own border by source order,
+   so every secondary button on the site rendered as bare text. Same
+   specificity, later position, and a hover the primary already has. */
+.db-btn.db-btn-secondary{border-color:var(--db-ink-3);color:var(--db-ink);background:transparent;}
+.db-btn.db-btn-secondary:hover{background:var(--db-surface-2);border-color:var(--db-ink-2);}
 .db-eyebrow{font-family:var(--db-font-display);font-size:.72rem;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;color:var(--db-ink-3);margin:0 0 8px;}
 
@@ -1432,9 +1438,10 @@
 /* The compact band (home page): one column whatever the width, the frame
    capped so the corridor sits in a wide strip rather than a tall poster. */
 .db-map-explorer-compact{grid-template-columns:minmax(0,1fr)!important;}
-.db-map-block-compact .db-map-wrap{max-height:min(62vh,520px);}
+.db-map-block-compact .db-map-wrap{max-height:min(66vh,560px);}
 .db-map-block-compact .db-map-titleplate{transform:scale(.9);transform-origin:top left;}
 .db-map-open{margin:14px 0 0;}
+.db-map-block-compact{padding-bottom:8px;}
 /* The progress figure and the live band are one statement — "this much is
    open, and this is how it runs" — so the band sits close under the figure
    instead of a block-gap away. */
