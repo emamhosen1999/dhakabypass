@@ -1,0 +1,233 @@
+"""Generate db/sql/56-novelty-pages.sql: the pages and placements for the five
+blocks of 17 September 2026.
+
+  * travel/locate       the kilometre-post finder, with how to read the posts
+  * travel/weather      weather along the corridor, with fog-driving guidance
+  * disclosures/open-data   the public feeds, with what they are and are not
+  * placements on travel/breakdown (finder), travel/advisories (weather),
+    travel/status and disclosures/reports (typical speed by hour) and
+    about/concession (scorecard, empty until DBEDC supplies its figures)
+  * menu items, labelled from the pages' own titles, in the travel, safety
+    and disclosures menus
+
+Same rules as gen_pages.py: pages located by slug, blocks only into an empty
+page, additions guarded on the block type already being on the page, every
+statement safe to run twice. Run:  python scripts/content/gen_novelty.py
+"""
+import json
+import os
+
+OUT = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'sql', '56-novelty-pages.sql')
+
+
+def q(s):
+    return "'" + str(s).replace("\\", "\\\\").replace("'", "''") + "'"
+
+
+def js(d):
+    return json.dumps(d, ensure_ascii=False, separators=(",", ":"))
+
+
+def subnav(menu='travel'):
+    return ('section-subnav', {loc: {'menu': menu} for loc in ('en', 'bn', 'zh')})
+
+
+def header(en, bn, zh):
+    return ('page-header', {
+        'en': {'eyebrow': en[0], 'heading': en[1], 'lede': en[2]},
+        'bn': {'eyebrow': bn[0], 'heading': bn[1], 'lede': bn[2]},
+        'zh': {'eyebrow': zh[0], 'heading': zh[1], 'lede': zh[2]},
+    })
+
+
+def rich(en, bn, zh):
+    return ('rich-text', {
+        'en': {'heading': en[0], 'body': en[1]},
+        'bn': {'heading': bn[0], 'body': bn[1]},
+        'zh': {'heading': zh[0], 'body': zh[1]},
+    })
+
+
+TRAVEL = ('Travel information', 'যাতায়াত তথ্য', '出行信息')
+DISCLOSURE = ('Disclosures', 'তথ্য প্রকাশ', '信息公开')
+
+PAGES = [
+  {
+    'slug': 'travel/locate',
+    'titles': {
+      'en': ('Where am I on the expressway', 'Type the kilometre marker on the nearest post, or use your phone’s location, to find your position on the Dhaka Bypass Expressway and the nearest exit and toll plaza.'),
+      'bn': ('এক্সপ্রেসওয়েতে আমি কোথায়', 'কাছের পোস্টের কিলোমিটার নম্বর লিখুন বা ফোনের লোকেশন ব্যবহার করুন: ঢাকা বাইপাস এক্সপ্রেসওয়েতে আপনার অবস্থান, কাছের এক্সিট ও টোল প্লাজা জানুন।'),
+      'zh': ('我在快速路的哪里', '输入最近公里桩的编号或使用手机定位，查找您在达卡绕城高速公路上的位置以及最近的出口和收费站。'),
+    },
+    'blocks': [
+      subnav(),
+      header((TRAVEL[0], 'Where am I on the expressway', 'Broken down, or asked where you are? The posts beside the road tell you. Type the marker and this page names the stretch, the nearest toll plaza and the next exit each way.'),
+             (TRAVEL[1], 'এক্সপ্রেসওয়েতে আমি কোথায়', 'গাড়ি নষ্ট হয়েছে, বা কেউ জিজ্ঞেস করছে আপনি কোথায়? রাস্তার পাশের পোস্টই বলে দেয়। পোস্টের নম্বর লিখুন, এই পেজ জানাবে কোন অংশে আছেন, কাছের টোল প্লাজা ও দুই দিকের পরের এক্সিট।'),
+             (TRAVEL[2], '我在快速路的哪里', '车辆抛锚，或有人问您在哪里？路边的公里桩会告诉您。输入桩号，本页即显示所在路段、最近的收费站和两个方向的下一个出口。')),
+      ('km-finder', {
+        'en': {'heading': '', 'intro': '', 'markerLabel': '', 'submitLabel': '', 'locationLabel': '', 'note': 'Give the operator this marker and your direction of travel: towards Madanpur (south) or towards Joydebpur (north).', 'showEmergency': 'yes'},
+        'bn': {'heading': '', 'intro': '', 'markerLabel': '', 'submitLabel': '', 'locationLabel': '', 'note': 'অপারেটরকে এই পোস্ট নম্বর আর আপনার যাওয়ার দিক বলুন: মদনপুরের দিকে (দক্ষিণ) না জয়দেবপুরের দিকে (উত্তর)।', 'showEmergency': 'yes'},
+        'zh': {'heading': '', 'intro': '', 'markerLabel': '', 'submitLabel': '', 'locationLabel': '', 'note': '请告知接线员此桩号和您的行驶方向：往 Madanpur（南）或往 Joydebpur（北）。', 'showEmergency': 'yes'},
+      }),
+      rich(('How to read the posts', '<p>Kilometre posts stand on the left verge every kilometre, counted from the Joydebpur end of the corridor. A post reading <strong>K12</strong> is twelve kilometres from the start; the smaller plates between them add the metres past the last full kilometre, so a plate reading <strong>+500</strong> after K12 is twelve and a half kilometres in. Bridges and toll plazas carry their own chainage on the structure.</p><p>If you cannot see a post, the last toll plaza you passed, the last bridge, or the button above (which asks your phone for its position) will do. The position from a phone is usually within a few tens of metres; the page says how far from the road it thinks you are.</p>'),
+           ('পোস্ট কীভাবে পড়বেন', '<p>কিলোমিটার পোস্ট রাস্তার বাঁ পাশে প্রতি কিলোমিটারে থাকে, করিডোরের জয়দেবপুর প্রান্ত থেকে গোনা। <strong>K12</strong> লেখা পোস্ট মানে শুরু থেকে বারো কিলোমিটার; মাঝের ছোট প্লেট শেষ পুরো কিলোমিটারের পর কত মিটার তা দেখায়, তাই K12-এর পর <strong>+500</strong> লেখা প্লেট মানে সাড়ে বারো কিলোমিটার। ব্রিজ ও টোল প্লাজায় নিজস্ব চেইনেজ লেখা থাকে।</p><p>পোস্ট দেখতে না পেলে শেষ যে টোল প্লাজা বা ব্রিজ পার হয়েছেন তা বলুন, বা ওপরের বাটনটি চাপুন (এটি ফোনের লোকেশন নেয়)। ফোনের লোকেশন সাধারণত কয়েক দশ মিটারের মধ্যে ঠিক থাকে; পেজ জানায় রাস্তা থেকে আপনাকে কত দূরে ধরছে।</p>'),
+           ('如何读公里桩', '<p>公里桩立在左侧路肩，每公里一个，从走廊的 Joydebpur 端起算。写着 <strong>K12</strong> 的桩表示距起点十二公里；中间较小的牌子表示距上一个整公里的米数，因此 K12 之后写着 <strong>+500</strong> 的牌子表示十二公里半处。桥梁和收费站在构造物上标有各自的桩号。</p><p>看不到公里桩时，可以说出最后经过的收费站或桥梁，或点击上方按钮（它会读取手机定位）。手机定位通常误差在几十米内；页面会说明它认为您距道路多远。</p>')),
+    ],
+  },
+  {
+    'slug': 'travel/weather',
+    'titles': {
+      'en': ('Weather on the corridor', 'Fog, rain and wind along the Dhaka Bypass Expressway right now, with a driving advisory when a reading crosses DBEDC’s thresholds.'),
+      'bn': ('করিডোরের আবহাওয়া', 'ঢাকা বাইপাস এক্সপ্রেসওয়েতে এখন কুয়াশা, বৃষ্টি ও বাতাসের অবস্থা; DBEDC-এর সীমা পার হলে ড্রাইভিং সতর্কতা।'),
+      'zh': ('走廊沿线天气', '达卡绕城高速公路沿线当前的雾、雨和风况；读数超过 DBEDC 设定阈值时给出驾驶提醒。'),
+    },
+    'blocks': [
+      subnav(),
+      header((TRAVEL[0], 'Weather on the corridor', 'Winter fog between Gazipur and Narayanganj can cut visibility to a few hundred metres before dawn, and monsoon rain floods the low stretches. Check here before you set out.'),
+             (TRAVEL[1], 'করিডোরের আবহাওয়া', 'শীতে গাজীপুর থেকে নারায়ণগঞ্জের মধ্যে ভোরের কুয়াশায় দৃষ্টিসীমা কয়েকশো মিটারে নেমে আসে, আর বর্ষার বৃষ্টিতে নিচু অংশে পানি জমে। রওনা হওয়ার আগে এখানে দেখে নিন।'),
+             (TRAVEL[2], '走廊沿线天气', '冬季加济布尔至纳拉扬甘杰之间的黎明前浓雾可将能见度降至几百米，雨季暴雨会淹没低洼路段。出发前请先查看。')),
+      ('corridor-weather', {
+        'en': {'heading': '', 'intro': '', 'adviceFog': '', 'adviceRain': '', 'adviceWind': '', 'unavailableMessage': ''},
+        'bn': {'heading': '', 'intro': '', 'adviceFog': '', 'adviceRain': '', 'adviceWind': '', 'unavailableMessage': ''},
+        'zh': {'heading': '', 'intro': '', 'adviceFog': '', 'adviceRain': '', 'adviceWind': '', 'unavailableMessage': ''},
+      }),
+      rich(('Driving in fog', '<p>Fog on this corridor is thickest between midnight and about nine in the morning from December to February, and it forms first over the low ground near the rivers and the Kanchan and Ulukhola bridges. Dipped headlights, not full beam: full beam reflects off the fog and shortens what you can see. Use the fog lamps if the vehicle has them, slow to a speed you can stop within the distance you can see, keep well back from the tail lights ahead, and do not stop on the carriageway. If you must stop, leave the road at the next exit or pull fully onto the hard shoulder with hazard lights on.</p><p>The readings above come from a weather model at three points along the road, not from sensors on it. They are a warning to expect fog, not a guarantee of its absence.</p>'),
+           ('কুয়াশায় ড্রাইভিং', '<p>এই করিডোরে ডিসেম্বর থেকে ফেব্রুয়ারিতে মধ্যরাত থেকে সকাল নয়টা পর্যন্ত কুয়াশা সবচেয়ে ঘন হয়, আর নদীর কাছের নিচু জমি এবং কাঞ্চন ও উলুখোলা ব্রিজের ওপর আগে জমে। হাই বিম নয়, লো বিম জ্বালান: হাই বিম কুয়াশায় প্রতিফলিত হয়ে দৃষ্টিসীমা আরও কমিয়ে দেয়। গাড়িতে ফগ লাইট থাকলে জ্বালান, যতটুকু দেখছেন তার মধ্যে থামতে পারেন এমন গতিতে চালান, সামনের গাড়ির টেল লাইট থেকে দূরে থাকুন এবং মূল রাস্তায় থামবেন না। থামতেই হলে পরের এক্সিটে বেরিয়ে যান বা হ্যাজার্ড লাইট জ্বালিয়ে পুরোপুরি হার্ড শোল্ডারে উঠে যান।</p><p>ওপরের তথ্য রাস্তার তিনটি জায়গার আবহাওয়া মডেল থেকে আসে, রাস্তার সেন্সর থেকে নয়। এটি কুয়াশার জন্য তৈরি থাকার সতর্কতা, কুয়াশা নেই তার নিশ্চয়তা নয়।</p>'),
+           ('雾天驾驶', '<p>本走廊的雾在 12 月至 2 月的午夜至上午九点前后最浓，最先在河流附近的低洼地带以及 Kanchan 桥和 Ulukhola 桥上形成。请开近光灯而非远光灯：远光灯会被雾反射，反而缩短视距。有雾灯请打开，把车速降到在可视距离内能停下的程度，与前车尾灯保持足够距离，不要在主路上停车。如必须停车，请在下一个出口驶离，或完全驶入硬路肩并打开危险警示灯。</p><p>上方读数来自道路沿线三个点的天气模型，而非路侧传感器。它是提醒您可能有雾，而不是保证没有雾。</p>')),
+    ],
+  },
+  {
+    'slug': 'disclosures/open-data',
+    'titles': {
+      'en': ('Open data', 'Machine-readable feeds from the Dhaka Bypass Expressway: corridor status as JSON, traffic counts and measurements as CSV, closures as a calendar.'),
+      'bn': ('ওপেন ডেটা', 'ঢাকা বাইপাস এক্সপ্রেসওয়ের মেশিন-রিডেবল ফিড: JSON-এ করিডোরের অবস্থা, CSV-তে ট্রাফিকের সংখ্যা ও পরিমাপ, ক্যালেন্ডারে রাস্তা বন্ধের তথ্য।'),
+      'zh': ('开放数据', '达卡绕城高速公路的机器可读数据：JSON 格式的走廊状态、CSV 格式的交通量和监测数据、日历格式的封闭信息。'),
+    },
+    # No section-subnav: the other disclosures/* pages carry none (only the
+    # hubs and the travel pages do), and the rehearsal asserts that.
+    'blocks': [
+      header((DISCLOSURE[0], 'Open data', 'The figures on this site, in forms a dispatcher’s screen, a researcher’s spreadsheet or a newsroom’s map can read directly. Same records, same time, same flags.'),
+             (DISCLOSURE[1], 'ওপেন ডেটা', 'এই সাইটের তথ্য এমন ফরম্যাটে, যা ডিসপ্যাচারের স্ক্রিন, গবেষকের স্প্রেডশিট বা নিউজরুমের ম্যাপ সরাসরি পড়তে পারে। একই রেকর্ড, একই সময়, একই চিহ্ন।'),
+             (DISCLOSURE[2], '开放数据', '本网站的数据，以调度屏幕、研究者的电子表格或新闻编辑室的地图可直接读取的形式提供。同样的记录、同样的时间、同样的标记。')),
+      ('open-data', {
+        'en': {'heading': 'The feeds', 'intro': '', 'terms': '', 'note': ''},
+        'bn': {'heading': 'ফিডগুলো', 'intro': '', 'terms': '', 'note': ''},
+        'zh': {'heading': '数据源', 'intro': '', 'terms': '', 'note': ''},
+      }),
+      rich(('What the feeds are, and are not', '<p>Every feed is built from the same records the pages read, at the moment it is requested, and carries the same flags: a <code>traffic_source</code> of <code>sample</code> means the conditions describe nothing real, and a monthly row marked <code>sample</code> is a placeholder DBEDC has not yet replaced. Treat those rows as the site does, as examples of the shape, not as measurements.</p><p>No feed contains anything about a person: no number plates, no account details, no camera images. The traffic measurements are journey speeds over each section from a routing provider, sampled every half hour while the live feed runs.</p>'),
+           ('ফিডগুলো কী, আর কী নয়', '<p>প্রতিটি ফিড পেজগুলো যে রেকর্ড পড়ে সেই রেকর্ড থেকেই, চাওয়ার মুহূর্তে তৈরি হয় এবং একই চিহ্ন বহন করে: <code>traffic_source</code> যদি <code>sample</code> হয়, তবে ওই অবস্থা বাস্তব কিছু বোঝায় না; আর <code>sample</code> চিহ্নিত মাসিক সারি DBEDC এখনো বদলায়নি এমন নমুনা। এই সারিগুলোকে সাইট যেভাবে দেখে সেভাবেই দেখুন: ফরম্যাটের উদাহরণ, পরিমাপ নয়।</p><p>কোনো ফিডে কারও ব্যক্তিগত কিছু নেই: গাড়ির নম্বর নেই, অ্যাকাউন্টের তথ্য নেই, ক্যামেরার ছবি নেই। ট্রাফিক পরিমাপ হলো রাউটিং সার্ভিস থেকে পাওয়া প্রতিটি অংশের যাত্রার গতি, লাইভ ফিড চলার সময় প্রতি আধা ঘণ্টায় নেওয়া।</p>'),
+           ('数据是什么，不是什么', '<p>每个数据源都在被请求的那一刻由页面所读取的同一批记录生成，并带有相同的标记：<code>traffic_source</code> 为 <code>sample</code> 表示路况不代表任何真实情况；标记为 <code>sample</code> 的月度行是 DBEDC 尚未替换的占位数据。请像本网站一样对待这些行：它们是格式示例，而非监测结果。</p><p>任何数据源都不包含个人信息：没有车牌、没有账户信息、没有摄像头图像。交通监测数据是来自路径规划服务的各路段行程车速，在实时数据运行期间每半小时采样一次。</p>')),
+    ],
+  },
+]
+
+# (page slug, block type to add, data per locale, where) — `where` is 'end'
+# (before a closing cta-band) or 'after:<type>' (directly after that block).
+EXTRA = [
+  ('travel/breakdown', 'km-finder', {
+    'en': {'heading': 'Where are you?', 'intro': 'The operator will ask for the kilometre marker. Find it here.', 'markerLabel': '', 'submitLabel': '', 'locationLabel': '', 'note': '', 'showEmergency': 'no'},
+    'bn': {'heading': 'আপনি কোথায়?', 'intro': 'অপারেটর কিলোমিটার পোস্টের নম্বর জানতে চাইবেন। এখানে খুঁজে নিন।', 'markerLabel': '', 'submitLabel': '', 'locationLabel': '', 'note': '', 'showEmergency': 'no'},
+    'zh': {'heading': '您在哪里？', 'intro': '接线员会询问公里桩编号。在这里查找。', 'markerLabel': '', 'submitLabel': '', 'locationLabel': '', 'note': '', 'showEmergency': 'no'},
+  }, 'after:emergency-strip'),
+  ('travel/advisories', 'corridor-weather', {
+    'en': {'heading': 'Weather now', 'intro': '', 'adviceFog': '', 'adviceRain': '', 'adviceWind': '', 'unavailableMessage': ''},
+    'bn': {'heading': 'এখনকার আবহাওয়া', 'intro': '', 'adviceFog': '', 'adviceRain': '', 'adviceWind': '', 'unavailableMessage': ''},
+    'zh': {'heading': '当前天气', 'intro': '', 'adviceFog': '', 'adviceRain': '', 'adviceWind': '', 'unavailableMessage': ''},
+  }, 'after:advisory-list'),
+  ('travel/status', 'travel-time-history', {
+    'en': {'heading': 'How the road usually runs', 'intro': 'The median measured speed on each section at each hour of the day, from the live feed’s own record. A dash means too few measurements yet.', 'days': 90, 'minSamples': 3, 'sections': [], 'emptyMessage': ''},
+    'bn': {'heading': 'রাস্তা সাধারণত কেমন চলে', 'intro': 'লাইভ ফিডের নিজস্ব রেকর্ড থেকে দিনের প্রতিটি ঘণ্টায় প্রতিটি অংশের মধ্যম মাপা গতি। ড্যাশ মানে এখনো যথেষ্ট পরিমাপ নেই।', 'days': 90, 'minSamples': 3, 'sections': [], 'emptyMessage': ''},
+    'zh': {'heading': '道路通常的运行情况', 'intro': '来自实时数据自身记录的各路段一天各小时实测车速中位数。短横线表示监测次数尚不足。', 'days': 90, 'minSamples': 3, 'sections': [], 'emptyMessage': ''},
+  }, 'after:corridor-strip'),
+  ('disclosures/reports', 'travel-time-history', {
+    'en': {'heading': 'Typical speed by hour', 'intro': 'Published from the kept traffic measurements; the same rows are downloadable as open data.', 'days': 90, 'minSamples': 3, 'sections': [], 'emptyMessage': ''},
+    'bn': {'heading': 'ঘণ্টা অনুযায়ী সাধারণ গতি', 'intro': 'রাখা ট্রাফিক পরিমাপ থেকে প্রকাশিত; একই সারি ওপেন ডেটা হিসেবে ডাউনলোড করা যায়।', 'days': 90, 'minSamples': 3, 'sections': [], 'emptyMessage': ''},
+    'zh': {'heading': '各小时典型车速', 'intro': '根据保留的交通监测数据发布；同样的数据可作为开放数据下载。', 'days': 90, 'minSamples': 3, 'sections': [], 'emptyMessage': ''},
+  }, 'after:traffic-status'),
+  ('about/concession', 'concession-scorecard', {
+    'en': {'heading': 'Concession scorecard', 'intro': 'The term of the concession and the obligations DBEDC reports against, target beside achieved, each with its source and date. Figures appear as DBEDC publishes them.', 'termLabel': '', 'termStart': '', 'termEnd': '', 'termSource': '', 'rows': [], 'emptyMessage': ''},
+    'bn': {'heading': 'কনসেশন স্কোরকার্ড', 'intro': 'কনসেশনের মেয়াদ এবং DBEDC যেসব দায়িত্বের হিসাব দেয়, লক্ষ্যের পাশে অর্জন, প্রতিটির সূত্র ও তারিখসহ। DBEDC প্রকাশ করলে সংখ্যাগুলো এখানে আসবে।', 'termLabel': '', 'termStart': '', 'termEnd': '', 'termSource': '', 'rows': [], 'emptyMessage': ''},
+    'zh': {'heading': '特许经营记分卡', 'intro': '特许经营期以及 DBEDC 据以报告的各项义务：目标与实际并列，每项注明来源和日期。数据将随 DBEDC 公布而显示。', 'termLabel': '', 'termStart': '', 'termEnd': '', 'termSource': '', 'rows': [], 'emptyMessage': ''},
+  }, 'end'),
+]
+
+# menu slug -> page slugs to append, in order.
+MENU_ITEMS = {
+  'travel': ['travel/locate', 'travel/weather'],
+  'safety': ['travel/locate', 'travel/weather'],
+  'disclosures': ['disclosures/open-data'],
+}
+
+out = ["""-- 56: the pages and placements for the five blocks of 17 September 2026.
+--
+-- GENERATED by scripts/content/gen_novelty.py. Edit that, not this.
+--
+-- New pages: travel/locate (the kilometre-post finder), travel/weather
+-- (weather along the corridor) and disclosures/open-data (the public feeds).
+-- Placements: the finder on travel/breakdown, the weather on
+-- travel/advisories, typical speed by hour on travel/status and
+-- disclosures/reports, and the concession scorecard on about/concession,
+-- empty until DBEDC enters its term dates and indicators. Menu items are
+-- labelled from the pages' own titles. Safe to import twice.
+
+SET NAMES utf8mb4;
+"""]
+
+for p in PAGES:
+    slug = p['slug']
+    out.append(f"-- ---------------------------------------------------------------- {slug}")
+    out.append(f"INSERT IGNORE INTO `pages` (`slug`, `template`, `nav_order`, `status`, `published_at`) VALUES ({q(slug)}, 'default', 0, 'published', CURRENT_TIMESTAMP);")
+    out.append(f"SET @p = (SELECT `id` FROM `pages` WHERE `slug` = {q(slug)});")
+    for loc, (title, desc) in p['titles'].items():
+        out.append(f"INSERT IGNORE INTO `page_translations` (`page_id`, `locale`, `title`, `seo_description`, `status`) VALUES (@p, {q(loc)}, {q(title)}, {q(desc)}, 'published');")
+    out.append("SET @fresh = (SELECT COUNT(*) = 0 FROM `blocks` WHERE `page_id` = @p);")
+    for i, (t, d) in enumerate(p['blocks']):
+        out.append(f"INSERT INTO `blocks` (`page_id`, `type`, `sort_order`, `status`) SELECT @p, {q(t)}, {i}, 'published' FROM DUAL WHERE @fresh = 1;")
+        out.append("SET @b = IF(@fresh = 1, LAST_INSERT_ID(), NULL);")
+        for loc in ('en', 'bn', 'zh'):
+            out.append(f"INSERT INTO `block_translations` (`block_id`, `locale`, `data`, `status`) SELECT @b, {q(loc)}, {q(js(d[loc]))}, 'published' FROM DUAL WHERE @b IS NOT NULL;")
+    out.append("")
+
+for slug, t, d, where in EXTRA:
+    out.append(f"-- ---------------------------------------------------------------- {t} on {slug}")
+    out.append(f"SET @p = (SELECT `id` FROM `pages` WHERE `slug` = {q(slug)});")
+    out.append(f"SET @has = (SELECT COUNT(*) FROM `blocks` WHERE `page_id` = @p AND `type` = {q(t)});")
+    out.append("SET @ok = (@p IS NOT NULL AND @has = 0);")
+    if where == 'end':
+        out.append("SET @last = (SELECT `id` FROM `blocks` WHERE `page_id` = @p ORDER BY `sort_order` DESC, `id` DESC LIMIT 1);")
+        out.append("SET @lastsort = (SELECT `sort_order` FROM `blocks` WHERE `id` = @last);")
+        out.append("SET @endcta = (SELECT `type` = 'cta-band' FROM `blocks` WHERE `id` = @last);")
+        out.append("UPDATE `blocks` SET `sort_order` = `sort_order` + 1 WHERE `id` = @last AND @ok AND @endcta = 1;")
+        out.append(f"INSERT INTO `blocks` (`page_id`, `type`, `sort_order`, `status`) SELECT @p, {q(t)}, IF(@endcta = 1, @lastsort, COALESCE(@lastsort, 0) + 1), 'published' FROM DUAL WHERE @ok;")
+    else:
+        anchor = where.split(':', 1)[1]
+        # After the anchor block when the page has one; at the end otherwise.
+        out.append(f"SET @anchor = (SELECT `sort_order` FROM `blocks` WHERE `page_id` = @p AND `type` = {q(anchor)} ORDER BY `sort_order` LIMIT 1);")
+        out.append("SET @anchor = COALESCE(@anchor, (SELECT MAX(`sort_order`) FROM `blocks` WHERE `page_id` = @p), -1);")
+        out.append("UPDATE `blocks` SET `sort_order` = `sort_order` + 1 WHERE `page_id` = @p AND @ok AND `sort_order` > @anchor;")
+        out.append(f"INSERT INTO `blocks` (`page_id`, `type`, `sort_order`, `status`) SELECT @p, {q(t)}, @anchor + 1, 'published' FROM DUAL WHERE @ok;")
+    out.append("SET @b = IF(@ok, LAST_INSERT_ID(), NULL);")
+    for loc in ('en', 'bn', 'zh'):
+        out.append(f"INSERT INTO `block_translations` (`block_id`, `locale`, `data`, `status`) SELECT @b, {q(loc)}, {q(js(d[loc]))}, 'published' FROM DUAL WHERE @b IS NOT NULL;")
+    out.append("")
+
+out.append("-- ---------------------------------------------------------------- menus, labelled from the pages")
+for menu, slugs in MENU_ITEMS.items():
+    out.append(f"SET @m = (SELECT `id` FROM `menus` WHERE `slug` = {q(menu)});")
+    for slug in slugs:
+        out.append(f"SET @n = (SELECT COUNT(*) FROM `menu_items` WHERE `menu_id` = @m AND `href` = {q(slug)});")
+        out.append("SET @next = (SELECT COALESCE(MAX(`sort_order`), 0) + 10 FROM `menu_items` WHERE `menu_id` = @m);")
+        out.append(f"""INSERT INTO `menu_items` (`menu_id`, `href`, `labels`, `sort_order`)
+  SELECT @m, {q(slug)}, JSON_OBJECT(
+      'en', COALESCE((SELECT `title` FROM `page_translations` WHERE `page_id` = p.`id` AND `locale` = 'en'), ''),
+      'bn', COALESCE((SELECT `title` FROM `page_translations` WHERE `page_id` = p.`id` AND `locale` = 'bn'), ''),
+      'zh', COALESCE((SELECT `title` FROM `page_translations` WHERE `page_id` = p.`id` AND `locale` = 'zh'), '')
+    ), @next
+    FROM `pages` p
+   WHERE p.`slug` = {q(slug)} AND p.`status` = 'published' AND @m IS NOT NULL AND @n = 0;""")
+    out.append("")
+
+out.append("INSERT IGNORE INTO `schema_migrations` (`name`) VALUES ('56-novelty-pages');")
+with open(os.path.abspath(OUT), 'w', encoding='utf-8', newline='\n') as f:
+    f.write("\n".join(out) + "\n")
+print('wrote', os.path.abspath(OUT), 'pages', len(PAGES), 'placements', len(EXTRA))

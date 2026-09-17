@@ -175,6 +175,36 @@ describe('a database built from db/sql/*.sql alone', () => {
     expect(pins.c).toBe(1);
   });
 
+  it('keeps traffic history, seeds the weather thresholds and places the five blocks of 17 September (54, 55, 56)', async () => {
+    const table = await one(`SELECT COUNT(*) AS c FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'traffic_history'`);
+    expect(table.c).toBe(1);
+    const thresholds = await all(`SELECT setting_key, CAST(value AS CHAR) AS v FROM site_settings WHERE setting_key LIKE 'weather.%' ORDER BY setting_key`);
+    expect(thresholds.map((r) => `${r.setting_key}=${r.v}`)).toEqual([
+      'weather.fog_visibility_m=1000', 'weather.heavy_rain_mm=7.5', 'weather.strong_wind_kmh=50',
+    ]);
+    const types = async (slug) => (await all(`SELECT b.type FROM blocks b JOIN pages p ON p.id = b.page_id WHERE p.slug = ? ORDER BY b.sort_order`, [slug])).map((r) => r.type);
+    expect(await types('travel/locate')).toEqual(['section-subnav', 'page-header', 'km-finder', 'rich-text']);
+    expect(await types('travel/weather')).toEqual(['section-subnav', 'page-header', 'corridor-weather', 'rich-text']);
+    expect(await types('disclosures/open-data')).toEqual(['page-header', 'open-data', 'rich-text']);
+    // Placed once each, directly after their anchor, and the scorecard before the closing band.
+    const breakdown = await types('travel/breakdown');
+    expect(breakdown.indexOf('km-finder')).toBe(breakdown.indexOf('emergency-strip') + 1);
+    expect(breakdown.filter((t) => t === 'km-finder')).toHaveLength(1);
+    const advisories = await types('travel/advisories');
+    expect(advisories.indexOf('corridor-weather')).toBe(advisories.indexOf('advisory-list') + 1);
+    expect((await types('travel/status')).filter((t) => t === 'travel-time-history')).toHaveLength(1);
+    expect((await types('disclosures/reports')).filter((t) => t === 'travel-time-history')).toHaveLength(1);
+    const concession = await types('about/concession');
+    expect(concession.slice(-2)).toEqual(['concession-scorecard', 'cta-band']);
+    // Menu entries labelled from the pages, once each.
+    const items = await all(`SELECT m.slug AS menu, mi.href, JSON_UNQUOTE(JSON_EXTRACT(mi.labels, '$.bn')) AS bn
+      FROM menu_items mi JOIN menus m ON m.id = mi.menu_id WHERE mi.href IN ('travel/locate', 'travel/weather', 'disclosures/open-data') ORDER BY m.slug, mi.href`);
+    expect(items.map((r) => `${r.menu}:${r.href}`)).toEqual([
+      'disclosures:disclosures/open-data', 'safety:travel/locate', 'safety:travel/weather', 'travel:travel/locate', 'travel:travel/weather',
+    ]);
+    expect(items.every((r) => r.bn && r.bn !== '')).toBe(true);
+  });
+
   it('opens the home page with the hero, the progress figure and the live map (18, 48)', async () => {
     // 18 put the strip and the interchange table here; 48 replaced them with
     // the compact corridor map and gave the opening blocks a real order.
@@ -223,7 +253,8 @@ describe('a database built from db/sql/*.sql alone', () => {
   it('gives every section a menu whose labels are the pages own titles (45)', async () => {
     const menus = await all('SELECT m.slug, COUNT(mi.id) AS n FROM menus m LEFT JOIN menu_items mi ON mi.menu_id = m.id GROUP BY m.slug ORDER BY m.slug');
     const counts = Object.fromEntries(menus.map((m) => [m.slug, Number(m.n)]));
-    expect(counts).toMatchObject({ about: 6, project: 3, disclosures: 9, safety: 4, media: 6, travel: 14 });
+    // 45's counts, plus 56's two travel pages (in travel and safety) and the open-data page.
+    expect(counts).toMatchObject({ about: 6, project: 3, disclosures: 10, safety: 6, media: 6, travel: 16 });
     // Authored form: no leading slash, so one stored link serves all three languages.
     expect((await one("SELECT COUNT(*) AS c FROM menu_items WHERE href LIKE '/%'")).c).toBe(0);
     const item = await one("SELECT labels FROM menu_items WHERE href = 'disclosures/reports'");
