@@ -30,13 +30,28 @@ const MAX_ZOOM = 12;
 /** One step of the +/- buttons. */
 const STEP = 1.6;
 
-export default function CorridorExplorer({ view, ui, initialSelected = null }) {
+/**
+ * `mode="compact"` (the home page): the whole corridor framed in a wide band,
+ * no zoom, layers, road list or section panel — a picture of the road as it
+ * is running now, with the full explorer one link away. The frame is padded
+ * sideways to a landscape aspect so it never towers over the page; on a phone
+ * the corridor's own proportions are kept because a landscape band there
+ * would draw the road too small to read.
+ */
+export default function CorridorExplorer({ view, ui, initialSelected = null, mode = 'full' }) {
   const [pixelWidth, setPixelWidth] = useState(view.width);
   const compact = pixelWidth < 600;
+  const banded = mode === 'compact';
   const home = useMemo(() => {
     const [x, y, w, h] = String(view.viewBox).split(' ').map(Number);
+    if (banded && !compact) {
+      const aspect = 2.1;
+      const targetW = Math.max(w, h * aspect);
+      const targetH = targetW / aspect;
+      return { x: x + w / 2 - targetW / 2, y: y + h / 2 - targetH / 2, w: targetW, h: targetH };
+    }
     return compact ? { x: w / 2 - 360, y: -180, w: 720, h: 1200 } : { x, y, w, h };
-  }, [view.viewBox, compact]);
+  }, [view.viewBox, compact, banded]);
 
   const [box, setBox] = useState(home);
   const [hovered, setHovered] = useState(null);
@@ -61,7 +76,7 @@ export default function CorridorExplorer({ view, ui, initialSelected = null }) {
 
   // The controls appear only once this component is running, so a reader
   // without JavaScript is never shown a zoom button that does nothing.
-  useEffect(() => { setEnhanced(true); }, []);
+  useEffect(() => { if (!banded) setEnhanced(true); }, [banded]);
   useEffect(() => {
     const observer = new ResizeObserver(([entry]) => setPixelWidth(entry.contentRect.width));
     if (frameRef.current) observer.observe(frameRef.current);
@@ -225,7 +240,7 @@ export default function CorridorExplorer({ view, ui, initialSelected = null }) {
     +' '+(scaleMetres>=1000?ui.kmUnit:ui.mUnit);
 
   return (
-    <div className="db-map-explorer">
+    <div className={`db-map-explorer${banded ? ' db-map-explorer-compact' : ''}`}>
       <div
         className={`db-map-wrap${enhanced ? ' is-enhanced' : ''}${dragging ? ' is-dragging' : ''}`}
         ref={frameRef}
@@ -282,7 +297,7 @@ export default function CorridorExplorer({ view, ui, initialSelected = null }) {
             <label><input type="checkbox" checked={traffic} onChange={e => setTraffic(e.target.checked)}/>{ui.traffic}</label>
           </div> : null}
         </div> : null}
-        {activeRoad ? <div className="db-map-road-card" data-map-ui>
+        {banded ? null : activeRoad ? <div className="db-map-road-card" data-map-ui>
           <button type="button" aria-label={ui.closeRoad} onClick={()=>{setSelectedRoad(null);setHoveredRoad(null);}}>×</button>
           <span className="db-map-road-code">{activeRoad.ref||ui.local}</span><small>{ui[activeRoad.category]}</small>
           <strong>{activeRoad.name||ui.local}</strong>
@@ -295,17 +310,17 @@ export default function CorridorExplorer({ view, ui, initialSelected = null }) {
           <div className="db-map-lane-caption"><span>{ui.service}</span><span>{ui.toll}</span><span>{ui.service}</span></div>
           <small>{ui.laneNote}</small>
         </div>}
-        <div className="db-map-mini-legend" data-map-ui>
+        {banded ? null : <div className="db-map-mini-legend" data-map-ui>
           <span><i className="is-toll"/>{ui.toll}</span><span><i className="is-service"/>{ui.service}</span>
           <span><i className="is-crossing"/>{ui.crossing}</span><span><i className="is-connected"/>{ui.connected}</span>
           <small>{ui.highlight}</small>
-        </div>
+        </div>}
         <div className="db-map-north-fixed" aria-hidden="true"><span>↑</span>{ui.north}</div>
         <div className="db-map-scale-fixed" aria-hidden="true"><span style={{width:scaleMetres*pixelsPerMetre}}/>{scaleText}</div>
         <p className="db-map-credit" data-map-ui><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a><span> · </span><a href={view.geography.download}>{ui.data}</a></p>
       </div>
 
-      <details className="db-panel db-map-road-list" id="map-roads">
+      {banded ? null : <details className="db-panel db-map-road-list" id="map-roads">
         <summary className="db-panel-title">{ui.connections}</summary>
         <ul>{view.geography.roads.slice().sort((a,b)=>Number(Boolean(b.ref))-Number(Boolean(a.ref))||a.name.localeCompare(b.name)).map(r=><li key={r.id}>
           <button type="button" aria-pressed={selectedRoad===r.id} onClick={()=>{
@@ -315,11 +330,12 @@ export default function CorridorExplorer({ view, ui, initialSelected = null }) {
             frameRef.current?.scrollIntoView({block:'center',behavior:'instant'});
           }}><span className="db-map-road-code">{r.ref||'—'}</span><span><strong>{r.name||ui.local}</strong><small>{ui[r.category]} · {r.kinds.length>1?ui.roadBoth:r.kinds[0]==='crossing'?ui.crossing:ui.connected}</small></span></button>
         </li>)}</ul>
-      </details>
+      </details>}
 
       {/* The accessible equivalent of the map, and the control surface for it:
           every section is a real button, in the tab order, with the same name
-          the map's tooltip carries. */}
+          the map's tooltip carries. Not drawn in the compact band. */}
+      {banded ? null : (
       <div className="db-panel db-map-sections">
         <h2 className="db-panel-title">{ui.sectionStatus}</h2>
         {view.sections.length === 0 ? (
@@ -353,6 +369,7 @@ export default function CorridorExplorer({ view, ui, initialSelected = null }) {
         )}
         {enhanced ? <p className="db-map-hint">{ui.selectHint}</p> : null}
       </div>
+      )}
     </div>
   );
 }

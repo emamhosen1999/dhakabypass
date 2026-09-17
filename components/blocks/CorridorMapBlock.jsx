@@ -5,7 +5,9 @@ import { getMapTrafficCached } from '../../lib/corridor/traffic-cache.js';
 import { getInterchangesCached, getCorridorRoadsCached } from '../../lib/corridor/cache.js';
 import { localeName } from '../../lib/corridor/interchanges.js';
 import { getSetting } from '../../lib/settings.js';
+import Link from 'next/link';
 import CorridorExplorer from '../corridor/CorridorExplorer.jsx';
+import { localeHref } from '../../lib/blocks/href.js';
 import LiveRefresh from '../corridor/LiveRefresh.jsx';
 import { newestMeasurement } from '../../lib/corridor/freshness.js';
 
@@ -91,10 +93,13 @@ export default async function CorridorMapBlock({ data, locale }) {
 
   const heading = text(data?.heading);
   const intro = text(data?.intro);
-  const showLegend = data?.showLegend !== 'no';
+  const compact = data?.layout === 'compact';
+  const showLegend = !compact && data?.showLegend !== 'no';
+  const linkHref = localeHref(text(data?.linkHref) || 'travel/map', locale);
+  const linkLabel = text(data?.linkLabel) || t(locale, 'mapOpenFull');
 
   return (
-    <section className="db-block db-map-block">
+    <section className={`db-block db-map-block${compact ? ' db-map-block-compact' : ''}`}>
       {heading ? <h2 className="db-h2">{heading}</h2> : null}
       {intro ? <p className="db-lede">{intro}</p> : null}
 
@@ -121,6 +126,7 @@ export default async function CorridorMapBlock({ data, locale }) {
       ) : (
         <>
           <CorridorExplorer
+            mode={compact ? 'compact' : 'full'}
             view={{ ...view, live: source !== 'sample' }}
             ui={{
               ...mapUi(locale),
@@ -139,6 +145,11 @@ export default async function CorridorMapBlock({ data, locale }) {
               attribution: geoSource ? geoSource.attribution : '',
             }}
           />
+          {compact ? (
+            <p className="db-actions db-map-open">
+              <Link href={linkHref} className="db-btn db-btn-secondary">{linkLabel}</Link>
+            </p>
+          ) : null}
           {showLegend ? (
             <div className="db-map-legends">
               <ul className="db-map-legend">
