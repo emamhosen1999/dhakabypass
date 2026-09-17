@@ -101,7 +101,7 @@
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "/home/runner/work/dhakabypass/dhakabypass",
+    "outputFileTracingRoot": "/home/runner/work/dhakabypass/dhakabypass/",
     "experimental": {
       "useSkewCookie": false,
       "cacheLife": {
@@ -300,7 +300,7 @@
       ]
     },
     "turbopack": {
-      "root": "/home/runner/work/dhakabypass/dhakabypass"
+      "root": "/home/runner/work/dhakabypass/dhakabypass/"
     },
     "_originalRedirects": [
       {
