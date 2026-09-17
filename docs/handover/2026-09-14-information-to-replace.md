@@ -80,6 +80,18 @@ Where the row says **/admin/…** the operator replaces it in the admin without 
 | G6 | Email domain DMARC p=none | Move to p=quarantine after checking sending sources | DBEDC IT |
 | G7 | Google Search Console, Google Business Profile, social accounts | Ownership handed to a DBEDC account; verified handles for the footer | DBEDC communications |
 
+## I. Added 17 September: finder, weather, history, open data, scorecard
+
+| # | What is shown now | Replace with | Where |
+|---|---|---|---|
+| I1 | Kilometre-post finder (/travel/locate and the breakdown page) shows 999 only; the DBEDC line renders as "not yet published" when both settings are blank | The control-room number (same setting as A1) | /admin/settings → Contact → Emergency assistance number |
+| I2 | Weather advisory thresholds: fog below 1,000 m visibility, 7.5 mm rain in the hour, 50 km/h wind or gusts | DBEDC's own operating thresholds, if different | /admin/corridor → Weather advisory thresholds |
+| I3 | Weather points: the corridor's two end waypoints and the plaza nearest the middle, named as in the records ("Naojor (corridor start)", "Purbachal Toll Plaza") | Bangla and Chinese names for the interchange records, which today carry English only | /admin/corridor/interchanges → names |
+| I4 | "Typical speed by hour" reads "not enough measurements yet" on /travel/status and /disclosures/reports | Nothing to type: it fills itself once the Google Routes key (G2) is set and the cron has run for about a week; 3 measurements per cell is the default minimum, editable on the block | Server (G2), then /admin/pages-v2 → the block's "days" and "minimum measurements" fields |
+| I5 | Open data page (/disclosures/open-data): reuse terms read "not yet published" | The licence DBEDC chooses for the feeds (for example attribution-only), as a short paragraph | /admin/pages-v2 → Open data → "Reuse terms" |
+| I6 | Concession scorecard on /about/concession reads "not yet published" | Term start and end dates (YYYY-MM-DD) with the agreement clause as source; the obligations and KPIs the concession agreement requires DBEDC to report (availability, incident response, grievance resolution time, and so on), each with target, achieved figure, unit, as-at date and source | /admin/pages-v2 → Concession → "Concession scorecard" block |
+| I7 | Monthly traffic CSV feed carries `source=sample` while the monthly counts are sample (E5) | Real plaza counts, then switch the monthly source to operator | /admin/corridor/monthly and /admin/corridor/sections |
+
 ## H. CCTV: what the developer needs to switch from sample tiles to live cameras
 
 1. The camera list: location name, chainage (K3+218 style), direction of view, latitude/longitude.
