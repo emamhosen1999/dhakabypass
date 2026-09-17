@@ -31,12 +31,11 @@ const MAX_ZOOM = 12;
 const STEP = 1.6;
 
 /**
- * `mode="compact"` (the home page): the whole corridor framed in a wide band,
+ * `mode="compact"` (the home page): the whole corridor at its own proportions,
  * no zoom, layers, road list or section panel — a picture of the road as it
- * is running now, with the full explorer one link away. The frame is padded
- * sideways to a landscape aspect so it never towers over the page; on a phone
- * the corridor's own proportions are kept because a landscape band there
- * would draw the road too small to read.
+ * is running now, with the full explorer one link away. The block lays it out
+ * beside a text column; the frame itself is capped in height by CSS and the
+ * aspect ratio transfers to the width.
  */
 export default function CorridorExplorer({ view, ui, initialSelected = null, mode = 'full' }) {
   const [pixelWidth, setPixelWidth] = useState(view.width);
@@ -44,12 +43,9 @@ export default function CorridorExplorer({ view, ui, initialSelected = null, mod
   const banded = mode === 'compact';
   const home = useMemo(() => {
     const [x, y, w, h] = String(view.viewBox).split(' ').map(Number);
-    if (banded && !compact) {
-      const aspect = 1.7;
-      const targetW = Math.max(w, h * aspect);
-      const targetH = targetW / aspect;
-      return { x: x + w / 2 - targetW / 2, y: y + h / 2 - targetH / 2, w: targetW, h: targetH };
-    }
+    // The band keeps the corridor's own frame: the basemap covers only the
+    // corridor's extent, so a padded frame showed blank ground either side.
+    // On a phone the tall crop the map page uses applies to the band too.
     return compact ? { x: w / 2 - 360, y: -180, w: 720, h: 1200 } : { x, y, w, h };
   }, [view.viewBox, compact, banded]);
 

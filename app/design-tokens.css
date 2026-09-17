@@ -1438,8 +1438,17 @@
 /* The compact band (home page): one column whatever the width, the frame
    capped so the corridor sits in a wide strip rather than a tall poster. */
 .db-map-explorer-compact{grid-template-columns:minmax(0,1fr)!important;}
-.db-map-block-compact .db-map-wrap{max-height:min(66vh,560px);}
-.db-map-block-compact .db-map-titleplate{transform:scale(.9);transform-origin:top left;}
+.db-map-band{display:grid;gap:20px 32px;grid-template-columns:minmax(0,1fr);align-items:center;}
+@media (min-width:900px){.db-map-band{grid-template-columns:minmax(240px,2fr) minmax(0,3fr);}}
+.db-map-band-text .db-h2{margin-top:0;}
+.db-map-band-text .db-live{margin-top:14px;}
+.db-map-band-map{min-width:0;display:flex;justify-content:center;}
+/* The corridor's own aspect ratio is on the frame (inline, from the view);
+   a height cap here transfers to the width, so the card is exactly as wide
+   as the map needs — no blank ground, nothing cropped. */
+.db-map-block-compact .db-map-wrap{height:min(70vh,600px);width:auto;max-width:100%;}
+@media (max-width:899px){.db-map-block-compact .db-map-wrap{height:auto;width:100%;}}
+.db-map-block-compact .db-map-titleplate{transform:scale(.85);transform-origin:top left;}
 .db-map-open{margin:14px 0 0;}
 .db-map-block-compact{padding-bottom:8px;}
 /* Featured fares and the calculator are one "tolls" section on the home page
@@ -1448,7 +1457,7 @@
 /* The progress figure and the live band are one statement — "this much is
    open, and this is how it runs" — so the band sits close under the figure
    instead of a block-gap away. */
-.db-progress-block + .db-map-block-compact{padding-top:0;margin-top:-18px;}
+.db-progress-block + .db-map-block-compact,.db-strip-block + .db-map-block-compact{padding-top:0;margin-top:-18px;}
 @media (max-width:599px){.db-map-block-compact .db-map-wrap{max-height:none;}}
 @media (min-width:1100px){
   .db-map-explorer{grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr);}

@@ -98,79 +98,100 @@ export default async function CorridorMapBlock({ data, locale }) {
   const linkHref = localeHref(text(data?.linkHref) || 'travel/map', locale);
   const linkLabel = text(data?.linkLabel) || t(locale, 'mapOpenFull');
 
+  const notice = source === 'sample' ? (
+    <p className="db-pending">
+      <span className="db-pending-tag">{t(locale, 'mapSampleTag')}</span>
+      {t(locale, 'mapSampleBody')}
+    </p>
+  ) : (
+    <LiveRefresh
+      measuredAt={newestMeasurement(sections)}
+      labels={{ live: t(locale, 'liveTag'), justNow: t(locale, 'liveJustNow'), minutesAgo: t(locale, 'liveMinutesAgo') }}
+    />
+  );
+  const schematic = view.ok && !view.hasCentreline ? (
+    <p className="db-pending">
+      <span className="db-pending-tag">{t(locale, 'mapSchematicTag')}</span>
+      {t(locale, 'mapSchematicBody')}
+    </p>
+  ) : null;
+  const explorer = !view.ok ? (
+    <p className="db-empty">{t(locale, 'mapNoGeometry')}</p>
+  ) : (
+    <CorridorExplorer
+      mode={compact ? 'compact' : 'full'}
+      view={{ ...view, live: source !== 'sample' }}
+      ui={{
+        ...mapUi(locale),
+        // The corridor's national road number, from /admin/corridor.
+        roadCode,
+        locale: intlLocale,
+        kmUnit: t(locale, 'mapKm'),
+        mUnit: t(locale, 'mapM'),
+        zoomIn: t(locale, 'mapZoomIn'),
+        zoomOut: t(locale, 'mapZoomOut'),
+        resetView: t(locale, 'mapResetView'),
+        resetShort: t(locale, 'mapResetShort'),
+        selectHint: t(locale, 'mapSelectHint'),
+        sectionStatus: t(locale, 'mapSectionStatus'),
+        noSections: t(locale, 'mapNoSections'),
+        attribution: geoSource ? geoSource.attribution : '',
+      }}
+    />
+  );
+
+  /**
+   * The compact band (home page): the words beside the map, not above it.
+   * Heading, intro, the live line and the link in one column; the map at the
+   * corridor's own proportions in the other. Stacks on a phone.
+   */
+  if (compact) {
+    return (
+      <section className="db-block db-map-block db-map-block-compact">
+        <div className="db-map-band">
+          <div className="db-map-band-text">
+            {heading ? <h2 className="db-h2">{heading}</h2> : null}
+            {intro ? <p className="db-lede">{intro}</p> : null}
+            {notice}
+            {schematic}
+            {view.ok ? (
+              <p className="db-actions db-map-open">
+                <Link href={linkHref} className="db-btn db-btn-secondary">{linkLabel}</Link>
+              </p>
+            ) : null}
+          </div>
+          <div className="db-map-band-map">{explorer}</div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className={`db-block db-map-block${compact ? ' db-map-block-compact' : ''}`}>
+    <section className="db-block db-map-block">
       {heading ? <h2 className="db-h2">{heading}</h2> : null}
       {intro ? <p className="db-lede">{intro}</p> : null}
-
-      {source === 'sample' ? (
-        <p className="db-pending">
-          <span className="db-pending-tag">{t(locale, 'mapSampleTag')}</span>
-          {t(locale, 'mapSampleBody')}
-        </p>
-      ) : (
-        <LiveRefresh
-          measuredAt={newestMeasurement(sections)}
-          labels={{ live: t(locale, 'liveTag'), justNow: t(locale, 'liveJustNow'), minutesAgo: t(locale, 'liveMinutesAgo') }}
-        />
-      )}
-      {view.ok && !view.hasCentreline ? (
-        <p className="db-pending">
-          <span className="db-pending-tag">{t(locale, 'mapSchematicTag')}</span>
-          {t(locale, 'mapSchematicBody')}
-        </p>
+      {notice}
+      {schematic}
+      {explorer}
+      {view.ok && showLegend ? (
+        <div className="db-map-legends">
+          <ul className="db-map-legend">
+            {CONDITION_KEYS.map((k) => (
+              <li key={k}>
+                <span className="db-map-swatch" style={{ background: CONDITION_COLOUR[k] }} aria-hidden="true" />
+                {t(locale, `traffic_${k}`)}
+              </li>
+            ))}
+          </ul>
+          <ul className="db-map-legend db-map-legend-points">
+            <li><span className="db-map-key db-map-key-terminal" aria-hidden="true" />{t(locale, 'mapKeyTerminal')}</li>
+            <li><span className="db-map-key db-map-key-wp" aria-hidden="true" />{t(locale, 'mapKeyWaypoint')}</li>
+            <li><span className="db-map-key db-map-key-toll" aria-hidden="true" />{t(locale, 'kindTollPlaza')}</li>
+            <li><span className="db-map-key db-map-key-bridge" aria-hidden="true" />{t(locale, 'kindBridge')}</li>
+            <li><span className="db-map-key db-map-key-pending" aria-hidden="true" />{t(locale, 'statusConstruction')}</li>
+          </ul>
+        </div>
       ) : null}
-
-      {!view.ok ? (
-        <p className="db-empty">{t(locale, 'mapNoGeometry')}</p>
-      ) : (
-        <>
-          <CorridorExplorer
-            mode={compact ? 'compact' : 'full'}
-            view={{ ...view, live: source !== 'sample' }}
-            ui={{
-              ...mapUi(locale),
-              // The corridor's national road number, from /admin/corridor.
-              roadCode,
-              locale: intlLocale,
-              kmUnit: t(locale, 'mapKm'),
-              mUnit: t(locale, 'mapM'),
-              zoomIn: t(locale, 'mapZoomIn'),
-              zoomOut: t(locale, 'mapZoomOut'),
-              resetView: t(locale, 'mapResetView'),
-              resetShort: t(locale, 'mapResetShort'),
-              selectHint: t(locale, 'mapSelectHint'),
-              sectionStatus: t(locale, 'mapSectionStatus'),
-              noSections: t(locale, 'mapNoSections'),
-              attribution: geoSource ? geoSource.attribution : '',
-            }}
-          />
-          {compact ? (
-            <p className="db-actions db-map-open">
-              <Link href={linkHref} className="db-btn db-btn-secondary">{linkLabel}</Link>
-            </p>
-          ) : null}
-          {showLegend ? (
-            <div className="db-map-legends">
-              <ul className="db-map-legend">
-                {CONDITION_KEYS.map((k) => (
-                  <li key={k}>
-                    <span className="db-map-swatch" style={{ background: CONDITION_COLOUR[k] }} aria-hidden="true" />
-                    {t(locale, `traffic_${k}`)}
-                  </li>
-                ))}
-              </ul>
-              <ul className="db-map-legend db-map-legend-points">
-                <li><span className="db-map-key db-map-key-terminal" aria-hidden="true" />{t(locale, 'mapKeyTerminal')}</li>
-                <li><span className="db-map-key db-map-key-wp" aria-hidden="true" />{t(locale, 'mapKeyWaypoint')}</li>
-                <li><span className="db-map-key db-map-key-toll" aria-hidden="true" />{t(locale, 'kindTollPlaza')}</li>
-                <li><span className="db-map-key db-map-key-bridge" aria-hidden="true" />{t(locale, 'kindBridge')}</li>
-                <li><span className="db-map-key db-map-key-pending" aria-hidden="true" />{t(locale, 'statusConstruction')}</li>
-              </ul>
-            </div>
-          ) : null}
-        </>
-      )}
     </section>
   );
 }
