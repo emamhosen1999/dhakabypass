@@ -12,6 +12,11 @@ const nextConfig = {
   // Node.js app (Passenger) without running `next build` / `npm install` on
   // the memory-limited shared host.
   output: 'standalone',
+  // The app root is this directory. Said explicitly because a checkout that
+  // sits under another checkout (a git worktree in .claude/worktrees) sees two
+  // lockfiles, and Next then guesses the parent as the root and writes
+  // server.js into a nested path scripts/package-standalone.mjs never looks in.
+  outputFileTracingRoot: fileURLToPath(new URL('.', import.meta.url)),
   // W6.11: the release branch carried ~2,700 files, including packages the
   // running server never loads — sharp and its 18 MB libvips binary (this app
   // does not use next/image), typescript (no TS config), and the browser
