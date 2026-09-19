@@ -6,6 +6,7 @@ import { resolveTranslation } from '../../../../lib/content/resolve.js';
 import { cardText, slugFromPath } from '../../../../lib/seo/og-card.js';
 import { OG_CARD_SIZE } from '../../../../lib/seo/social.js';
 import { SEO_DEFAULTS } from '../../../../lib/seo/settings.js';
+import { siteOrigin } from '../../../../lib/seo/site.js';
 import { orLog, logError } from '../../../../lib/log.js';
 
 /**
@@ -84,15 +85,20 @@ export async function GET(request) {
   // changes it, and a stale card for a day costs nothing.
   const headers = { 'cache-control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=604800' };
 
+  // The domain comes from the configured origin, never from the request.
+  // Behind Passenger the request host is the internal bind address, and the
+  // first cards served in production read "0.0.0.0:3000".
+  const domain = siteOrigin().replace(/^https?:\/\//, '');
+
   try {
-    return new ImageResponse(card({ ...text, domain: url.host }), { ...OG_CARD_SIZE, headers });
+    return new ImageResponse(card({ ...text, domain }), { ...OG_CARD_SIZE, headers });
   } catch (err) {
     // The renderer carries a Latin face and fetches one for any other script,
     // so a Bangla or Chinese card needs outbound HTTPS. Where that is refused,
     // the reader still gets a card with the road name on it rather than a 500
     // and a blank preview.
     logError('og.render_failed', err, { locale });
-    return new ImageResponse(card({ title: SEO_DEFAULTS.siteTitle, brand: '', domain: url.host }), {
+    return new ImageResponse(card({ title: SEO_DEFAULTS.siteTitle, brand: '', domain }), {
       ...OG_CARD_SIZE, headers,
     });
   }

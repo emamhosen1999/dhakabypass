@@ -54,3 +54,30 @@ describe('cardText', () => {
     expect(cardText({ pageTitle: '  Toll   rates \n', siteTitle: site }).title).toBe('Toll rates');
   });
 });
+
+describe('slugFromPath and the two shapes a path arrives in', () => {
+  // withSocialCard passes the UNLOCALISED page path (/travel/toll); a link
+  // pasted by hand carries the locale (/bn/travel/toll). Stripping the first
+  // segment unconditionally turned the first into "toll", which matches no
+  // page, so every card fell back to the road name.
+  it('keeps every segment when there is no locale prefix', () => {
+    expect(slugFromPath('/travel/toll')).toBe('travel/toll');
+    expect(slugFromPath('/disclosures')).toBe('disclosures');
+    expect(slugFromPath('/about/concession')).toBe('about/concession');
+  });
+
+  it('still strips a real locale prefix', () => {
+    expect(slugFromPath('/bn/travel/toll')).toBe('travel/toll');
+    expect(slugFromPath('/zh/disclosures')).toBe('disclosures');
+  });
+
+  it('treats a bare locale, and nothing at all, as the home page', () => {
+    expect(slugFromPath('/en')).toBe('');
+    expect(slugFromPath('/')).toBe('');
+    expect(slugFromPath('')).toBe('');
+  });
+
+  it('does not mistake a page whose first segment looks like a word for a locale', () => {
+    expect(slugFromPath('/environment/reports')).toBe('environment/reports');
+  });
+});
