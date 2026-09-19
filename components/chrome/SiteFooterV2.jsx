@@ -6,6 +6,8 @@ import { localeHref } from '../../lib/blocks/href.js';
 import { getContactDetailsCached } from '../../lib/settings-cache.js';
 import EmergencyNumbers from '../contact/EmergencyNumbers.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
+import ConsentChoice from './ConsentChoice.jsx';
+import { analyticsConfig } from '../../lib/analytics/config.js';
 import FooterGroups from './FooterGroups.jsx';
 import { siteSeoCached } from '../../lib/seo/cache.js';
 
@@ -125,6 +127,11 @@ export default async function SiteFooterV2({ locale }) {
             quietly disappear. */}
         <ul className="db-footer-legal-links">
           {legal.map((l) => <li key={l.key}><Link href={l.href}>{l.label}</Link></li>)}
+          {/* Only where a banner was shown: a site on a cookieless provider,
+              or none, offers no control for a decision nobody was asked. */}
+          {analyticsConfig(process.env).requiresConsent
+            ? <ConsentChoice label={t(locale, 'consentChange')} />
+            : null}
         </ul>
         {/* DBEDC's official accounts, from /admin/settings (Contact). Only
             https links are ever stored, and none renders until one is set. */}

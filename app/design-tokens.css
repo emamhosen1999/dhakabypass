@@ -530,6 +530,12 @@
 .db-footer-legal-links a{color:var(--db-ink-3);text-decoration:underline;
   text-underline-offset:2px;display:inline-block;padding:4px 0;}
 .db-footer-legal-links a:hover{color:var(--db-ink);}
+/* The cookie-choice control is a button, not a link — it reopens the banner
+   rather than going anywhere — and reads as one of the policy links beside it. */
+.db-footer-legal-button{color:var(--db-ink-3);text-decoration:underline;
+  text-underline-offset:2px;display:inline-block;padding:4px 0;
+  background:none;border:0;font:inherit;cursor:pointer;}
+.db-footer-legal-button:hover{color:var(--db-ink);}
 .db-pano-view{height:clamp(240px,50vw,460px);background-repeat:repeat-x;background-size:auto 100%;border-radius:var(--db-radius-md);cursor:grab;touch-action:pan-y;outline-offset:3px;}
 .db-pano-view:active{cursor:grabbing;}
 .db-pano-controls{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin:8px 0 0;color:var(--db-ink-2);font-size:.9rem;}

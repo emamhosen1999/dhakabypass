@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { t } from '../../lib/i18n/ui.js';
-
-const KEY = 'db-analytics-consent';
+import { CONSENT_KEY as KEY, CONSENT_REOPEN } from './consent-key.js';
 
 /**
  * The cookie consent banner, shown only when the configured provider actually
@@ -35,6 +34,21 @@ export default function ConsentBanner({ locale }) {
       // session-only — better than assuming consent.
       setChoice(null);
     }
+  }, []);
+
+  // The footer's "Cookie choice" control asks for the question again. Consent
+  // that cannot be withdrawn is not consent, and clearing site data is not a
+  // control anybody can be expected to find.
+  useEffect(() => {
+    const reopen = () => {
+      try { localStorage.removeItem(KEY); } catch { /* nothing stored to clear */ }
+      if (typeof window.gtag === 'function') {
+        window.gtag('consent', 'update', { analytics_storage: 'denied' });
+      }
+      setChoice(null);
+    };
+    window.addEventListener(CONSENT_REOPEN, reopen);
+    return () => window.removeEventListener(CONSENT_REOPEN, reopen);
   }, []);
 
   function decide(value) {
