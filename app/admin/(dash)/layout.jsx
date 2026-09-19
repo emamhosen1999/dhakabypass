@@ -51,6 +51,7 @@ const NAV = [
   { href: '/admin/translation-status', label: 'Translation status', can: 'translate' },
   { href: '/admin/redirects', label: 'Redirects', can: 'manage_pages' },
   { href: '/admin/seo', label: 'Search', can: 'manage_pages' },
+  { href: '/admin/insights', label: 'How the site is doing', can: 'manage_users' },
   { href: '/admin/settings', label: 'Settings', can: 'manage_users' },
   { href: '/admin/users', label: 'Staff', can: 'manage_users' },
   { href: '/admin/trash', label: 'Trash', can: null },
