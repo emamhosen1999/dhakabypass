@@ -634,3 +634,39 @@ Sources: `docs/handover/2026-09-19-post-launch-seo-and-marketing.md` (44 items �
 | W10.18 | `llms.txt`, generated from the route list rather than hand-written | section 12 of the handover | Open, and gated on the AI-crawler policy decision (A12). |
 
 **W10 gate:** the account-access items are the critical path, not the engineering ones. W10.4, W10.6, W10.8, W10.10, W10.11, W10.15 and W10.16 can all ship without DBEDC. Nothing in W10 can be *measured* until A1, A2 and A5 exist — a DBEDC-owned Google account, a verified Search Console property and an analytics account — and A14 (the Routes API key) still blocks the live-traffic KPIs.
+
+## The PageSpeed/Lighthouse reading — 19 September 2026, mobile
+
+The client's PageSpeed run pointed at `http://dhakabypass.com`. The public PageSpeed API refused a second run that day (daily quota), so this is Lighthouse 12.8.2 run locally against the same URL, mobile emulation, simulated throttling.
+
+| Category | Score |
+|---|---|
+| Performance | **44** |
+| Accessibility | **100** |
+| SEO | **100** |
+| Best practices | 83 — and the only failing audit is `is-on-https`, because the run began at `http://`. Over https it is 100. |
+
+| Metric | Reading |
+|---|---|
+| First Contentful Paint | 3.1 s |
+| **Largest Contentful Paint** | **5.8 s** (TTFB 607 ms 10%, load delay 1,518 ms 26%, load time 2,807 ms 48%, render delay 915 ms 16%) |
+| **Total Blocking Time** | **1,690 ms** |
+| Cumulative Layout Shift | 0.002 — effectively perfect, and worth not regressing |
+| Speed Index | 4.6 s |
+| Time to Interactive | 6.2 s |
+| Server response (root document) | 10 ms |
+| Total transferred | 844 KiB |
+| Third party | Cloudflare Web Analytics beacon only — 10 KiB, 0 ms blocking. **Note: the site is already measured by Cloudflare Web Analytics.** |
+
+The server is not the problem: the root document answers in 10 ms and CLS is near zero. What costs the score is the main thread and the image.
+
+| # | Work package | Evidence | Status |
+|---|---|---|---|
+| W10.19 | Preload the LCP image and mark it high priority | The LCP element is the hero `<img>`. 26% of LCP is *load delay* — the browser does not discover it until after the CSS and the first scripts — and 48% is load time for a 144 KB file on emulated 4G. | Open. The cheapest large win. |
+| W10.20 | Lazy-hydrate the corridor map | `/en` alone accounts for 4,243 ms of script evaluation and chunk `1255-*.js` a further 1,429 ms; TBT is 1,690 ms and the DOM is 1,139 elements, most of them the inline map SVG. The map is a client component that hydrates on first paint whether or not it is on screen. | Open. The largest TBT item. |
+| W10.21 | Stop shipping legacy JavaScript | `legacy-javascript`: 11 KiB of transpiled polyfills for browsers this site does not support. A browserslist entry removes it. | Open. |
+| W10.22 | Size the header mark for its display size | `uses-responsive-images`: `/brand/dbedc-mark.webp` wastes 35 KiB — it is served at full size and painted small. | Open. |
+| W10.23 | Submit the domain to the HSTS preload list | `redirects` costs 1,177 ms: `http://` → `https://` (630 ms) then `https://` → `/en` (547 ms). The first hop disappears for a preloaded domain. The header already sends `preload`; the domain has to be submitted. | Open — account access, not code. |
+| W10.24 | Decide whether `/` → `/en` can be made cheaper | The second hop is ours: 547 ms of origin time for a redirect that must stay `no-store`, because it carries the reader's language (W8N.7). Real users arriving from a search result land on `/en` directly and never pay it; someone typing the bare domain does. Measure before changing anything here. | Open. |
+
+**What this does not say.** Accessibility 100 and SEO 100 mean the audit's automated checks pass, not that the site is accessible or findable — the SEO category does not look at whether a page is *branded*, *described* or *verified*, which is why it scored 100 while every title said only "Toll rates" and Search Console had never been verified.
