@@ -8,6 +8,7 @@ import { getSetting } from '../../lib/settings.js';
 import Link from 'next/link';
 import CorridorExplorer from '../corridor/CorridorExplorer.jsx';
 import { localeHref } from '../../lib/blocks/href.js';
+import { orLog } from '../../lib/log.js';
 import LiveRefresh from '../corridor/LiveRefresh.jsx';
 import { newestMeasurement } from '../../lib/corridor/freshness.js';
 
@@ -62,7 +63,7 @@ export default async function CorridorMapBlock({ data, locale }) {
   try {
     const [traffic, places] = await Promise.all([
       getMapTrafficCached(),
-      getInterchangesCached().catch(() => []),
+      getInterchangesCached().catch(orLog('map.interchanges_failed', [])),
     ]);
     ({ waypoints, sections, geometry, geoSource, source } = traffic);
     interchanges = places;

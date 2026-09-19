@@ -21,7 +21,10 @@ vi.mock('../../lib/corridor/traffic.js', () => ({
 }));
 vi.mock('../../lib/corridor/history.js', () => ({ listTrafficHistory: (o) => historyRows(o) }));
 vi.mock('../../lib/seo/cache.js', () => ({ getSeoSettingsCached: async (locale) => ({ siteTitle: locale === 'bn' ? 'ঢাকা বাইপাস এক্সপ্রেসওয়ে' : 'Dhaka Bypass Expressway' }) }));
-vi.mock('../../lib/log.js', () => ({ log: vi.fn(), logError: vi.fn() }));
+vi.mock('../../lib/log.js', () => ({
+  log: vi.fn(), logError: vi.fn(),
+  orLog: (_event, fallback) => () => fallback,
+}));
 
 const req = (path, ip = '203.0.113.9') => new Request(`https://dhakabypass.com${path}`, { headers: { 'x-forwarded-for': ip } });
 

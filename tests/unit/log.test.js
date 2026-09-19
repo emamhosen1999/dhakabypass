@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { log, logError, errorFields } from '../../lib/log.js';
+import { log, logError, errorFields, orLog } from '../../lib/log.js';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -22,5 +22,21 @@ describe('lib/log.js', () => {
     const cyclic = {}; cyclic.self = cyclic;
     log('info', 'x', { cyclic });
     expect(JSON.parse(out.mock.calls[0][0]).note).toBe('unserialisable fields');
+  });
+});
+
+describe('orLog - a fallback that is not silent', () => {
+  it('returns the fallback so the caller can carry on', async () => {
+    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const rows = await Promise.reject(new Error('ER_NO_SUCH_TABLE')).catch(orLog('admin.pages_failed', []));
+    expect(rows).toEqual([]);
+  });
+
+  it('records the reason the caller fell back', async () => {
+    const err = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    await Promise.reject(Object.assign(new Error('gone'), { code: 'ER_NO_SUCH_TABLE' }))
+      .catch(orLog('admin.pages_failed', [], { screen: 'dashboard' }));
+    const line = JSON.parse(err.mock.calls[0][0]);
+    expect(line).toMatchObject({ level: 'error', event: 'admin.pages_failed', code: 'ER_NO_SUCH_TABLE', screen: 'dashboard' });
   });
 });

@@ -6,6 +6,7 @@ import { isDataIllustrative } from '../../../lib/settings';
 import { listMedia } from '../../../lib/media/repo';
 import { listNewsForAdmin } from '../../../lib/newsroom/admin';
 import { query, dbEnabled } from '../../../lib/db';
+import { orLog } from '../../../lib/log';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,14 +41,14 @@ async function countRows(sql) {
 
 export default async function AdminDashboard() {
   const [pages, media, unread, news, blocks, openRequests, overdueRequests, reviewsDue, draftChanges, provisional] = await Promise.all([
-    listPages().catch(() => []),
-    listMedia().catch(() => []),
+    listPages().catch(orLog('admin.dashboard.pages_failed', [])),
+    listMedia().catch(orLog('admin.dashboard.media_failed', [])),
     countRows('SELECT COUNT(*) AS c FROM contact_messages WHERE read_at IS NULL'),
-    listNewsForAdmin().catch(() => []),
+    listNewsForAdmin().catch(orLog('admin.dashboard.news_failed', [])),
     countRows('SELECT COUNT(*) AS c FROM blocks'),
     countRows("SELECT COUNT(*) AS c FROM service_requests WHERE status IN ('new','in_progress')"),
     countRows("SELECT COUNT(*) AS c FROM service_requests WHERE resolved_at IS NULL AND due_at < NOW()"),
-    pagesDueForReview().catch(() => []),
+    pagesDueForReview().catch(orLog('admin.dashboard.reviews_failed', [])),
     countRows('SELECT COUNT(*) AS c FROM block_translations WHERE draft_data IS NOT NULL'),
     isDataIllustrative().catch(() => true),
   ]);

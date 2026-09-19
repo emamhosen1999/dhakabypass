@@ -34,6 +34,8 @@ export default function CameraTile({ camera, labels }) {
     let cancelled = false;
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = camera.streamSrc;
+      // A browser that blocks autoplay rejects this; the tile keeps its
+      // controls and the reader presses play. Nothing to report.
       video.play().catch(() => {});
     } else {
       import('hls.js').then(({ default: Hls }) => {

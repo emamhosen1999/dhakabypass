@@ -429,7 +429,9 @@ env.NODE_ENV = 'production';
 let buildInfo = null;
 try {
   buildInfo = JSON.parse(fs.readFileSync(path.join(dir, 'build-info.json'), 'utf8'));
-} catch {}
+} catch {
+  // No build-info.json yet: preflight then checks the environment alone.
+}
 
 const result = checkEnvironment({ env, cwd: dir, buildInfo });
 if (!result.problems.some((p) => p.key === 'MEDIA_ROOT') && env.MEDIA_ROOT) {

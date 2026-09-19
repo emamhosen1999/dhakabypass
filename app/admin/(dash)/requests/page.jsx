@@ -1,5 +1,6 @@
 import { ClipboardList, Trash2, AlertTriangle } from 'lucide-react';
 import { query, dbEnabled } from '../../../../lib/db';
+import { orLog } from '../../../../lib/log';
 import { KINDS, STATUSES, KIND_VALUES, standardDays } from '../../../../lib/requests/policy.js';
 import { getSetting } from '../../../../lib/settings';
 import { updateRequestAction, deleteRequestAction, saveStandardsAction } from './actions';
@@ -49,7 +50,7 @@ async function getRequests({ kind, status, q, page }) {
         `SELECT request_id, actor, from_status, to_status, note, created_at FROM service_request_events
           WHERE request_id IN (${rows.map(() => '?').join(',')}) ORDER BY created_at, id`,
         rows.map((r) => r.id),
-      ).catch(() => [])) || [];
+      ).catch(orLog('admin.requests.timeline_failed', []))) || [];
       for (const e of list) {
         if (!events.has(e.request_id)) events.set(e.request_id, []);
         events.get(e.request_id).push(e);

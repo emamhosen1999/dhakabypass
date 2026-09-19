@@ -2,6 +2,7 @@ import { getSectionStatusCached } from '../../../../lib/corridor/traffic-cache.j
 import { getActiveAdvisoriesCached, getInterchangesCached } from '../../../../lib/corridor/cache.js';
 import { corridorStatusPayload } from '../../../../lib/open-data/format.js';
 import { respondOpenData, preflight } from '../../../../lib/open-data/respond.js';
+import { orLog } from '../../../../lib/log.js';
 
 /**
  * Open data: how the corridor is running, as JSON. The same cached readers
@@ -14,7 +15,8 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
   return respondOpenData(request, async () => {
     const [status, advisories, interchanges] = await Promise.all([
-      getSectionStatusCached(), getActiveAdvisoriesCached().catch(() => []), getInterchangesCached().catch(() => []),
+      getSectionStatusCached(), getActiveAdvisoriesCached().catch(orLog('opendata.advisories_failed', [])),
+      getInterchangesCached().catch(orLog('opendata.interchanges_failed', [])),
     ]);
     const payload = corridorStatusPayload({
       sections: status.sections, waypoints: status.waypoints, source: status.source, advisories, interchanges,

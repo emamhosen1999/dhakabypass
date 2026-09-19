@@ -1,6 +1,7 @@
 import { auth } from '../../../../auth';
 import { can } from '../../../../lib/auth/roles';
 import { query } from '../../../../lib/db';
+import { orLog } from '../../../../lib/log';
 import { LOCALES, LOCALE_LABELS, DEFAULT_LOCALE } from '../../../../lib/i18n/locales';
 import { saveMenuItemAction, deleteMenuItemAction, resetMenuAction, seedMenuAction } from './actions';
 import { MENU_SLUGS } from '../../../../lib/menus/slugs';
@@ -22,7 +23,7 @@ async function menuRows(slug) {
     `SELECT i.id, i.parent_id, i.href, i.labels, i.sort_order FROM menu_items i JOIN menus m ON m.id = i.menu_id
       WHERE m.slug = ? ORDER BY i.sort_order, i.id`,
     [slug],
-  ).catch(() => [])) || [];
+  ).catch(orLog('admin.menus.list_failed', []))) || [];
   const items = rows.map((r) => ({ ...r, labels: safeParse(r.labels) || {} }));
   const top = items.filter((i) => !i.parent_id || !items.some((p) => p.id === i.parent_id));
   return top.map((t) => ({ ...t, children: items.filter((c) => c.parent_id === t.id) }));

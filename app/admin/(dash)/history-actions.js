@@ -10,6 +10,7 @@ import { restoreTrash, restoreHistory, purgeTrash, getTrashEntry, logAudit } fro
 import { afterRestore, revalidateRestored } from '../../../lib/admin/restore-hooks';
 import { setFlash } from '../../../lib/admin/context';
 import { query } from '../../../lib/db';
+import { logError } from '../../../lib/log';
 
 /**
  * Restore from the trash, restore a version from history, and delete for good
@@ -77,7 +78,10 @@ async function removeUploadedFiles(entries) {
     if (!String(path).startsWith('/uploads/')) continue;
     const still = await query('SELECT id FROM media WHERE path = ? LIMIT 1', [path]);
     if (still?.length) continue;
-    await unlink(join(uploadRoot(), basename(path))).catch(() => {});
+    // A file already gone is the expected case on a second purge; anything
+    // else means the upload directory is not writable and wants reporting.
+    await unlink(join(uploadRoot(), basename(path)))
+      .catch((err) => { if (err?.code !== 'ENOENT') logError('media.purge_unlink_failed', err); });
   }
 }
 

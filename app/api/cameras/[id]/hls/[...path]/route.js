@@ -26,14 +26,14 @@ export async function GET(request, { params }) {
   try {
     const { body, type } = await fetchUpstream(target, camera, { maxBytes: SEGMENT_MAX_BYTES, timeoutMs: 15000 });
     if (ext === 'm3u8' || /mpegurl/i.test(type)) {
-      if (parts.length === 1 && parts[0] === 'index.m3u8') recordCameraHealth(camera.id, true).catch(() => {});
+      if (parts.length === 1 && parts[0] === 'index.m3u8') recordCameraHealth(camera.id, true).catch((e) => logError('cameras.health_write_failed', e, { camera: camera.id }));
       return new Response(rewritePlaylist(body.toString('utf8'), target, camera.id, camera.stream_url), {
         headers: { 'content-type': TYPES.m3u8, 'cache-control': 'no-store' },
       });
     }
     return new Response(body, { headers: { 'content-type': TYPES[ext] || type || 'application/octet-stream', 'cache-control': 'public, max-age=30' } });
   } catch (err) {
-    if (parts.length === 1 && parts[0] === 'index.m3u8') recordCameraHealth(camera.id, false, err?.message).catch(() => {});
+    if (parts.length === 1 && parts[0] === 'index.m3u8') recordCameraHealth(camera.id, false, err?.message).catch((e) => logError('cameras.health_write_failed', e, { camera: camera.id }));
     logError('camera.stream_failed', err, { camera: camera.id });
     return new Response(null, { status: 503, headers: { 'cache-control': 'no-store' } });
   }

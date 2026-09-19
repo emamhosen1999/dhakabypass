@@ -4,6 +4,7 @@ import { siteOrigin } from '../../../../lib/seo/site.js';
 import { isLocale, DEFAULT_LOCALE } from '../../../../lib/i18n/locales.js';
 import { advisoriesIcs } from '../../../../lib/open-data/format.js';
 import { respondOpenData, preflight } from '../../../../lib/open-data/respond.js';
+import { orLog } from '../../../../lib/log.js';
 
 /**
  * Open data: closures and roadworks as a calendar a fleet office can
@@ -17,7 +18,8 @@ export async function GET(request) {
     const wanted = new URL(request.url).searchParams.get('lang') || DEFAULT_LOCALE;
     const locale = isLocale(wanted) ? wanted : DEFAULT_LOCALE;
     const [advisories, seo] = await Promise.all([
-      getScheduledAdvisoriesCached().catch(() => []), getSeoSettingsCached(locale).catch(() => null),
+      getScheduledAdvisoriesCached().catch(orLog('opendata.scheduled_advisories_failed', [])),
+      getSeoSettingsCached(locale).catch(orLog('opendata.seo_settings_failed', null)),
     ]);
     const host = new URL(siteOrigin()).host;
     return {
