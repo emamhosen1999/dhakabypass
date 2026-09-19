@@ -291,6 +291,14 @@ export default async function SettingsPage() {
             hint="Search Console → Settings → Ownership verification → HTML tag. The site publishes it as
                   <meta name=&quot;google-site-verification&quot;>. Leave blank to publish nothing (W8C.9)."
           />
+          <Text
+            name="bing_site_verification" label="Bing Webmaster Tools verification"
+            defaultValue={seo.bingVerification}
+            placeholder="Paste the code from the HTML Meta Tag method, or the whole <meta> tag"
+            hint="Bing Webmaster Tools &rarr; Site &rarr; Verify ownership &rarr; HTML Meta Tag. Published as
+                  <meta name=&quot;msvalidate.01&quot;>. Importing the site from Search Console verifies it
+                  without this; the tag is the alternative. Leave blank to publish nothing."
+          />
           <div className="space-y-1">
             <label htmlFor="robots_mode" className="block text-sm font-semibold">
               Search engine access
