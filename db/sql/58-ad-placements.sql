@@ -115,3 +115,6 @@ SET @b = IF(@none = 1, LAST_INSERT_ID(), NULL);
 INSERT INTO `block_translations` (`block_id`, `locale`, `data`, `status`) SELECT @b, 'en', '{"format":"rectangle","slot":""}', 'published' FROM DUAL WHERE @b IS NOT NULL;
 INSERT INTO `block_translations` (`block_id`, `locale`, `data`, `status`) SELECT @b, 'bn', '{"format":"rectangle","slot":""}', 'published' FROM DUAL WHERE @b IS NOT NULL;
 INSERT INTO `block_translations` (`block_id`, `locale`, `data`, `status`) SELECT @b, 'zh', '{"format":"rectangle","slot":""}', 'published' FROM DUAL WHERE @b IS NOT NULL;
+
+-- The ledger row preflight reads to know this file has been applied.
+INSERT IGNORE INTO `schema_migrations` (`name`) VALUES ('58-ad-placements');
