@@ -91,6 +91,9 @@ const nextConfig = {
   // The X-Powered-By header names the framework to every visitor (audit CON-SEC-04).
   poweredByHeader: false,
   async headers() {
+    // Advertising is off unless a publisher ID is configured for the build,
+    // and the policy stays tight when it is off.
+    const ads = /^ca-pub-\d{10,20}$/.test(String(process.env.ADSENSE_CLIENT || '').trim());
     /**
      * Next's DEV server compiles with eval — hot reload, the React refresh
      * runtime and the dev overlay all need it. A policy without 'unsafe-eval'
@@ -105,6 +108,38 @@ const nextConfig = {
      */
     const isDev = process.env.NODE_ENV !== 'production';
 
+    // ADVERTISING ORIGINS (19 September 2026).
+    //
+    // Google states that AdSense does not support a CSP allowlist and asks
+    // for script from any https origin plus unsafe-eval. That is not a
+    // trade this site can make: it serves an admin panel and a grievance
+    // database from the same origin, and `unsafe-inline` today still
+    // blocks script from any other ORIGIN, which is the protection that
+    // would be given away. So these are the documented AdSense hosts,
+    // named explicitly. The cost is real and belongs in the open: a
+    // creative served from an origin not listed here will not render, so
+    // fill rate may be lower than an unrestricted policy would give.
+    // Widen deliberately, by adding an origin, never by adding https:.
+    const adScript = ads
+      ? ' https://pagead2.googlesyndication.com https://partner.googleadservices.com'
+        + ' https://tpc.googlesyndication.com https://googleads.g.doubleclick.net'
+        + ' https://www.googletagservices.com https://adservice.google.com'
+        + ' https://fundingchoicesmessages.google.com'
+      : '';
+    const adFrame = ads
+      ? ' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com'
+        + ' https://www.google.com https://fundingchoicesmessages.google.com'
+      : '';
+    const adImg = ads
+      ? ' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net'
+        + ' https://tpc.googlesyndication.com https://www.google.com https://*.g.doubleclick.net'
+      : '';
+    const adConnect = ads
+      ? ' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net'
+        + ' https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google'
+        + ' https://csi.gstatic.com'
+      : '';
+
     const csp = [
       "default-src 'self'",
       // 'unsafe-inline': the theme script and the analytics consent defaults
@@ -112,15 +147,16 @@ const nextConfig = {
       // static.cloudflareinsights.com: Cloudflare injects its Web Analytics
       // beacon into every page at the edge; refused, it logs a console error
       // on every page load and buries real errors.
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://www.googletagmanager.com https://static.cloudflareinsights.com`,
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://www.googletagmanager.com https://static.cloudflareinsights.com${adScript}`,
       // Tailwind emits a stylesheet; 'unsafe-inline' covers the style attributes
       // React sets for the corridor strip's computed offsets.
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data:",
+      `img-src 'self' data:${adImg}`,
       "font-src 'self'",
       // Analytics beacons. Everything else is refused.
       `connect-src 'self'${isDev ? ' ws: http://localhost:* http://127.0.0.1:*' : ''}`
-        + ' https://www.google-analytics.com https://region1.google-analytics.com https://api.tomtom.com https://cloudflareinsights.com',
+        + ' https://www.google-analytics.com https://region1.google-analytics.com https://api.tomtom.com https://cloudflareinsights.com'
+        + adConnect,
       "object-src 'none'",
       // The video block, and ONLY the video block. Every other frame is
       // refused, and lib/html/sanitize.js strips <iframe> from every rich-text
@@ -129,7 +165,7 @@ const nextConfig = {
       // block does not load either frame until a person presses play. Keep
       // this list in step with VIDEO_FRAME_HOSTS in lib/blocks/video.js; a
       // test asserts they match.
-      "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com",
+      `frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com${adFrame}`,
       // Hosted video files are same-origin only, enforced in lib/blocks/video.js.
       // blob: is how hls.js hands a live camera stream to the <video> element.
       "media-src 'self' blob:",

@@ -1,4 +1,5 @@
 import { analyticsConfig } from '../../lib/analytics/config.js';
+import { adsConfig } from '../../lib/ads/config.js';
 import ConsentBanner from './ConsentBanner.jsx';
 import InteractionEvents from './InteractionEvents.jsx';
 
@@ -16,7 +17,21 @@ import InteractionEvents from './InteractionEvents.jsx';
  */
 export default function Analytics({ locale }) {
   const config = analyticsConfig(process.env);
-  if (!config.enabled) return null;
+  const ads = adsConfig(process.env);
+
+  // Advertising can be on while analytics is off: the AdSense tag carries its
+  // own consent handling, but the banner is what asks, so it renders either
+  // way and the ad script waits for the answer.
+  if (!config.enabled && !ads.enabled) return null;
+  if (!config.enabled) {
+    return (
+      <>
+        <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ads.client)}`} crossOrigin="anonymous" />
+        <ConsentBanner locale={locale} ads />
+        <InteractionEvents />
+      </>
+    );
+  }
 
   if (config.provider === 'plausible') {
     return (
@@ -67,7 +82,12 @@ export default function Analytics({ locale }) {
       {/* Inline, not a file: this has to execute before gtag.js arrives. */}
       <script dangerouslySetInnerHTML={{ __html: consentDefaults }} />
       <script async src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(config.siteId)}`} />
-      <ConsentBanner locale={locale} />
+      {/* The ad tag, after the consent defaults above have already denied
+          every storage type. It asks for nothing until a reader answers. */}
+      {ads.enabled ? (
+        <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ads.client)}`} crossOrigin="anonymous" />
+      ) : null}
+      <ConsentBanner locale={locale} ads={ads.enabled} />
       <InteractionEvents />
     </>
   );

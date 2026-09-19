@@ -23,7 +23,7 @@ import { CONSENT_KEY as KEY, CONSENT_REOPEN } from './consent-key.js';
  *  - The choice is stored in localStorage rather than a cookie, so declining
  *    cookies does not itself set one.
  */
-export default function ConsentBanner({ locale }) {
+export default function ConsentBanner({ locale, ads = false }) {
   const [choice, setChoice] = useState(undefined);
 
   useEffect(() => {
@@ -56,7 +56,12 @@ export default function ConsentBanner({ locale }) {
       localStorage.setItem(KEY, value);
     } catch { /* the choice still applies to this page load */ }
     if (value === 'granted' && typeof window.gtag === 'function') {
-      window.gtag('consent', 'update', { analytics_storage: 'granted' });
+      // Advertising storage is granted only where advertising is actually
+      // served. On a site with no ad units, asking for it and then setting it
+      // would be a permission taken for nothing.
+      window.gtag('consent', 'update', ads
+        ? { analytics_storage: 'granted', ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' }
+        : { analytics_storage: 'granted' });
     }
     setChoice(value);
   }
@@ -66,7 +71,7 @@ export default function ConsentBanner({ locale }) {
   return (
     <div className="db-consent" role="dialog" aria-live="polite" aria-label={t(locale, 'consentHeading')}>
       <div className="db-consent-inner">
-        <p className="db-consent-text">{t(locale, 'consentBody')}</p>
+        <p className="db-consent-text">{t(locale, ads ? 'consentBodyAds' : 'consentBody')}</p>
         <div className="db-consent-actions">
           <button type="button" className="db-btn db-btn-quiet" onClick={() => decide('denied')}>
             {t(locale, 'consentReject')}

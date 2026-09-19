@@ -2311,7 +2311,10 @@ a.db-toll-sro{display:inline-flex;align-items:center;min-height:var(--db-tap);
 @page{size:A4;margin:12mm 12mm 14mm;}
 @media print{
   .db-nav,.db-locale-switch,.db-subnav,.db-footer-nav,.db-tollcalc,
-  .db-request-form,.db-alert-signup,.db-scroll-hint,.db-skip,.db-locate-form{display:none!important;}
+  .db-request-form,.db-alert-signup,.db-scroll-hint,.db-skip,.db-locate-form,
+  /* A printed toll table with an advertisement on it is not a document
+     anybody can file. */
+  .db-ad{display:none!important;}
   .db-block{padding-top:8pt;padding-bottom:8pt;}
   .db-page-head{padding-top:4pt;padding-bottom:4pt;}
   .db-header,.db-footer{background:none;color:var(--db-paper-ink);}
@@ -2321,4 +2324,18 @@ a.db-toll-sro{display:inline-flex;align-items:center;min-height:var(--db-tap);
      what follows it starts below or on sheet two, never half-way through a
      table of rates pinned up in a transport office. */
   main > .db-block{break-inside:avoid;page-break-inside:avoid;}
+}
+
+/* Advertising (19 Sep). The box is reserved before anything loads: CLS on this
+   site measures 0.002, and the usual way a site loses that is an ad arriving
+   after the text and pushing it down. An unfilled slot leaves a gap, never a
+   jump. The label is not decoration — it is Google's requirement and the
+   honest thing to do on a road operator's site. */
+.db-ad{display:grid;justify-items:center;gap:6px;margin:28px auto;max-width:100%;}
+.db-ad-label{margin:0;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--db-ink-3);font-family:var(--db-font-display);}
+.db-ad-ins{display:block;width:var(--ad-w);height:var(--ad-h);max-width:100%;
+  background:var(--db-surface-2);border-radius:var(--db-radius-sm);}
+@media (max-width:640px){
+  .db-ad-ins{width:var(--ad-w-phone);height:var(--ad-h-phone);}
 }

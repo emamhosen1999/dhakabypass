@@ -189,7 +189,7 @@ export default async function CmsPage({ params, searchParams }) {
           <p className="db-pending"><span className="db-pending-tag">{t(locale, 'legalReviewTag')}</span>{t(locale, 'legalReviewBody')}</p>
         </aside>
       ) : null}
-      <BlockRenderer blocks={blocks} locale={locale} searchParams={searchParams} />
+      <BlockRenderer blocks={blocks} locale={locale} searchParams={searchParams} pageSlug={page?.slug || (isHome ? HOME_SLUG : '')} />
     </>
   );
 }

@@ -55,5 +55,5 @@ export default async function PreviewPage({ params, searchParams }) {
   // The preview renders through the same dispatcher as the live page, so a
   // toll calculator behaves in the operator's preview exactly as it will in
   // production — including answering from the query string.
-  return <BlockRenderer blocks={withDraftTranslations(blocks)} locale={locale} searchParams={searchParams} />;
+  return <BlockRenderer blocks={withDraftTranslations(blocks)} locale={locale} searchParams={searchParams} pageSlug={page?.slug || ''} />;
 }

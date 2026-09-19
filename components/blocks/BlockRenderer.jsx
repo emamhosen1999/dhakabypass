@@ -62,7 +62,10 @@ export function pageUpdatedAt(blocks = []) {
   return latest;
 }
 
-export default function BlockRenderer({ blocks = [], locale, searchParams }) {
+// `pageSlug` is passed so a block can refuse to render on a particular
+// page — the advertisement block is the only one that does, and without the
+// slug it would render on the emergency and disclosure pages too.
+export default function BlockRenderer({ blocks = [], locale, searchParams, pageSlug = '' }) {
   const updatedAt = pageUpdatedAt(blocks);
   return (
     <>
@@ -84,6 +87,7 @@ export default function BlockRenderer({ blocks = [], locale, searchParams }) {
             locale={locale}
             blockId={block.id}
             searchParams={searchParams}
+            pageSlug={pageSlug}
             pageUpdatedAt={updatedAt}
           />
         );
