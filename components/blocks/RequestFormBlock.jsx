@@ -50,7 +50,7 @@ export default function RequestFormBlock({ data, locale }) {
     <section className="db-block db-request-block">
       <h2 className="db-h2">{heading}</h2>
       {intro ? <p className="db-prose">{intro}</p> : null}
-      <RequestForm action={action} plan={plan} labels={labels} successNote={text(data?.successNote)} />
+      <RequestForm action={action} plan={plan} labels={labels} kind={kind} successNote={text(data?.successNote)} />
     </section>
   );
 }

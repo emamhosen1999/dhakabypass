@@ -16,13 +16,13 @@ export default function EmergencyNumbers({ locale, emergency, national, label })
       {emergency ? (
         <>
           <span className="db-footer-emergency-label">{label || t(locale, 'emergency')}</span>
-          <a className="db-footer-emergency-number" href={tel(emergency)}>{emergency}</a>
+          <a className="db-footer-emergency-number" href={tel(emergency)} data-track="emergency_tel_tap" data-track-line="control_room">{emergency}</a>
         </>
       ) : null}
       {national ? (
         <>
           <span className="db-footer-emergency-label">{t(locale, 'emergencyNational')}</span>
-          <a className="db-footer-emergency-number" href={tel(national)}>{national}</a>
+          <a className="db-footer-emergency-number" href={tel(national)} data-track="emergency_tel_tap" data-track-line="national">{national}</a>
         </>
       ) : null}
     </div>

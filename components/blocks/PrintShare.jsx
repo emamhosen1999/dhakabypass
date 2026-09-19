@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { track } from '../../lib/analytics/events.js';
 
 /**
  * Print and share for a schedule (W5.18, B-E8): a driver prints the toll
@@ -14,8 +15,13 @@ export default function PrintShare({ printLabel, shareLabel, copiedLabel, title 
   const share = async () => {
     const url = window.location.href;
     try {
-      if (navigator.share) { await navigator.share({ title: title || document.title, url }); return; }
+      if (navigator.share) {
+        await navigator.share({ title: title || document.title, url });
+        track('page_shared', { method: 'share_sheet' });
+        return;
+      }
       await navigator.clipboard.writeText(url);
+      track('page_shared', { method: 'clipboard' });
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } catch { /* the reader cancelled, or the clipboard is blocked */ }

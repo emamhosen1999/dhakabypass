@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { track } from '../../lib/analytics/events.js';
 import IllustrativeNoticeView from '../corridor/IllustrativeNoticeView.jsx';
 
 /**
@@ -61,6 +62,11 @@ export default function TollCalculatorResult({
     const lookup = new Map();
     for (const a of answers) lookup.set(`${a[0]}|${a[1]}|${a[2]}`, a);
 
+    const vehicleClass = () => {
+      const el = form.elements.namedItem(keys.vehicle);
+      return el && typeof el.value === 'string' ? el.value : '';
+    };
+
     const read = () => {
       const value = (name) => {
         const el = form.elements.namedItem(name);
@@ -92,6 +98,11 @@ export default function TollCalculatorResult({
     const onChange = () => {
       const next = read();
       setView(next);
+      if (next.status === 'priced') {
+        track('toll_quote', { vehicle_class: vehicleClass(), priced: 'yes' });
+      } else if (next.status === 'unpriced') {
+        track('toll_quote_unavailable', { vehicle_class: vehicleClass() });
+      }
       // The URL stays the answer's address, so the link in the address bar is
       // still the link a driver can send to somebody else. replaceState, not
       // pushState: changing a dropdown is not a navigation, and filling one in

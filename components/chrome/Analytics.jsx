@@ -1,5 +1,6 @@
 import { analyticsConfig } from '../../lib/analytics/config.js';
 import ConsentBanner from './ConsentBanner.jsx';
+import InteractionEvents from './InteractionEvents.jsx';
 
 /**
  * The analytics tag, or nothing at all.
@@ -19,21 +20,27 @@ export default function Analytics({ locale }) {
 
   if (config.provider === 'plausible') {
     return (
-      <script
-        defer
-        data-domain={config.siteId}
-        src={config.scriptUrl}
-      />
+      <>
+        <script
+          defer
+          data-domain={config.siteId}
+          src={config.scriptUrl}
+        />
+        <InteractionEvents />
+      </>
     );
   }
 
   if (config.provider === 'umami') {
     return (
-      <script
-        defer
-        data-website-id={config.siteId}
-        src={config.scriptUrl}
-      />
+      <>
+        <script
+          defer
+          data-website-id={config.siteId}
+          src={config.scriptUrl}
+        />
+        <InteractionEvents />
+      </>
     );
   }
 
@@ -61,6 +68,7 @@ export default function Analytics({ locale }) {
       <script dangerouslySetInnerHTML={{ __html: consentDefaults }} />
       <script async src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(config.siteId)}`} />
       <ConsentBanner locale={locale} />
+      <InteractionEvents />
     </>
   );
 }

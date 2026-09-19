@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { MAX_MESSAGE_CHARS } from '../../lib/public-write-policy.js';
+import { useTrackOnce } from '../../lib/analytics/use-track.js';
 
 /**
  * The service request form: grievance, toll dispute, breakdown, lost & found.
@@ -17,9 +18,11 @@ import { MAX_MESSAGE_CHARS } from '../../lib/public-write-policy.js';
  * On success the form is replaced by the tracking number, in a live region
  * and in a <strong> with a stable id so the visitor can select and copy it.
  */
-export default function RequestForm({ action, plan, labels, successNote }) {
+export default function RequestForm({ action, plan, labels, kind, successNote }) {
   const [state, submit, pending] = useActionState(action, { status: 'idle' });
   const invalid = (field) => state.status === 'invalid' && state.fields.includes(field);
+  // The kind of case, never the tracking number it was given.
+  useTrackOnce(state.status === 'ok', 'request_submitted', { kind });
 
   if (state.status === 'ok') {
     return (

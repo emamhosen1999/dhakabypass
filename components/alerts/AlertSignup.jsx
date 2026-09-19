@@ -2,12 +2,16 @@
 
 import { useActionState, useState } from 'react';
 import { alertSignup } from '../../lib/alerts/actions.js';
+import { useTrackOnce } from '../../lib/analytics/use-track.js';
 
 /** Mobile alert sign-up (SMS or WhatsApp), with unsubscribe on the same form. */
 export default function AlertSignup({ labels, locale, blockId }) {
   const [state, action, pending] = useActionState(alertSignup, { status: 'idle' });
   const [mode, setMode] = useState('subscribe');
   const id = (f) => `alert-${blockId}-${f}`;
+  useTrackOnce(state.status === 'ok' || state.status === 'unsubscribed', 'alert_signup', {
+    channel: state.channel, action: state.status === 'unsubscribed' ? 'unsubscribe' : 'subscribe',
+  });
 
   if (state.status === 'ok' || state.status === 'unsubscribed') {
     return <div className="db-form-result db-form-ok" role="status"><p>{state.status === 'ok' ? labels.ok : labels.unsubscribed}</p></div>;

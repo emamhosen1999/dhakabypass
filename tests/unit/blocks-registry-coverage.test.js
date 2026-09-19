@@ -17,7 +17,11 @@ import { readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { allBlocks } from '../../lib/blocks/registry.js';
 
-beforeAll(async () => { await import('../../lib/blocks/index.js'); });
+// Importing the registry pulls in every block and everything they import,
+// which takes most of vitest's ten-second hook budget on a quiet machine and
+// exceeds it on a busy one. The import is the thing under test here, so it
+// gets room rather than a flake.
+beforeAll(async () => { await import('../../lib/blocks/index.js'); }, 60000);
 
 const dir = fileURLToPath(new URL('../../components/blocks/', import.meta.url));
 

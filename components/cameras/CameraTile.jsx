@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { track } from '../../lib/analytics/events.js';
 
 /**
  * One corridor camera: its latest still, refreshed on the camera's interval,
@@ -79,7 +80,17 @@ export default function CameraTile({ camera, labels }) {
           <span className="db-camera-time">{labels.updated.replace('{time}', updated.toLocaleTimeString(labels.intl, { hour: '2-digit', minute: '2-digit', second: '2-digit' }))}</span>
         ) : null}
         {camera.streamSrc && !camera.isSample ? (
-          <button type="button" className="db-btn db-btn-secondary" onClick={() => { setOffline(false); setLive((v) => !v); }}>
+          <button
+            type="button" className="db-btn db-btn-secondary"
+            onClick={() => {
+              setOffline(false);
+              setLive((v) => {
+                // Pressing play is the event; pressing stop is not.
+                if (!v) track('camera_watch', { camera: camera.name });
+                return !v;
+              });
+            }}
+          >
             {live ? labels.stop : labels.watch}
           </button>
         ) : null}

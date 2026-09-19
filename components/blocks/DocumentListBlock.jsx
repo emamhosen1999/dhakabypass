@@ -56,7 +56,15 @@ export default function DocumentListBlock({ data, locale, blockId }) {
                 // stays a plain anchor.
                 isPagePath(href)
                   ? <Link className="db-doc-link" href={href}>{title}{meta}</Link>
-                  : <a className="db-doc-link" href={href}>{title}{meta}</a>
+                  : (
+                    <a
+                      className="db-doc-link" href={href}
+                      data-track="document_download"
+                      data-track-format={text(doc.fileType) || undefined}
+                    >
+                      {title}{meta}
+                    </a>
+                  )
               ) : (
                 /* A document announced but not yet uploaded stays visible as
                    text. A link to nowhere is worse than a line that says the

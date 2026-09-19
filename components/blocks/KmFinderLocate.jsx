@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { track } from '../../lib/analytics/events.js';
 
 /**
  * The "use my location" button. It fills the finder form's two hidden
@@ -36,6 +37,8 @@ export default function KmFinderLocate({ formId, keys, labels }) {
         set(keys.lng, pos.coords.longitude.toFixed(6));
         const marker = form.querySelector(`input[name="${keys.marker}"]`);
         if (marker) marker.value = '';
+        // That the browser gave a position, never the position itself.
+        track('kmpost_located', { source: 'browser' });
         form.requestSubmit();
       },
       () => setState('denied'),

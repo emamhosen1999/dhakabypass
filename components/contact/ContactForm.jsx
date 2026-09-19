@@ -5,6 +5,7 @@ import { submitContactMessage } from '../../lib/contact/actions.js';
 // Not from ./actions.js: that is a `'use server'` module and may export async
 // functions only.
 import { MAX_MESSAGE_CHARS } from '../../lib/public-write-policy.js';
+import { useTrackOnce } from '../../lib/analytics/use-track.js';
 
 /**
  * The contact form.
@@ -22,6 +23,7 @@ export default function ContactForm({ labels }) {
   const [state, action, pending] = useActionState(submitContactMessage, { status: 'idle' });
 
   const invalid = (field) => state.status === 'invalid' && state.fields.includes(field);
+  useTrackOnce(state.status === 'ok', 'contact_submitted');
 
   if (state.status === 'ok') {
     return (

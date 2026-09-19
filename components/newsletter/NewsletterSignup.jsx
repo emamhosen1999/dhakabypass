@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { subscribeNewsletter } from '../../lib/newsletter/actions.js';
+import { useTrackOnce } from '../../lib/analytics/use-track.js';
 
 /**
  * The email sign-up. A client component only for the pending and result
@@ -10,6 +11,7 @@ import { subscribeNewsletter } from '../../lib/newsletter/actions.js';
  */
 export default function NewsletterSignup({ labels }) {
   const [state, action, pending] = useActionState(subscribeNewsletter, { status: 'idle' });
+  useTrackOnce(state.status === 'ok', 'newsletter_signup');
 
   if (state.status === 'ok') {
     return (
