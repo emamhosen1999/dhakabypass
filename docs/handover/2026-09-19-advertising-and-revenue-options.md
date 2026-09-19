@@ -533,3 +533,90 @@ External, accessed 19 September 2026:
 - Indicative, vendor-published and **unverified** CPM estimates, cited only to show the direction: [AP Digital on AdSense CPM in Bangladesh](https://apdigi.in/google-adsense-cpm-rates-in-bangladesh/), [awisee CPM survey](https://awisee.com/blog/youtube-cpm-rates/)
 
 **Not verifiable from this machine:** `nhai.gov.in` and `tis.nhai.gov.in` refused connections (ECONNREFUSED), so NHAI's own site was not inspected for advertising directly. The earlier 18-operator peer benchmark records no ad-network presence on any peer.
+
+---
+
+## Appendix: measured traffic and projected revenue (19 September 2026)
+
+The projection above used a method with no traffic figure in it, because none
+existed. One does now. This is counted from the origin access log
+(`~/logs/dhakabypass.com.aeos365.com-ssl_log-Sep-2026.gz`), which sees every
+page request: Cloudflare caches static files but the HTML is dynamic
+(`cf-cache-status: DYNAMIC`), so no page view is hidden from it.
+
+### What was counted, and what was removed
+
+| Step | Requests |
+|---|---|
+| All page requests, 31 Aug – 19 Sep 2026 | 33,057 |
+| Less self-identifying bots (bingbot, scanners, Palo Alto, curl, monitors) | −6,136 |
+| Less the development IP range 103.159.254–255.x | −13,052 (mostly 14–16 Sep, the build days) |
+| Less headless browsers (our own Lighthouse runs and similar) | −1,456 |
+| **External page views remaining** | **15,724** from **2,340 unique IP addresses** |
+
+Twenty days, so roughly **790 page views a day, about 23,600 a month** across
+the whole site. Treat it as a ceiling: unidentified crawlers with ordinary
+browser user-agents are still in it, and a 2,340-address spread over twenty
+days is consistent with a site that is discovered rather than one with a
+returning audience.
+
+### What lands on a page that carries advertising
+
+| Page | Views (20 days) | Units placed |
+|---|---|---|
+| `/` (home) | 3,405 | 1 |
+| `/project` | 446 | 2 |
+| `/travel/status` | 390 | 1 |
+| `/sustainability` | 358 | 1 |
+| `/about` | 346 | 1 |
+| `/travel/rules` | 141 | 2 |
+| `/media`, `/gallery/videos` | under 110 each | 1 each |
+
+About **5,300 views in twenty days — near 7,900 a month — reach a page with an
+advertisement on it**, roughly a third of the site's traffic. The home page is
+two thirds of that on its own. The pages with the most traffic after it are
+`/safety`, `/travel/toll`, `/contact` and `/disclosures`, and every one of
+those is deliberately excluded.
+
+### The projection
+
+Revenue = (ad-page views ÷ 1,000) × page RPM. Bangladesh is the lowest-priced
+advertising market on every published table; no verified RPM figure for it
+exists in a source worth citing, so the range below is bracketed rather than
+asserted.
+
+| Page RPM | Monthly | Annual |
+|---|---|---|
+| US$0.20 (pessimistic, Bangla-majority traffic) | **US$1.60** | US$19 |
+| US$0.50 | **US$3.95** | US$47 |
+| US$1.00 (optimistic for this market) | **US$7.90** | US$95 |
+| US$2.00 (unlikely) | US$15.80 | US$190 |
+
+**The number that decides it: AdSense pays out at US$100.** At the middle of
+that range the first payment arrives after roughly **two years**. At the
+optimistic end, thirteen months.
+
+### What would actually change the figure
+
+1. **Traffic, by an order of magnitude.** Revenue is linear in page views. The
+   work that moves it is the Search Console and content programme already
+   specified in `2026-09-19-post-launch-seo-and-marketing.md`, not more ad
+   units. Ten times the traffic is ten times the revenue; twice the ad units
+   is not twice the revenue.
+2. **News articles.** `/news` is the ninth most-visited path and articles are
+   the natural place for advertising, but they are rendered from `news_updates`
+   by a template, not from blocks, so no unit can be placed there today. If
+   advertising is going ahead, that template is the single highest-value
+   change — it is where a press-release programme would compound.
+3. **Where the readers are.** RPM follows the advertiser market, not the
+   publisher. Traffic from Bangladesh earns a fraction of the same traffic from
+   the Gulf, Singapore or the UK, and this corridor's audience is
+   overwhelmingly domestic.
+
+### The honest summary
+
+The system is built, placed and tested; it turns on with a publisher ID. What
+it will earn, on today's traffic, is **a few dollars a month**, and the first
+payout is one to two years away. Nothing in the engineering changes that —
+only traffic does. The service-area and fibre-corridor lines in section 6
+remain larger by orders of magnitude.
