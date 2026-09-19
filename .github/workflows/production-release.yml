@@ -28,6 +28,19 @@ jobs:
       DB_NAME: dhakabypass
       DB_NAME_TEST: dhakabypass_test
       SITE_URL: https://dhakabypass.com
+      # Analytics is baked in at build time, exactly as SITE_URL is: the
+      # localised pages are prerendered, so the tag is written into the HTML
+      # here and not decided by the running app. Choosing ga4 also switches on
+      # the consent banner, with every storage type denied until a visitor
+      # agrees.
+      #
+      # The measurement ID is not a secret — it is published in the HTML of
+      # every page — so it lives here rather than in a repository secret,
+      # where the artifact's provenance is readable beside the rest of the
+      # build. It is the "Website" stream of the Dhaka Bypass Expressway
+      # property, created 19 September 2026.
+      ANALYTICS_PROVIDER: ga4
+      ANALYTICS_SITE_ID: G-L6DWRP79H5
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
