@@ -59,3 +59,42 @@ describe('secondary buttons keep their border', () => {
     expect(css.slice(secondary, secondary + 120)).toMatch(/border-color:var\(--db-ink-3\)/);
   });
 });
+
+describe('the corridor map takes the site theme with it', () => {
+  // The map shipped with its own palette and a dark branch under
+  // [data-theme="dark"] only, so a reader whose system is dark and who has
+  // never touched the theme control got a light map on a dark page.
+  const mapVars = ['--map-toll', '--map-service', '--map-edge', '--map-median', '--map-ground', '--map-lane-wash', '--map-geo-filter', '--map-direction'];
+
+  it('defines every map colour of its own in light and in both dark forms', () => {
+    for (const token of mapVars) {
+      expect(css.split(`${token}:`).length - 1, token).toBe(3);
+    }
+  });
+
+  it('reads the panel, text and rule colours from the site tokens', () => {
+    const wrap = css.slice(css.indexOf('.db-map-wrap{--map-'));
+    const declared = wrap.slice(0, wrap.indexOf('}'));
+    for (const token of ['--map-card', '--map-text', '--map-border', '--map-muted', '--map-selection']) {
+      expect(declared, token).toContain(`${token}:var(--db-`);
+    }
+  });
+
+  it('leaves no map rule that only an explicit dark choice can reach', () => {
+    expect(css.match(/\[data-theme="dark"\] \.db-map[a-z-]*/g) || []).toEqual([]);
+  });
+
+  it('draws the geography filter and the wrap ground from those variables', () => {
+    expect(css).toMatch(/\.db-map-geography\{[^}]*filter:var\(--map-geo-filter\)/);
+    expect(css).toMatch(/\.db-map-wrap\{[^}]*background:var\(--map-ground\)/);
+    expect(css).toMatch(/\.db-map-lane-sample\{[^}]*background:var\(--map-lane-wash\)/);
+  });
+
+  it('corners and elevation stay on the four-step scale', () => {
+    // Scoped to the map: a radius that rounds a bar into a pill elsewhere
+    // on the site is a shape, not a fifth step.
+    const map = css.slice(css.indexOf('/* Geographic corridor explorer'));
+    expect(map.match(/border-radius:(5|9|10|14)px(?=[;}])/g) || []).toEqual([]);
+    expect(map.match(/#1833450c|#18334510|#19334620/g) || []).toEqual([]);
+  });
+});
