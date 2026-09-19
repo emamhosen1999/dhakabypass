@@ -3,6 +3,7 @@ import { ESSENTIAL_CONTENT_PATHS } from '../../lib/seo/routes.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { buildSitemap, lastModifiedFor } from '../../lib/seo/sitemap.js';
+import { OPEN_DATA_ENDPOINTS } from '../../lib/open-data/format.js';
 import { STATIC_LOCALISED_PATHS } from '../../lib/seo/routes.js';
 import { LOCALES } from '../../lib/i18n/locales.js';
 
@@ -82,7 +83,9 @@ describe('buildSitemap', () => {
       expect(got.some((u) => new URL(u).pathname === path)).toBe(false);
     }
     // And no unprefixed URL at all: every entry lives under a locale.
-    for (const u of got) {
+    // Every PAGE lives under a locale. The open-data feeds are the one
+    // exception and are locale-less by design (E7); their own block covers them.
+    for (const u of got.filter((x) => !x.includes('/api/public/'))) {
       expect(new URL(u).pathname).toMatch(/^\/(en|bn|zh)(\/|$)/);
     }
   });
@@ -106,7 +109,9 @@ describe('buildSitemap', () => {
     // drift guard in seo-routes.test.js keeps the code list honest and the
     // seed check below keeps the essential list honest.
     expect(got.length).toBe(
-      LOCALES.length * (STATIC_LOCALISED_PATHS.length + ESSENTIAL_CONTENT_PATHS.length + 1),
+      LOCALES.length * (STATIC_LOCALISED_PATHS.length + ESSENTIAL_CONTENT_PATHS.length + 1)
+      // The feeds are code routes: one URL each, whatever the database is doing.
+      + OPEN_DATA_ENDPOINTS.length,
     );
   });
 
@@ -165,6 +170,8 @@ describe('buildSitemap', () => {
 
   it('declares all three locales plus x-default on every entry', () => {
     for (const entry of buildSitemap({ pages: [homeRow] })) {
+      // A feed has one URL in no language, so it claims no hreflang (E7).
+      if (entry.url.includes('/api/public/')) continue;
       expect(Object.keys(entry.alternates.languages).sort())
         .toEqual(['bn', 'en', 'x-default', 'zh']);
     }
@@ -270,5 +277,46 @@ describe('buildSitemap and noindex routes', () => {
     const withNone = urls(buildSitemap({ pages: [homeRow] }));
     expect(urls(buildSitemap({ pages: [homeRow], noindex: [] }))).toEqual(withNone);
     expect(urls(buildSitemap({ pages: [homeRow], noindex: null }))).toEqual(withNone);
+  });
+});
+
+describe('buildSitemap and the open-data feeds (E7)', () => {
+  const feedUrls = (entries) => urls(entries).filter((u) => u.includes('/api/public/'));
+
+  it('lists every published feed', () => {
+    const got = feedUrls(buildSitemap({ pages: [homeRow] }));
+    for (const { path: p } of OPEN_DATA_ENDPOINTS) {
+      expect(got, p).toContain(`https://dhakabypass.com${p}`);
+    }
+  });
+
+  it('lists each feed once, not once per language', () => {
+    // A feed has one URL. The JSON carries all three languages' names inside
+    // it and the calendar takes ?lang=, so there is nothing to localise.
+    const got = feedUrls(buildSitemap({ pages: [homeRow] }));
+    expect(got).toHaveLength(OPEN_DATA_ENDPOINTS.length);
+    expect(new Set(got).size).toBe(OPEN_DATA_ENDPOINTS.length);
+  });
+
+  it('claims no hreflang for a feed', () => {
+    const feed = buildSitemap({ pages: [homeRow] }).find((e) => e.url.endsWith('/corridor-status'));
+    expect(feed.alternates).toBeUndefined();
+  });
+
+  it('says a feed changes daily and ranks below a page', () => {
+    const feed = buildSitemap({ pages: [homeRow] }).find((e) => e.url.endsWith('/corridor-status'));
+    expect(feed.changeFrequency).toBe('daily');
+    expect(feed.priority).toBeLessThan(0.7);
+  });
+
+  it('still lists the feeds when the pages read failed', () => {
+    // They are code routes: they answer whatever the database is doing.
+    expect(feedUrls(buildSitemap({ pages: [], pagesReadFailed: true }))).toHaveLength(OPEN_DATA_ENDPOINTS.length);
+  });
+
+  it('drops a feed an operator marked noindex', () => {
+    const got = feedUrls(buildSitemap({ pages: [homeRow], noindex: ['/api/public/traffic-history.csv'] }));
+    expect(got).not.toContain('https://dhakabypass.com/api/public/traffic-history.csv');
+    expect(got).toHaveLength(OPEN_DATA_ENDPOINTS.length - 1);
   });
 });

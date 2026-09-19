@@ -103,7 +103,10 @@ describe('robots.txt with no database', () => {
     // merely wrong; the admin rule below is the one that must not be lost.
     const robots = (await import('../../app/robots.js')).default;
     const r = await robots();
-    expect(r.rules[0].allow).toBe('/');
+    expect(r.rules[0].allow).toContain('/');
+    // And the open-data feeds stay crawlable through an outage: the
+    // allowance is a built-in, not a setting an unreadable row could drop.
+    expect(r.rules[0].allow).toContain('/api/public/');
     expect(r.rules[0].disallow).toEqual(expect.arrayContaining(['/admin', '/api/']));
     expect(r.sitemap).toBe('https://dhakabypass.com/sitemap.xml');
   });

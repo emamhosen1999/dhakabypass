@@ -8,6 +8,7 @@ import { pathForSlug, HOME_PATH } from '../../../lib/seo/routes.js';
 import { routeMetaFor } from '../../../lib/seo/cache.js';
 import { applyRouteMeta } from '../../../lib/seo/route-meta.js';
 import { getSeoSettingsCached } from '../../../lib/seo/cache.js';
+import { brandedTitle } from '../../../lib/seo/settings.js';
 import { withSocialCard } from '../../../lib/seo/social.js';
 import { t } from '../../../lib/i18n/ui.js';
 import { HOME_SLUG, NOT_FOUND_SLUG } from '../../../lib/content/slug.js';
@@ -120,6 +121,12 @@ export async function generateMetadata({ params }) {
       getSeoSettingsCached(loaded.locale),
     ]);
   } catch { blocks = []; site = {}; }
+  // The locale layout appends the road name (E2). A title that already carries
+  // it — the home page, or one an editor typed the brand into — is marked
+  // absolute instead of repeating it.
+  if (typeof meta.title === 'string' && site.siteTitle) {
+    meta.title = brandedTitle(meta.title, site.siteTitle);
+  }
   return withSocialCard(meta, {
     page: { title: resolved?.data.title, description: resolved?.data.description, ogImage: resolved?.data.ogImage },
     site: { title: site.siteTitle, description: site.siteDescription, ogImage: site.ogImage },

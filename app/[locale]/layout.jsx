@@ -19,10 +19,16 @@ import ScrollRegions from '../../components/chrome/ScrollRegions.jsx';
 import { t } from '../../lib/i18n/ui.js';
 import { primeUiStrings } from '../../lib/i18n/strings-cache.js';
 
-/** The site-level title, description and favicon, in this page's language. */
+/**
+ * The site-level title, description and favicon, in this page's language.
+ *
+ * `brandTitles` is set here and nowhere else: every public page's title gains
+ * the road name, while the admin and the legacy tree share rootMetadata and
+ * must not (E2).
+ */
 export async function generateMetadata({ params }) {
   const { locale } = await params;
-  return generateRootMetadata(isLocale(locale) ? locale : 'en');
+  return generateRootMetadata(isLocale(locale) ? locale : 'en', { brandTitles: true });
 }
 
 export function generateStaticParams() {

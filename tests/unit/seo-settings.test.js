@@ -17,7 +17,7 @@ vi.mock('../../lib/db.js', () => ({ query: vi.fn(), dbEnabled: vi.fn(() => true)
 
 import { query } from '../../lib/db.js';
 import {
-  SEO_KEYS, SEO_DEFAULTS, getSeoSettings, robotsRulesFor, parseDisallowList, rootMetadata,
+  SEO_KEYS, SEO_DEFAULTS, getSeoSettings, robotsRulesFor, parseDisallowList, rootMetadata, brandedTitle,
 } from '../../lib/seo/settings.js';
 
 const rows = (map) =>
@@ -125,7 +125,8 @@ describe('robotsRulesFor', () => {
 
   it('publishes the ordinary rules and the sitemap by default', () => {
     const r = robotsRulesFor({ ...base, isAdminHost: false, seo: SEO_DEFAULTS });
-    expect(r.rules[0].allow).toBe('/');
+    // An array since E7: '/' plus the open-data prefix under /api/.
+    expect(r.rules[0].allow).toContain('/');
     expect(r.rules[0].disallow).toEqual(expect.arrayContaining(['/admin', '/api/']));
     expect(r.sitemap).toBe('https://dhakabypass.com/sitemap.xml');
   });
@@ -183,5 +184,100 @@ describe('rootMetadata', () => {
 
   it('emits no openGraph block at all when no share image is set', () => {
     expect(rootMetadata(SEO_DEFAULTS).openGraph).toBeUndefined();
+  });
+});
+
+describe('branded titles (E2)', () => {
+  it('leaves the title a plain string by default, because the admin shares this metadata', () => {
+    expect(rootMetadata(SEO_DEFAULTS).title).toBe(SEO_DEFAULTS.siteTitle);
+  });
+
+  it('suffixes a page title with the road name when the public layout asks', () => {
+    const m = rootMetadata(SEO_DEFAULTS, { brandTitles: true });
+    expect(m.title.template).toBe('%s — Dhaka Bypass Expressway');
+    expect(m.title.default).toBe('Dhaka Bypass Expressway');
+  });
+
+  it('brands in the language of the page, not in English', () => {
+    const m = rootMetadata({ ...SEO_DEFAULTS, siteTitle: 'ঢাকা বাইপাস এক্সপ্রেসওয়ে' }, { brandTitles: true });
+    expect(m.title.template).toBe('%s — ঢাকা বাইপাস এক্সপ্রেসওয়ে');
+  });
+});
+
+describe('verification tokens (E1)', () => {
+  it('owns a key for the Bing token', () => {
+    expect(SEO_KEYS.bingVerification).toBe('seo.bing_site_verification');
+  });
+
+  it('reads the Bing token from settings', async () => {
+    query.mockResolvedValue(rows({ [SEO_KEYS.bingVerification]: 'B1NG' }));
+    expect((await getSeoSettings('en')).bingVerification).toBe('B1NG');
+  });
+
+  it('publishes Bing under msvalidate.01 and Google under its own field', () => {
+    const m = rootMetadata({ ...SEO_DEFAULTS, siteVerification: 'GOOG', bingVerification: 'B1NG' });
+    expect(m.verification.google).toBe('GOOG');
+    expect(m.verification.other['msvalidate.01']).toBe('B1NG');
+  });
+
+  it('publishes no verification block when neither token is set', () => {
+    expect(rootMetadata(SEO_DEFAULTS).verification).toBeUndefined();
+  });
+
+  it('publishes only what is set', () => {
+    const m = rootMetadata({ ...SEO_DEFAULTS, bingVerification: 'B1NG' });
+    expect(m.verification.google).toBeUndefined();
+    expect(m.verification.other['msvalidate.01']).toBe('B1NG');
+  });
+});
+
+describe('the open-data feeds are reachable (E7)', () => {
+  const base = { siteOrigin: 'https://dhakabypass.com' };
+
+  it('allows /api/public/ although /api/ is disallowed', () => {
+    const r = robotsRulesFor({ ...base, isAdminHost: false, seo: SEO_DEFAULTS });
+    expect(r.rules[0].allow).toEqual(['/', '/api/public/']);
+    expect(r.rules[0].disallow).toEqual(expect.arrayContaining(['/api/']));
+  });
+
+  it('still allows nothing at all on the admin host', () => {
+    const r = robotsRulesFor({ ...base, isAdminHost: true, seo: SEO_DEFAULTS });
+    expect(r.rules).toEqual([{ userAgent: '*', disallow: '/' }]);
+  });
+
+  it('withholds the allowance too when the operator blocks the site', () => {
+    const seo = { ...SEO_DEFAULTS, robotsMode: 'block_all' };
+    const r = robotsRulesFor({ ...base, isAdminHost: false, seo });
+    expect(r.rules).toEqual([{ userAgent: '*', disallow: '/' }]);
+  });
+});
+
+describe('brandedTitle (E2)', () => {
+  const site = 'Dhaka Bypass Expressway';
+
+  it('leaves an ordinary page title to the template', () => {
+    expect(brandedTitle('Toll rates', site)).toBe('Toll rates');
+  });
+
+  it('suppresses the suffix when the title already carries the road name', () => {
+    // The home page is titled after the road, and an editor may have typed the
+    // brand into a title before the template existed. Either way the suffix
+    // would repeat it.
+    expect(brandedTitle(site, site)).toEqual({ absolute: site });
+    expect(brandedTitle('Dhaka Bypass Expressway — toll rates', site)).toEqual({ absolute: 'Dhaka Bypass Expressway — toll rates' });
+  });
+
+  it('matches regardless of case and surrounding space', () => {
+    expect(brandedTitle('  dhaka bypass expressway  ', site)).toEqual({ absolute: '  dhaka bypass expressway  ' });
+  });
+
+  it('works in Bangla, where the road name is a different string', () => {
+    const bn = 'ঢাকা বাইপাস এক্সপ্রেসওয়ে';
+    expect(brandedTitle('টোল হার', bn)).toBe('টোল হার');
+    expect(brandedTitle(bn, bn)).toEqual({ absolute: bn });
+  });
+
+  it('returns the title untouched when there is no site title to compare', () => {
+    expect(brandedTitle('Toll rates', '')).toBe('Toll rates');
   });
 });
