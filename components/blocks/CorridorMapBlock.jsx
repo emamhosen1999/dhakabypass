@@ -9,6 +9,8 @@ import Link from 'next/link';
 import CorridorExplorer from '../corridor/CorridorExplorer.jsx';
 import { localeHref } from '../../lib/blocks/href.js';
 import { orLog } from '../../lib/log.js';
+import { placesJsonLd } from '../../lib/seo/organization.js';
+import StructuredData from '../chrome/StructuredData.jsx';
 import LiveRefresh from '../corridor/LiveRefresh.jsx';
 import { newestMeasurement } from '../../lib/corridor/freshness.js';
 
@@ -142,6 +144,14 @@ export default async function CorridorMapBlock({ data, locale }) {
   );
 
   /**
+   * The open toll plazas as Place nodes (E4). The map is the one component
+   * that already knows where they are, so the markup travels with it: an
+   * operator who places the map on another page gets it there too, and the
+   * stable @id per plaza means the same node is described, not a second one.
+   */
+  const places = placesJsonLd(interchanges, locale);
+
+  /**
    * The compact band (home page): the words beside the map, not above it.
    * Heading, intro, the live line and the link in one column; the map at the
    * corridor's own proportions in the other. Stacks on a phone.
@@ -149,6 +159,7 @@ export default async function CorridorMapBlock({ data, locale }) {
   if (compact) {
     return (
       <section className="db-block db-map-block db-map-block-compact">
+        {places ? <StructuredData data={places} /> : null}
         <div className="db-map-band">
           <div className="db-map-band-text">
             {heading ? <h2 className="db-h2">{heading}</h2> : null}
@@ -169,6 +180,7 @@ export default async function CorridorMapBlock({ data, locale }) {
 
   return (
     <section className="db-block db-map-block">
+      {places ? <StructuredData data={places} /> : null}
       {heading ? <h2 className="db-h2">{heading}</h2> : null}
       {intro ? <p className="db-lede">{intro}</p> : null}
       {notice}
