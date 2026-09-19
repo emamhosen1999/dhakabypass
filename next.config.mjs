@@ -173,6 +173,28 @@ const nextConfig = {
       // and admin trees so the legacy site kept working; that site is gone
       // (W6.1), and every route this app serves is one we own and test.
       { source: '/:path*', headers: [{ key: 'Content-Security-Policy', value: csp }] },
+      // The files this app ships. Measured against the live site on 19
+      // September 2026: `/_next/static/*` came back immutable for a year and
+      // everything under `public/` came back `public, max-age=0` — so every
+      // visit refetched the same 35 kB font and the 197 kB corridor map, and
+      // Cloudflare could hold none of it.
+      //
+      // A font subset that changes ships under a new name, so a year and
+      // `immutable` are honest for it. The pictures get a month, which a
+      // deploy can outlive but a reader's session cannot.
+      //
+      // `/uploads/*` is excluded deliberately: it is a route handler over
+      // MEDIA_ROOT with its own headers, and a replaced picture keeps its
+      // path, so a month here would serve the old file long after it was
+      // swapped.
+      {
+        source: '/fonts/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        source: '/:path((?!uploads/|fonts/).*\\.(?:webp|avif|png|jpe?g|gif|svg|ico|pdf))',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=2592000, stale-while-revalidate=86400' }],
+      },
     ];
   },
   async redirects() {
