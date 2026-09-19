@@ -180,6 +180,26 @@
         }
       ],
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
+      "source": "/fonts/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ],
+      "regex": "^/fonts(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
+      "source": "/:path((?!uploads/|fonts/).*\\.(?:webp|avif|png|jpe?g|gif|svg|ico|pdf))",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000, stale-while-revalidate=86400"
+        }
+      ],
+      "regex": "^(?:/((?!uploads/|fonts/).*\\.(?:webp|avif|png|jpe?g|gif|svg|ico|pdf)))(?:/)?$"
     }
   ],
   "rewrites": {

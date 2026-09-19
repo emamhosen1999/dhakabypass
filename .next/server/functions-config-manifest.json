@@ -5,6 +5,7 @@
     "/api/cameras/[id]/hls/[...path]": {},
     "/api/cameras/[id]/snapshot": {},
     "/api/cron/cameras": {},
+    "/api/public/og": {},
     "/uploads/[...path]": {}
   }
 }
